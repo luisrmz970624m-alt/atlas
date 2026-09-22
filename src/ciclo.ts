@@ -12,6 +12,7 @@ import { evaluarPaso, registrar, LIMITES } from './supervisor.ts';
 import { HERRAMIENTAS, existeHerramienta, catalogo, FueraDelLaboratorio } from './herramientas.ts';
 import { comprobar, comprobarConjunto, describir, esVerificacionValida, type Verificacion } from './verificacion.ts';
 import { estandarPara, archivosDeTexto } from './estandares.ts';
+import { recordarResultado, contexto, type Memoria } from './memoria.ts';
 import type { Nivel } from './tipos.ts';
 
 export interface Paso {
@@ -49,6 +50,7 @@ export interface Resultado {
   ejecutados: number;
   parada: RazonDeParada;
   detalle: string;
+  producidos: string[];
 }
 
 const SISTEMA = `Eres el planificador de Atlas, un asistente local supervisado.
@@ -257,13 +259,20 @@ export async function perseguir(
   objetivo: string,
   generar: Generador,
   intentos = 2,
+  memoria: Memoria | null = null,
 ): Promise<{ resultado: Resultado; intentos: number }> {
   let quejas = '';
 
+  // Lo que Atlas ya sabe de intentos anteriores de este mismo objetivo.
+  // Esto es lo que lo hace dejar de empezar de cero cada vez.
+  const previo = memoria ? contexto(memoria, objetivo) : '';
+
   for (let intento = 1; intento <= intentos; intento++) {
-    const peticion = quejas
-      ? `Objetivo: ${objetivo}\n\nTu intento anterior NO pasó el estándar de calidad:\n${quejas}\n\nRehaz el plan corrigiendo exactamente eso.`
-      : `Objetivo: ${objetivo}`;
+    const peticion = [
+      `Objetivo: ${objetivo}`,
+      previo,
+      quejas ? `Tu intento anterior NO pasó el estándar de calidad:\n${quejas}\n\nRehaz el plan corrigiendo exactamente eso.` : '',
+    ].filter((x) => x !== '').join('\n\n');
 
     const datos = await pedirPlan(objetivo, generar, peticion);
     let plan = construir(objetivo, datos, intento);
@@ -279,6 +288,7 @@ export async function perseguir(
 
     const resultado = ejecutar(ruta, plan);
     if (resultado.parada !== 'estándar no cumplido') {
+      if (memoria) recordarResultado(memoria, objetivo, resultado.parada, resultado.detalle, resultado.producidos);
       return { resultado, intentos: intento };
     }
 
@@ -286,7 +296,10 @@ export async function perseguir(
 
     // El último intento ya quedó registrado por ejecutar(); solo se anota el
     // reintento cuando de verdad va a haber uno.
-    if (intento === intentos) return { resultado, intentos: intento };
+    if (intento === intentos) {
+      if (memoria) recordarResultado(memoria, objetivo, resultado.parada, resultado.detalle, resultado.producidos);
+      return { resultado, intentos: intento };
+    }
 
     registrar(ruta, {
       tipo: 'decision',
@@ -313,25 +326,26 @@ export function ejecutar(ruta: string, plan: Plan): Resultado {
     salida: { pasos: plan.pasos.length, criterio_final: plan.criterio_final },
   });
 
+  const producidos: string[] = [];
+
   const problemas = revisar(plan);
   if (problemas.length > 0) {
     return parar(ruta, plan, 0, 'plan inválido',
-      problemas.map((p) => `paso ${p.paso}: ${p.queja}`).join('; '));
+      problemas.map((p) => `paso ${p.paso}: ${p.queja}`).join('; '), producidos);
   }
 
   let ejecutados = 0;
   let erroresSeguidos = 0;
-  const producidos: string[] = [];
 
   for (const paso of plan.pasos) {
     if (ejecutados >= LIMITES.acciones_por_objetivo) {
       return parar(ruta, plan, ejecutados, 'límite de acciones',
-        `Se alcanzaron ${LIMITES.acciones_por_objetivo} acciones. Hay que revisar el plan contigo.`);
+        `Se alcanzaron ${LIMITES.acciones_por_objetivo} acciones. Hay que revisar el plan contigo.`, producidos);
     }
 
     if (paso.nivel !== 'verde') {
       return parar(ruta, plan, ejecutados, 'requiere aprobación',
-        `Paso ${paso.n} (${paso.nivel}): ${paso.descripcion} — ${paso.motivo}`);
+        `Paso ${paso.n} (${paso.nivel}): ${paso.descripcion} — ${paso.motivo}`, producidos);
     }
 
     const inicio = Date.now();
@@ -364,12 +378,15 @@ export function ejecutar(ruta: string, plan: Plan): Resultado {
     if (ok) {
       ejecutados += 1;
       erroresSeguidos = 0;
-      if (paso.herramienta === 'escribir_archivo') producidos.push(String(paso.argumentos.ruta ?? ''));
+      const escrita = String(paso.argumentos.ruta ?? '');
+      if ((paso.herramienta === 'escribir_archivo' || paso.herramienta === 'agregar_archivo') && !producidos.includes(escrita)) {
+        producidos.push(escrita);
+      }
     } else {
       erroresSeguidos += 1;
       if (erroresSeguidos >= LIMITES.errores_consecutivos) {
         return parar(ruta, plan, ejecutados, 'tres errores consecutivos',
-          'Tres fallos seguidos. Atlas se detiene en lugar de insistir.');
+          'Tres fallos seguidos. Atlas se detiene en lugar de insistir.', producidos);
       }
     }
   }
@@ -377,10 +394,10 @@ export function ejecutar(ruta: string, plan: Plan): Resultado {
   // El examen final: el estándar lo pone Atlas, no el plan.
   const fallos = aplicarEstandar(ruta, plan, producidos);
   if (fallos.length > 0) {
-    return parar(ruta, plan, ejecutados, 'estándar no cumplido', fallos.join('; '));
+    return parar(ruta, plan, ejecutados, 'estándar no cumplido', fallos.join('; '), producidos);
   }
 
-  return parar(ruta, plan, ejecutados, 'objetivo cumplido', plan.criterio_final);
+  return parar(ruta, plan, ejecutados, 'objetivo cumplido', plan.criterio_final, producidos);
 }
 
 /** Comprueba los estándares obligatorios sobre los archivos producidos. */
@@ -418,7 +435,7 @@ function resumir(args: Record<string, unknown>): Record<string, unknown> {
   return copia;
 }
 
-function parar(ruta: string, plan: Plan, ejecutados: number, parada: RazonDeParada, detalle: string): Resultado {
+function parar(ruta: string, plan: Plan, ejecutados: number, parada: RazonDeParada, detalle: string, producidos: string[] = []): Resultado {
   registrar(ruta, {
     tipo: 'detencion',
     descripcion: `Ciclo detenido: ${parada}`,
@@ -428,7 +445,7 @@ function parar(ruta: string, plan: Plan, ejecutados: number, parada: RazonDePara
     veredicto: parada === 'objetivo cumplido' ? 'exito' : 'indeterminado',
     razon: detalle,
   });
-  return { plan, ejecutados, parada, detalle };
+  return { plan, ejecutados, parada, detalle, producidos };
 }
 
 export { describir };

@@ -9,9 +9,11 @@
 import { auditar, leerEventos } from './registro.ts';
 import { registrar, pedirPermiso, LIMITES } from './supervisor.ts';
 import { perseguir, describir } from './ciclo.ts';
+import { Memoria } from './memoria.ts';
 import { generar, alGenerar, MODELO, MAX_SALIDA, ModeloNoDisponible, RespuestaIncompleta } from './modelo.ts';
 
 const RUTA = process.env.ATLAS_REGISTRO ?? 'datos/registro.jsonl';
+const MEMORIA = process.env.ATLAS_MEMORIA ?? 'datos/memoria.db';
 const [comando, ...args] = process.argv.slice(2);
 
 const ICONO = { verde: '🟢', amarillo: '🟡', rojo: '🔴' } as const;
@@ -71,7 +73,9 @@ switch (comando) {
     });
 
     try {
-      const { resultado: r, intentos } = await perseguir(RUTA, objetivo, generar);
+      const memoria = new Memoria(MEMORIA);
+      const { resultado: r, intentos } = await perseguir(RUTA, objetivo, generar, 2, memoria);
+      memoria.cerrar();
       process.stdout.write('\r' + ' '.repeat(50) + '\r');
       const plan = r.plan;
 
@@ -101,6 +105,60 @@ switch (comando) {
     break;
   }
 
+  case 'memoria': {
+    const m = new Memoria(MEMORIA);
+    const filtro = args.join(' ');
+    if (filtro) {
+      const rs = m.consultar({ texto: filtro });
+      if (rs.length === 0) { console.log(`Nada recordado sobre "${filtro}".`); }
+      for (const r of rs) {
+        const marca = r.origen === 'deduccion' ? '≈' : '·';
+        console.log(`${String(r.id).padStart(4)} ${marca} [${r.espacio}] ${r.clave}: ${r.resumen}`);
+        console.log(`       fuente ${r.fuente} · confianza ${r.confianza} · ${r.fecha.slice(0, 10)}`);
+      }
+    } else {
+      const resumen = m.resumen();
+      const total = Object.values(resumen).reduce((a, b) => a + b, 0);
+      console.log(`${total} recuerdo(s) vigente(s):`);
+      for (const [espacio, n] of Object.entries(resumen)) console.log(`   ${espacio}: ${n}`);
+
+      const chocan = m.contradicciones();
+      if (chocan.length > 0) {
+        console.log(`\n⚠️  ${chocan.length} contradicción(es) sin resolver:`);
+        for (const c of chocan) console.log(`   [${c.espacio}] ${c.clave}: ${c.versiones.length} versiones`);
+      }
+    }
+    m.cerrar();
+    break;
+  }
+
+  case 'olvidar': {
+    const id = Number(args[0]);
+    if (!Number.isInteger(id)) { console.error('Falta el número del recuerdo. Míralos con: memoria'); process.exit(1); }
+    const m = new Memoria(MEMORIA);
+    const r = m.porId(id);
+    if (!r) { console.error(`No existe el recuerdo ${id}.`); m.cerrar(); process.exit(1); }
+    m.olvidar(id);
+    registrar(RUTA, {
+      tipo: 'sistema',
+      descripcion: `Luis ordenó olvidar el recuerdo ${id}`,
+      entrada: { id },
+      salida: { clave: r!.clave, espacio: r!.espacio },
+      veredicto: 'exito',
+      razon: 'orden explícita del usuario',
+    });
+    console.log(`Olvidado: [${r!.espacio}] ${r!.clave}`);
+    m.cerrar();
+    break;
+  }
+
+  case 'exportar': {
+    const m = new Memoria(MEMORIA);
+    console.log(JSON.stringify(m.exportar(), null, 2));
+    m.cerrar();
+    break;
+  }
+
   case 'limites':
     console.log(JSON.stringify(LIMITES, null, 2));
     break;
@@ -113,7 +171,10 @@ switch (comando) {
   anotar <texto>     Escribe un evento en el registro
   permiso <accion>   Pregunta al Supervisor si una acción está permitida
   ver [n]            Muestra los últimos n eventos (por defecto 10)
+  memoria [texto]    Qué recuerda Atlas (sin texto: resumen y contradicciones)
+  olvidar <id>       Ordena olvidar un recuerdo
+  exportar           Vuelca toda la memoria en JSON
   limites            Muestra los límites de seguridad vigentes
 
-Registro actual: ${RUTA}`);
+Registro: ${RUTA}\nMemoria:  ${MEMORIA}`);
 }

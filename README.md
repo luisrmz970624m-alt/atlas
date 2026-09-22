@@ -15,26 +15,41 @@ compilación. TypeScript corre directo gracias a `--experimental-strip-types`.
 
 ```bash
 npm run atlas                          # ayuda
-npm run atlas -- anotar "texto"        # escribe un evento
-npm run atlas -- permiso "instalar X"  # pregunta al Supervisor
-npm run atlas -- ver 20                # últimos 20 eventos
+npm run atlas -- objetivo "..."        # planea, ejecuta y comprueba
+npm run atlas -- memoria               # qué recuerda Atlas
+npm run atlas -- memoria typescript    # buscar en la memoria
+npm run atlas -- olvidar 7             # ordenar que olvide un recuerdo
+npm run atlas -- exportar              # volcar la memoria en JSON
+npm run atlas -- ver 20                # últimos 20 eventos del registro
 npm run atlas -- auditar               # verifica la cadena completa
 npm run atlas -- limites               # límites de seguridad vigentes
 
-npm run prueba                         # 8 pruebas
+npm run prueba                         # 62 pruebas
+```
+
+Modelo: se elige con `ATLAS_MODELO` (por defecto `qwen2.5-coder:14b`).
+
+```bash
+ATLAS_MODELO=qwen2.5-coder:7b npm run atlas -- objetivo "..."
 ```
 
 ## Estructura
 
 ```
-src/tipos.ts       Forma de los datos. Sin lógica.
-src/registro.ts    Escritura solo-agregado y verificación de la cadena.
-src/supervisor.ts  Única puerta al registro. Clasifica en verde/amarillo/rojo.
-src/atlas.ts       Línea de comandos.
-pruebas/           Pruebas, incluidas las de detección de manipulación.
-datos/             registro.jsonl (no se versiona).
-laboratorio/       Espacio de simulación (vacío por ahora).
-respaldos/         Copias diarias (aún no automatizadas).
+src/tipos.ts         Forma de los datos. Sin lógica.
+src/registro.ts      Escritura solo-agregado y verificación de la cadena.
+src/supervisor.ts    Única puerta al registro. Separa la acción del dato.
+src/herramientas.ts  Las cuatro capacidades, encerradas en laboratorio/.
+src/verificacion.ts  Comprobaciones que se ejecutan contra el disco.
+src/estandares.ts    La vara de calidad que el modelo no puede negociar.
+src/memoria.ts       Memoria persistente en SQLite, en cinco espacios.
+src/modelo.ts        Conexión con Ollama, en streaming.
+src/ciclo.ts         El ciclo completo, con aprendizaje del rechazo.
+src/atlas.ts         Línea de comandos.
+pruebas/             62 pruebas, ninguna necesita el modelo.
+datos/               registro.jsonl y memoria.db (no se versionan).
+laboratorio/         Donde Atlas trabaja. No puede salir de aquí.
+respaldos/           Copias diarias (aún no automatizadas).
 ```
 
 ## Cómo funciona la cadena
@@ -68,12 +83,24 @@ npm run atlas -- auditar     # 🚨 detectado
 - Contraseñas, claves y tokens nunca entran al registro. Se anota *que* se usó
   una credencial y cuál, jamás su contenido.
 
+## La memoria
+
+Cinco espacios que no se mezclan: `personal`, `programacion`, `trading`,
+`simulaciones`, `sistema`. Un resultado ficticio de trading no puede acabar
+confundido con una operación real.
+
+Cada recuerdo lleva origen, fuente, fecha, confianza y estado. Una deducción se
+marca como deducción, nunca como hecho. Un dato nuevo **supera** al viejo en vez
+de borrarlo, así que la historia se conserva. Olvidar es una orden tuya y queda
+registrada. Y nunca se guardan contraseñas, claves ni tokens.
+
+Lo que hace útil todo esto: antes de planear, Atlas consulta cómo terminaron los
+intentos anteriores del mismo objetivo y se los pasa al modelo. Eso es lo que lo
+hace dejar de empezar de cero.
+
 ## Siguiente paso
 
-Tres cosas, en este orden:
-
-1. Aislar el registro con un usuario propio y permisos de solo-agregado del
-   sistema de archivos (`chattr +a`), para que ni siquiera un error de código
-   pueda sobrescribirlo.
-2. La memoria SQLite (V0.3 en la ruta de versiones).
-3. El ciclo central conectado a `qwen2.5-coder:14b` vía Ollama.
+1. Aislar el registro con permisos de solo-agregado del sistema de archivos
+   (`chattr +a`), para que ni un error de código pueda sobrescribirlo.
+2. Planificador y tareas programadas (V0.5).
+3. Agentes especializados: profesor de programación y de trading (V0.6).
