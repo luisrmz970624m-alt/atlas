@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Línea de comandos de Atlas V0.1
+// Línea de comandos de Atlas V0.3
 //
 //   node --experimental-strip-types src/atlas.ts auditar
 //   node --experimental-strip-types src/atlas.ts anotar "texto"
@@ -8,8 +8,8 @@
 
 import { auditar, leerEventos } from './registro.ts';
 import { registrar, pedirPermiso, LIMITES } from './supervisor.ts';
-import { planear, ejecutar } from './ciclo.ts';
-import { generar, MODELO, ModeloNoDisponible } from './modelo.ts';
+import { perseguir, describir } from './ciclo.ts';
+import { generar, alGenerar, MODELO, MAX_SALIDA, ModeloNoDisponible, RespuestaIncompleta } from './modelo.ts';
 
 const RUTA = process.env.ATLAS_REGISTRO ?? 'datos/registro.jsonl';
 const [comando, ...args] = process.argv.slice(2);
@@ -59,22 +59,43 @@ switch (comando) {
     const objetivo = args.join(' ');
     if (!objetivo) { console.error('Falta el objetivo. Ejemplo: objetivo "estudiar 30 minutos de TypeScript"'); process.exit(1); }
 
-    console.log(`Pensando con ${MODELO}…\n`);
+    console.log(`Pensando con ${MODELO}…`);
+    console.log('(un modelo local en CPU va a unos 4 tokens/s: esto tarda minutos)\n');
+
+    // Señal de vida mientras el modelo escribe, para no mirar una pantalla muerta.
+    const inicio = Date.now();
+    alGenerar((n) => {
+      if (n % 25 !== 0) return;
+      const seg = Math.round((Date.now() - inicio) / 1000);
+      process.stdout.write(`\r   ${n} tokens · ${seg}s · ${(n / Math.max(seg, 1)).toFixed(1)} t/s   `);
+    });
+
     try {
-      const plan = await planear(objetivo, generar);
+      const { resultado: r, intentos } = await perseguir(RUTA, objetivo, generar);
+      process.stdout.write('\r' + ' '.repeat(50) + '\r');
+      const plan = r.plan;
+
+      if (intentos > 1) console.log(`✎ ${intentos - 1} intento(s) rechazado(s) por el estándar antes de este.\n`);
 
       console.log(`Plan v${plan.version} — ${plan.pasos.length} paso(s)`);
       console.log(`Criterio final: ${plan.criterio_final}\n`);
       for (const p of plan.pasos) {
         console.log(`${ICONO[p.nivel]} ${p.n}. ${p.descripcion}`);
-        console.log(`      verificación: ${p.verificacion}`);
+        console.log(`      herramienta:  ${p.herramienta}(${Object.keys(p.argumentos).join(', ')})`);
+        console.log(`      verificación: ${p.verificacion ? describir(p.verificacion) : '— ninguna —'}`);
       }
 
-      const r = ejecutar(RUTA, plan);
-      console.log(`\n→ ${r.parada} (${r.ejecutados} paso(s) simulado(s))`);
+      const marca = r.parada === 'objetivo cumplido' ? '✅' : '⚠️ ';
+      console.log(`\n${marca} ${r.parada} (${r.ejecutados} paso(s) completado(s) y comprobado(s))`);
       console.log(`   ${r.detalle}`);
     } catch (e) {
       if (e instanceof ModeloNoDisponible) { console.error(`⚠️  ${e.message}`); process.exit(1); }
+      if (e instanceof RespuestaIncompleta) {
+        console.error(`⚠️  ${e.message}`);
+        console.error(`   Tope actual: ${MAX_SALIDA} tokens. Puedes subirlo así:`);
+        console.error('   ATLAS_MAX_SALIDA=12288 npm run atlas -- objetivo "…"');
+        process.exit(1);
+      }
       throw e;
     }
     break;
@@ -85,9 +106,9 @@ switch (comando) {
     break;
 
   default:
-    console.log(`Atlas V0.1
+    console.log(`Atlas V0.3
 
-  objetivo <texto>   Planea un objetivo con el modelo local y simula los pasos
+  objetivo <texto>   Planea un objetivo, lo ejecuta en el laboratorio y comprueba cada paso
   auditar            Verifica la cadena completa del registro
   anotar <texto>     Escribe un evento en el registro
   permiso <accion>   Pregunta al Supervisor si una acción está permitida

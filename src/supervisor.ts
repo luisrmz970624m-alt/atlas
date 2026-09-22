@@ -25,6 +25,23 @@ const ROJO = [
   /transferir|wallet|criptomoneda/i,
 ];
 
+/**
+ * Lo único que se busca DENTRO del contenido de un archivo.
+ *
+ * Distinción clave: una cosa es la ACCIÓN que Atlas quiere hacer y otra el
+ * DATO que va a escribir. Una lección sobre cadenas contiene la palabra
+ * "mensaje" en un ejemplo de código; eso no es enviar un mensaje. Aplicar las
+ * reglas de acción al contenido producía falsos positivos que paraban trabajo
+ * legítimo — y un Supervisor que se dispara solo acaba ignorándose.
+ *
+ * En el contenido solo importan los secretos: nunca deben escribirse a disco.
+ */
+const SECRETOS = [
+  /\b(contraseña|password|passwd)\b/i,
+  /\b(api[-_ ]?key|token|secret|credencial)\b/i,
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
+];
+
 /** Acciones que requieren aprobación de Luis. */
 const AMARILLO = [
   /\binstalar\b|\bapt\b|\bnpm install\b|\bpip install\b/,
@@ -37,6 +54,39 @@ export interface Decision {
   nivel: Nivel;
   permitido: boolean;
   motivo: string;
+}
+
+/** Argumentos que describen la acción, frente a los que son carga útil. */
+const CARGA_UTIL = new Set(['contenido']);
+
+/**
+ * Clasifica un paso completo: la acción por un lado, el contenido por otro.
+ * Es lo que usa el ciclo; `evaluar` queda para acciones sueltas en texto.
+ */
+export function evaluarPaso(
+  descripcion: string,
+  herramienta: string,
+  argumentos: Record<string, unknown>,
+): Decision {
+  const accion = Object.entries(argumentos)
+    .filter(([clave]) => !CARGA_UTIL.has(clave))
+    .map(([clave, valor]) => `${clave}=${String(valor)}`)
+    .join(' ');
+
+  const decision = evaluar(`${descripcion} ${herramienta} ${accion}`);
+  if (decision.nivel !== 'verde') return decision;
+
+  for (const [clave, valor] of Object.entries(argumentos)) {
+    if (!CARGA_UTIL.has(clave)) continue;
+    const texto = String(valor);
+    for (const patron of SECRETOS) {
+      if (patron.test(texto)) {
+        return { nivel: 'rojo', permitido: false, motivo: `El contenido parece incluir un secreto: ${patron}` };
+      }
+    }
+  }
+
+  return decision;
 }
 
 /** Clasifica una acción descrita en texto. En V0.1 basta con reglas simples. */
