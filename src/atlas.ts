@@ -86,7 +86,8 @@ switch (comando) {
       for (const p of plan.pasos) {
         console.log(`${ICONO[p.nivel]} ${p.n}. ${p.descripcion}`);
         console.log(`      herramienta:  ${p.herramienta}(${Object.keys(p.argumentos).join(', ')})`);
-        console.log(`      verificación: ${p.verificacion ? describir(p.verificacion) : '— ninguna —'}`);
+        const ajuste = p.ajustada ? '  (ajustada: el tamaño lo mide el estándar)' : '';
+        console.log(`      verificación: ${p.verificacion ? describir(p.verificacion) : '— ninguna —'}${ajuste}`);
       }
 
       const marca = r.parada === 'objetivo cumplido' ? '✅' : '⚠️ ';

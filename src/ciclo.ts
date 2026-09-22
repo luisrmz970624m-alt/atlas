@@ -21,6 +21,8 @@ export interface Paso {
   herramienta: string;
   argumentos: Record<string, unknown>;
   verificacion: Verificacion | null;
+  /** true si Atlas corrigió la verificación propuesta por el modelo. */
+  ajustada: boolean;
   nivel: Nivel;
   motivo: string;
 }
@@ -86,7 +88,10 @@ Reglas que no puedes romper:
    "iniciar un temporizador" o "tomar un descanso".
 3. Cuando escribas un archivo, el contenido va COMPLETO en argumentos.contenido.
    No escribas marcadores como "<aquí el texto>".
-4. La verificación de un paso se refiere al archivo que ese paso produce.
+4. La verificación de un paso se refiere al archivo que ese paso produce, y
+   solo puede ser "existe" o "contiene". NUNCA uses min_lineas ni min_bytes en
+   un paso: el tamaño del material lo mide el estándar al final, una sola vez.
+   Un paso responde "¿hice lo mío?", no "¿ya llegamos a la meta?".
 5. Nunca propongas instalar programas, usar sudo, acceder a Internet ni manejar dinero.
 6. Cada archivo debe ser BREVE: como mucho unos 1200 caracteres de contenido.
    Si el material no cabe, repártelo en varios pasos.
@@ -111,12 +116,16 @@ function construir(objetivo: string, datos: DatosPlan, version: number): Plan {
     // buscan secretos. Ver supervisor.ts para por qué.
     const decision = evaluarPaso(descripcion, herramienta, argumentos);
 
+    const propuesta = esVerificacionValida(p.verificacion) ? p.verificacion : null;
+    const verificacion = corregirVerificacion(propuesta, argumentos);
+
     return {
       n: i + 1,
       descripcion,
       herramienta,
       argumentos,
-      verificacion: esVerificacionValida(p.verificacion) ? p.verificacion : null,
+      verificacion,
+      ajustada: propuesta !== null && verificacion !== propuesta,
       nivel: decision.nivel,
       motivo: decision.motivo,
     };
@@ -128,6 +137,28 @@ function construir(objetivo: string, datos: DatosPlan, version: number): Plan {
     criterio_final: String(datos.criterio_final ?? 'sin criterio declarado').trim(),
     pasos,
   };
+}
+
+/**
+ * Corrige una verificación de paso imposible de cumplir.
+ *
+ * El problema, visto una y otra vez con modelos locales: el modelo reparte la
+ * meta entre los pasos ("al menos 5 líneas, luego 10, luego 15…") y calcula mal,
+ * porque en Markdown casi la mitad de las líneas están en blanco y no cuentan.
+ * Los primeros pasos fallan, se acumulan tres fallos, y el ciclo se detiene
+ * habiendo hecho el trabajo bien.
+ *
+ * La causa de fondo es tener DOS jueces del tamaño: el paso y el estándar.
+ * Aquí se elimina uno. Un paso solo responde "¿hice lo mío?" — para eso basta
+ * con que el archivo exista. Cuánto material hay lo decide el estándar, al
+ * final y una sola vez.
+ */
+function corregirVerificacion(v: Verificacion | null, argumentos: Record<string, unknown>): Verificacion | null {
+  if (v === null) return null;
+  if (v.tipo !== 'min_lineas' && v.tipo !== 'min_bytes') return v;
+
+  const archivo = String(argumentos.ruta ?? v.archivo);
+  return { tipo: 'existe', archivo };
 }
 
 /** Le dice al modelo, de antemano, con qué vara lo van a medir. */

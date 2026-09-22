@@ -52,10 +52,10 @@ test('UN PASO QUE NO PASA SU VERIFICACIÓN CUENTA COMO FALLO', async () => {
   const plan = await planear('x', falso(JSON.stringify({
     criterio_final: 'x',
     pasos: [{
-      descripcion: 'escribir algo corto',
+      descripcion: 'escribir algo incompleto',
       herramienta: 'escribir_archivo',
       argumentos: { ruta: 'corto.md', contenido: 'hola' },
-      verificacion: { tipo: 'min_bytes', archivo: 'corto.md', valor: 500 },
+      verificacion: { tipo: 'contiene', archivo: 'corto.md', valor: '## Ejercicio' },
     }],
   })));
 
@@ -65,7 +65,49 @@ test('UN PASO QUE NO PASA SU VERIFICACIÓN CUENTA COMO FALLO', async () => {
 
   const error = leerEventos(r0).find((e) => e.tipo === 'error');
   assert.ok(error, '…pero debe quedar registrado como fallo');
-  assert.match(String(error!.razon), /mide 4 bytes/);
+  assert.match(String(error!.razon), /NO contiene/);
+});
+
+// ── Un solo juez del tamaño ────────────────────────────────────────────────
+
+test('UN UMBRAL DE TAMAÑO EN UN PASO SE CONVIERTE EN "EXISTE"', async () => {
+  // El fallo real, dos veces: el modelo reparte la meta entre los pasos
+  // ("5 líneas, luego 10, luego 15…"), calcula mal porque las líneas en blanco
+  // no cuentan, y el ciclo se detiene por tres fallos habiendo hecho el trabajo.
+  const plan = await planear('crear una lección', falso(JSON.stringify({
+    criterio_final: 'x',
+    pasos: [
+      { descripcion: 'intro', herramienta: 'escribir_archivo', argumentos: { ruta: 'l.md', contenido: '# Título\n\nTexto.' }, verificacion: { tipo: 'min_lineas', archivo: 'l.md', valor: 5 } },
+      { descripcion: 'más', herramienta: 'agregar_archivo', argumentos: { ruta: 'l.md', contenido: 'Más texto.' }, verificacion: { tipo: 'min_bytes', archivo: 'l.md', valor: 900 } },
+      { descripcion: 'ejercicio', herramienta: 'agregar_archivo', argumentos: { ruta: 'l.md', contenido: '## Ejercicio\n\nPractica.' }, verificacion: { tipo: 'contiene', archivo: 'l.md', valor: '## Ejercicio' } },
+    ],
+  })));
+
+  assert.equal(plan.pasos[0]!.verificacion!.tipo, 'existe');
+  assert.equal(plan.pasos[0]!.ajustada, true);
+  assert.equal(plan.pasos[1]!.verificacion!.tipo, 'existe');
+  assert.equal(plan.pasos[1]!.ajustada, true);
+
+  // "contiene" es una afirmación sobre lo que ESE paso hizo: se respeta.
+  assert.equal(plan.pasos[2]!.verificacion!.tipo, 'contiene');
+  assert.equal(plan.pasos[2]!.ajustada, false);
+});
+
+test('con la corrección, el plan que fallaba tres veces ahora termina', async () => {
+  const r0 = ruta();
+  const cuerpo = Array.from({ length: 22 }, (_, i) => `Línea ${i} con contenido real.`).join('\n');
+  const plan = await planear('crear una lección', falso(JSON.stringify({
+    criterio_final: 'la lección está completa',
+    pasos: [
+      { descripcion: 'intro', herramienta: 'escribir_archivo', argumentos: { ruta: 'ok.md', contenido: `# Título\n\n${cuerpo}` }, verificacion: { tipo: 'min_lineas', archivo: 'ok.md', valor: 40 } },
+      { descripcion: 'código', herramienta: 'agregar_archivo', argumentos: { ruta: 'ok.md', contenido: '```ts\nconst x: number = 1;\n```' }, verificacion: { tipo: 'min_lineas', archivo: 'ok.md', valor: 60 } },
+      { descripcion: 'ejercicio', herramienta: 'agregar_archivo', argumentos: { ruta: 'ok.md', contenido: '## Ejercicio\n\nPractica.' }, verificacion: { tipo: 'contiene', archivo: 'ok.md', valor: '## Ejercicio' } },
+    ],
+  })));
+
+  const r = ejecutar(r0, plan);
+  assert.equal(r.parada, 'objetivo cumplido', r.detalle);
+  assert.equal(r.ejecutados, 3);
 });
 
 test('SALIR DEL LABORATORIO ES RECHAZADO', () => {
