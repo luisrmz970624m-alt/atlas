@@ -1,0 +1,13 @@
+{
+  "name": "atlas",
+  "version": "0.1.0",
+  "description": "Asistente autónomo local, educativo y supervisado",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "atlas": "node --experimental-strip-types src/atlas.ts",
+    "prueba": "node --experimental-strip-types --test pruebas/*.ts",
+    "auditar": "node --experimental-strip-types src/atlas.ts auditar"
+  },
+  "engines": { "node": ">=22" }
+}
