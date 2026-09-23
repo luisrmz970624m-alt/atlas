@@ -270,6 +270,16 @@ El modelo puede escribir mal, pero `verificacion.ts` comprueba estos puntos **so
 
 ---
 
+## Principio de modularización (todas las versiones)
+
+Cada archivo en `src/` cubre una sola responsabilidad. Cuando uno empieza a mezclar más de una (ej. lógica de negocio + comandos de CLI), se divide en archivos nuevos en vez de dejarlo crecer. Ver detalle y ejemplo aplicado en `V0.8_ARQUITECTURA_COMPETENCIA.md § 9`.
+
+## Motores adaptables (hardware real opcional)
+
+Los motores simulados (ej. minería en `src/mineria.ts`) deben poder aceptar una fuente de datos real como alternativa (patrón adapter), sin bifurcar el código en versiones separadas. Ver diseño propuesto en `V0.8_ARQUITECTURA_COMPETENCIA.md § 2`.
+
+---
+
 ## Límites arquitectónicos
 
 **Lo que Atlas garantiza:**
