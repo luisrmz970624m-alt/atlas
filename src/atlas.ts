@@ -14,6 +14,7 @@ import { siguiente, progreso, registrarMaterial, registrarPractica, avanceDe, te
 import { evaluar as evaluarRespuesta, enunciado, plantilla } from './evaluacion.ts';
 import { rutaSegura } from './herramientas.ts';
 import { generar, alGenerar, MODELO, MAX_SALIDA, ModeloNoDisponible, RespuestaIncompleta } from './modelo.ts';
+import { ejecutarCLIv08 } from './cli-v08.ts';
 
 const RUTA = process.env.ATLAS_REGISTRO ?? 'datos/registro.jsonl';
 const MEMORIA = process.env.ATLAS_MEMORIA ?? 'datos/memoria.db';
@@ -411,15 +412,30 @@ switch (comando) {
     console.log(JSON.stringify(LIMITES, null, 2));
     break;
 
-  default:
-    console.log(`Atlas V0.3
+  case 'minar':
+  case 'bots':
+  case 'competencia': {
+    await ejecutarCLIv08(comando, args);
+    break;
+  }
 
+  default:
+    console.log(`Atlas V0.8 CLI
+
+EDUCACIÓN (V0.6):
   estudiar           Qué toca hoy: repaso, terminar lo empezado o tema nuevo
   responder <tema>   Crea la plantilla para tu respuesta al ejercicio
   evaluar <tema>     Ejecuta tu respuesta y la revisa contra el enunciado
   practique <tema>   Registra a mano que hiciste el ejercicio
   progreso           Tu avance en el temario completo
   objetivo <texto>   Planea un objetivo, lo ejecuta en el laboratorio y comprueba cada paso
+
+SISTEMAS (V0.8):
+  minar [estado|ejecutar|historial]     ⛏️ Motor de minería
+  bots [crear|listar|ejecutar]          🤖 Bots de trading autónomos
+  competencia [estado|resultados|registrar]  🏆 Competencia Tú vs Atlas
+
+AUDITORÍA:
   auditar            Verifica la cadena completa del registro
   anotar <texto>     Escribe un evento en el registro
   permiso <accion>   Pregunta al Supervisor si una acción está permitida

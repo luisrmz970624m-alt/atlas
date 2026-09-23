@@ -1,0 +1,270 @@
+import { MotorMineria } from './mineria.ts';
+import { MotorBots, type EstrategiaBot } from './bots.ts';
+import { GestorCompetencia } from './competencia.ts';
+import { GestorEnergia } from './energia.ts';
+
+const DB_PATH = process.env.ATLAS_DB ?? 'datos/atlas.db';
+
+export async function ejecutarCLIv08(comando: string, args: string[]) {
+  switch (comando) {
+    case 'minar': {
+      return await cliMinar(args);
+    }
+
+    case 'bots': {
+      return await cliBots(args);
+    }
+
+    case 'competencia': {
+      return await cliCompetencia(args);
+    }
+
+    default:
+      console.error(`Comando desconocido: ${comando}`);
+      console.error('Comandos V0.8: minar, bots, competencia');
+      process.exit(1);
+  }
+}
+
+async function cliMinar(args: string[]) {
+  const mineria = new MotorMineria(DB_PATH);
+  const energia = new GestorEnergia(DB_PATH);
+
+  const subcomando = args[0];
+
+  switch (subcomando) {
+    case 'estado': {
+      const estado = mineria.obtener_estado_hoy();
+      console.log('\n⛏️  ESTADO DE MINERÍA HOY\n');
+      console.log(`  Energía asignada:   ${estado.energia_asignada}%`);
+      console.log(`  ETH generado:       ${estado.eth_generado_hoy.toFixed(6)} ETH`);
+      console.log(`  Bloques minados:    ${estado.bloques_minados}`);
+      console.log(`  Dificultad:         ${estado.dificultad.toFixed(2)}x`);
+      console.log(`  Velocidad mining:   ${estado.velocidad_mining.toFixed(8)} ETH/h\n`);
+      mineria.cerrar();
+      energia.cerrar();
+      break;
+    }
+
+    case 'ejecutar': {
+      const energiaDisponible = Number(args[1] ?? 10);
+      const energiaAsignada = Number(args[2] ?? 50);
+      const nivel = Number(args[3] ?? 1);
+
+      console.log(`\n⛏️  EJECUTANDO MINERÍA (${energiaDisponible} energía, nivel ${nivel})\n`);
+
+      const resultado = mineria.minar_sesion(energiaDisponible, energiaAsignada, nivel);
+
+      console.log(`  ✅ ${resultado.bloques.length} bloque(s) minado(s)`);
+      console.log(`  💰 ${resultado.eth_total.toFixed(6)} ETH generado`);
+      console.log(`  ⚡ ${resultado.energia_consumida} energía usada\n`);
+
+      energia.consumir_energia('minar', resultado.energia_consumida, {
+        eth_generado: resultado.eth_total,
+        bloques: resultado.bloques.length,
+      });
+
+      mineria.cerrar();
+      energia.cerrar();
+      break;
+    }
+
+    case 'historial': {
+      const registro = mineria.obtener_registro_hoy();
+
+      if (registro.length === 0) {
+        console.log('\nSin registros de minería hoy.\n');
+      } else {
+        console.log(`\n⛏️  HISTORIAL (${registro.length} registro(s))\n`);
+        for (const r of registro.slice(0, 5)) {
+          const hora = r.timestamp.slice(11, 19);
+          console.log(`  ${hora}  ${r.eth_generado.toFixed(6)} ETH  dif:${r.dificultad.toFixed(2)}x`);
+        }
+        if (registro.length > 5) {
+          console.log(`  ... ${registro.length - 5} más`);
+        }
+        console.log('');
+      }
+
+      mineria.cerrar();
+      energia.cerrar();
+      break;
+    }
+
+    default:
+      console.error(`\nSubcomando de minar desconocido: ${subcomando || '(ninguno)'}`);
+      console.error('Uso: npm run atlas -- minar [estado|ejecutar|historial]\n');
+      process.exit(1);
+  }
+}
+
+async function cliBots(args: string[]) {
+  const bots = new MotorBots(DB_PATH);
+
+  const subcomando = args[0];
+
+  switch (subcomando) {
+    case 'crear': {
+      const nombre = args[1];
+      const estrategia = args[2] as EstrategiaBot;
+      const capital = Number(args[3] ?? 1000);
+      const simbolo = args[4] ?? 'BTC';
+
+      if (!nombre || !estrategia) {
+        console.error('\nUso: npm run atlas -- bots crear <nombre> <estrategia> [capital] [simbolo]');
+        console.error('Estrategias: dca, momentum, mean-reversion, buy-and-hold\n');
+        process.exit(1);
+      }
+
+      console.log(`\n🤖 CREANDO BOT\n`);
+
+      const bot = bots.crear_bot({
+        nombre,
+        estrategia,
+        capital_inicial: capital,
+        simbolos: [simbolo],
+        parametros: {},
+      });
+
+      console.log(`  ✅ Bot creado: ${bot.id}`);
+      console.log(`  Nombre:      ${bot.nombre}`);
+      console.log(`  Estrategia:  ${bot.estrategia}`);
+      console.log(`  Capital:     $${bot.capital_inicial}`);
+      console.log(`  Estado:      ${bot.estado}\n`);
+
+      bots.cerrar();
+      break;
+    }
+
+    case 'listar': {
+      const lista = bots.listar_bots();
+
+      if (lista.length === 0) {
+        console.log('\nNo hay bots creados aún.\n');
+      } else {
+        console.log(`\n🤖 BOTS (${lista.length})\n`);
+        for (const bot of lista) {
+          console.log(`  ${bot.nombre} (${bot.estrategia}) — id: ${bot.id}`);
+          console.log(`    Estado:    ${bot.estado}`);
+          console.log(`    Capital:   $${bot.capital_actual.toFixed(2)} / $${bot.capital_inicial.toFixed(2)}`);
+          console.log(`    Trades:    ${bot.trades_ejecutados} ejecución(es)`);
+          console.log(`    Win rate:  ${bot.win_rate.toFixed(1)}%`);
+          console.log(`    Ganancia:  ${bot.ganancia_total.toFixed(4)} (${bot.ganancia_porcentaje.toFixed(2)}%)\n`);
+        }
+      }
+
+      bots.cerrar();
+      break;
+    }
+
+    case 'ejecutar': {
+      const botId = args[1];
+      const tipo = args[2] as 'compra' | 'venta';
+      const simbolo = args[3];
+      const cantidad = Number(args[4]);
+      const precio = Number(args[5]);
+
+      if (!botId || !tipo || !simbolo || !cantidad || !precio) {
+        console.error('\nUso: npm run atlas -- bots ejecutar <bot-id> <compra|venta> <simbolo> <cantidad> <precio>\n');
+        process.exit(1);
+      }
+
+      console.log(`\n🤖 EJECUTANDO ORDEN\n`);
+
+      try {
+        const orden = bots.ejecutar_orden_bot(botId, tipo, simbolo, cantidad, precio);
+
+        console.log(`  ✅ Orden ejecutada`);
+        console.log(`  Tipo:       ${orden.tipo}`);
+        console.log(`  Símbolo:    ${orden.simbolo}`);
+        console.log(`  Cantidad:   ${orden.cantidad}`);
+        console.log(`  Precio:     $${orden.precio_entrada.toFixed(2)}`);
+        if (orden.ganancia !== null) {
+          console.log(`  Ganancia:   ${orden.ganancia.toFixed(4)} (${orden.ganancia_porcentaje?.toFixed(2)}%)`);
+        }
+        console.log(`  Estado:     ${orden.estado}\n`);
+      } catch (e) {
+        console.error(`  ❌ Error: ${(e as Error).message}\n`);
+      }
+
+      bots.cerrar();
+      break;
+    }
+
+    default:
+      console.error(`\nSubcomando de bots desconocido: ${subcomando || '(ninguno)'}`);
+      console.error('Uso: npm run atlas -- bots [crear|listar|ejecutar]\n');
+      process.exit(1);
+  }
+}
+
+async function cliCompetencia(args: string[]) {
+  const competencia = new GestorCompetencia(DB_PATH);
+
+  const subcomando = args[0];
+
+  switch (subcomando) {
+    case 'estado': {
+      const dias = Number(args[1] ?? 30);
+      const stats = competencia.obtener_estadisticas(dias);
+
+      console.log('\n🏆 COMPETENCIA TÚ VS ATLAS\n');
+      console.log(`  Días jugados:       ${stats.dias_jugados}`);
+      console.log(`  Tu ganancia total:  ${stats.usuario_ganancias.toFixed(4)}`);
+      console.log(`  Atlas ganancia:     ${stats.atlas_ganancias.toFixed(4)}`);
+      console.log(`  Tus días ganados:   ${stats.usuario_win_days}`);
+      console.log(`  Días de Atlas:      ${stats.atlas_win_days}`);
+      console.log(`  Empates:            ${stats.empates}`);
+      console.log(`  Promedio tú:        ${stats.promedio_ganancia_usuario.toFixed(4)}`);
+      console.log(`  Promedio Atlas:     ${stats.promedio_ganancia_atlas.toFixed(4)}\n`);
+
+      competencia.cerrar();
+      break;
+    }
+
+    case 'snapshot': {
+      const [
+        usuario_capital, usuario_ganancia, usuario_trades, usuario_win_rate,
+        atlas_capital, atlas_ganancia, atlas_trades, atlas_bots_activos, atlas_win_rate,
+      ] = args.slice(1).map(Number);
+
+      const snap = competencia.crear_snapshot(
+        usuario_capital ?? 10000, usuario_ganancia ?? 0, usuario_trades ?? 0, usuario_win_rate ?? 0,
+        atlas_capital ?? 10000, atlas_ganancia ?? 0, atlas_trades ?? 0, atlas_bots_activos ?? 0, atlas_win_rate ?? 0
+      );
+
+      console.log('\n📸 SNAPSHOT TOMADO\n');
+      console.log(`  Tú:     ${snap.usuario.ganancia.toFixed(4)} (${snap.usuario.ganancia_porcentaje.toFixed(2)}%)`);
+      console.log(`  Atlas:  ${snap.atlas.ganancia.toFixed(4)} (${snap.atlas.ganancia_porcentaje.toFixed(2)}%)`);
+      console.log(`  Líder:  ${snap.lider}\n`);
+
+      competencia.cerrar();
+      break;
+    }
+
+    case 'registrar': {
+      const usuario_ganancia = Number(args[1] ?? 0);
+      const usuario_capital_inicial = Number(args[2] ?? 10000);
+      const atlas_ganancia = Number(args[3] ?? 0);
+      const atlas_capital_inicial = Number(args[4] ?? 10000);
+
+      console.log(`\n📊 REGISTRANDO RESULTADO DIARIO\n`);
+
+      competencia.registrar_resultado_diario(
+        usuario_ganancia, usuario_capital_inicial, atlas_ganancia, atlas_capital_inicial
+      );
+
+      console.log(`  ✅ Resultado registrado`);
+      console.log(`  Tú:     ${usuario_ganancia.toFixed(4)}`);
+      console.log(`  Atlas:  ${atlas_ganancia.toFixed(4)}\n`);
+
+      competencia.cerrar();
+      break;
+    }
+
+    default:
+      console.error(`\nSubcomando de competencia desconocido: ${subcomando || '(ninguno)'}`);
+      console.error('Uso: npm run atlas -- competencia [estado|snapshot|registrar]\n');
+      process.exit(1);
+  }
+}
