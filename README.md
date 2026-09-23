@@ -1,6 +1,6 @@
-# Atlas V0.1
+# Atlas V0.6.1
 
-Asistente autónomo local, educativo y supervisado.
+Asistente local, educativo y supervisado. Corre en tu máquina, enseña a programar, registra todo lo que hace.
 
 Esta primera pieza es el **registro auditable**: el cimiento sobre el que se apoya
 todo lo demás. Si el historial se puede alterar en silencio, el Supervisor, los
@@ -29,7 +29,7 @@ npm run atlas -- ver 20                # últimos 20 eventos del registro
 npm run atlas -- auditar               # verifica la cadena completa
 npm run atlas -- limites               # límites de seguridad vigentes
 
-npm run prueba                         # 101 pruebas
+npm run prueba                         # 104 pruebas
 ```
 
 Modelo: se elige con `ATLAS_MODELO` (por defecto `qwen2.5-coder:14b`).
@@ -70,7 +70,7 @@ Cada evento guarda la huella SHA-256 del anterior. El primero apunta a
 
 Cambiar una sola letra de un evento pasado rompe las tres. Borrar un evento del
 medio rompe las dos últimas. No impide que alguien borre el archivo entero, pero
-sí hace **imposible la alteración silenciosa**.
+sí hace **detectable cualquier alteración**. Por eso es un registro resistente, no inmutable.
 
 Compruébalo tú mismo:
 
@@ -149,7 +149,14 @@ registro que fue tuya.
 
 ## Siguiente paso
 
-1. Aislar el registro con permisos de solo-agregado del sistema de archivos
-   (`chattr +a`), para que ni un error de código pueda sobrescribirlo.
-2. Planificador y tareas programadas (V0.5).
-3. Asistente de trading educativo (V0.6), con capital ficticio.
+**V0.6.1 (actual):** Terminal simulada. Tema nuevo `filesystem` con node:fs.
+
+**V0.7:** Planificador y tareas programadas. Especificar objetivos, ejecutarlos paso a paso, verificar resultado.
+
+**V0.8:** Asistente de trading educativo con capital ficticio. Simulación completa, sin dinero real.
+
+**V0.9:** Interfaz web/móvil. Audio de lecciones. Copias de seguridad automáticas.
+
+**V1.0:** Asistente estable. Documentación completa. Listo para uso prolongado.
+
+**Largo plazo:** `chattr +a` sobre registro, firmas HMAC, copias externas.

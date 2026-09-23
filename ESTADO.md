@@ -9,7 +9,7 @@
 
 ## 1. Qué es Atlas, en una frase
 
-Un asistente que corre en tu máquina, local por defecto, que te enseña a programar y que **no puede hacer nada sin dejar rastro ni sin permiso**. Todo lo demás es consecuencia de eso.
+Un asistente que corre en tu máquina, local por defecto, que te enseña a programar. **No puede actuar fuera de sus capacidades y permisos; todas sus acciones quedan registradas.** Todo lo demás es consecuencia de eso.
 
 ---
 
