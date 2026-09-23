@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlas V0.9 — Opción 3: Terminal Retro</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0d0221;
+      color: #00ff00;
+      line-height: 1.4;
+      overflow: hidden;
+    }
+    .scanline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.3),
+        rgba(0, 0, 0, 0.3) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 999;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+      gap: 0;
+    }
+    /* Sidebar izquierdo */
+    .sidebar {
+      width: 320px;
+      border-right: 2px solid #00ff00;
+      padding: 20px;
+      overflow-y: auto;
+      background: #0d0221;
+    }
+    .sidebar-title {
+      font-size: 11px;
+      color: #00cc00;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      opacity: 0.7;
+      border-bottom: 1px dashed #00ff00;
+      padding-bottom: 8px;
+    }
+    .stat-item {
+      margin-bottom: 20px;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: #00cc00;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      opacity: 0.7;
+    }
+    .stat-value {
+      font-size: 20px;
+      color: #00ff00;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    }
+    .stat-meta {
+      font-size: 10px;
+      color: #00aa00;
+      margin-top: 4px;
+    }
+    .tema-section {
+      border: 1px solid #00ff00;
+      padding: 12px;
+      margin-top: 20px;
+      background: #0d0221;
+    }
+    .tema-name {
+      font-size: 12px;
+      color: #00ff00;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .tema-detail {
+      font-size: 10px;
+      color: #00aa00;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    button {
+      padding: 6px;
+      background: #0d0221;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #00ff00;
+      color: #0d0221;
+    }
+    /* Contenido principal */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      padding: 20px;
+      overflow-y: auto;
+      border-left: 2px solid #00ff00;
+    }
+    .header-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    .stat-box {
+      border: 1px solid #00ff00;
+      padding: 12px;
+      background: #0d0221;
+    }
+    .stat-box-label {
+      font-size: 9px;
+      color: #00cc00;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+    .stat-box-value {
+      font-size: 18px;
+      color: #00ff00;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    }
+    .stat-box-meta {
+      font-size: 9px;
+      color: #00aa00;
+      margin-top: 4px;
+    }
+    .card {
+      border: 1px solid #00ff00;
+      padding: 16px;
+      background: #0d0221;
+    }
+    .card-title {
+      font-size: 12px;
+      color: #00ff00;
+      margin-bottom: 10px;
+      font-weight: bold;
+      border-bottom: 1px dashed #00ff00;
+      padding-bottom: 8px;
+    }
+    .card-meta {
+      font-size: 9px;
+      color: #00aa00;
+      margin-bottom: 12px;
+      opacity: 0.7;
+    }
+    .leccion-preview {
+      background: #0d0221;
+      border: 1px dashed #00ff00;
+      padding: 12px;
+      font-size: 10px;
+      line-height: 1.5;
+      color: #00ff00;
+      max-height: 150px;
+      overflow: hidden;
+    }
+    .theme-badge {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #00ff00;
+      color: #0d0221;
+      padding: 6px 12px;
+      border: 1px solid #00ff00;
+      font-size: 9px;
+      font-weight: bold;
+      text-transform: uppercase;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div class="scanline"></div>
+  <div class="theme-badge">OPCIÓN 3: RETRO</div>
+
+  <div class="container">
+    <!-- Sidebar izquierdo -->
+    <aside class="sidebar">
+      <div class="sidebar-title">> Atlas v0.9</div>
+
+      <div class="stat-item">
+        <div class="stat-label">Practicados</div>
+        <div class="stat-value">2</div>
+        <div class="stat-meta">terminal, filesystem</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-value">13</div>
+        <div class="stat-meta">de 15 temas</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Progreso</div>
+        <div class="stat-value">13.3%</div>
+        <div class="stat-meta">curriculo</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Memoria</div>
+        <div class="stat-value">7</div>
+        <div class="stat-meta">vigentes</div>
+      </div>
+
+      <div class="tema-section">
+        <div class="tema-name">> la terminal</div>
+        <div class="tema-detail">
+          <span>Estado:</span>
+          <span style="color: #00ff00;">practicado</span>
+        </div>
+        <div class="tema-detail">
+          <span>Nivel:</span>
+          <span>1</span>
+        </div>
+        <div class="tema-detail">
+          <span>Repaso:</span>
+          <span>2026-09-24</span>
+        </div>
+
+        <div class="buttons">
+          <button>$ estudiar</button>
+          <button>$ responder</button>
+          <button>$ evaluar</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #00ff00;">
+        <div class="sidebar-title">> Registro</div>
+        <div class="stat-item">
+          <div class="stat-label">Eventos</div>
+          <div class="stat-value">234</div>
+          <div class="stat-meta" style="color: #00ff00;">✓ integra</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main">
+      <div class="header-stats">
+        <div class="stat-box">
+          <div class="stat-box-label">tema_actual</div>
+          <div class="stat-box-value" style="font-size: 14px;">terminal</div>
+          <div class="stat-box-meta">la terminal y sistema</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-label">Estado</div>
+          <div class="stat-box-value" style="font-size: 14px;">practicado</div>
+          <div class="stat-box-meta">✓ aprobado</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-label">progreso_total</div>
+          <div class="stat-box-value">13.3%</div>
+          <div class="stat-box-meta">2 de 15</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-label">registro</div>
+          <div class="stat-box-value" style="font-size: 16px;">234</div>
+          <div class="stat-box-meta">✓ verificado</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">> leccion: terminal</div>
+        <div class="card-meta">laboratorio/leccion-01.md | 1.3 KB | 2026-09-22</div>
+        <div class="leccion-preview">
+# Moverse por la terminal de Linux
+
+En esta leccion aprenderas a navegar por el sistema de archivos...
+
+## Comando `cd`
+El comando cd cambia el directorio actual...
+
+## Comando `ls`
+El comando ls lista archivos y directorios...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">> proximos_pasos</div>
+        <div style="font-size: 10px; color: #00ff00; line-height: 1.8;">
+          <div>$ requisitos cumplidos para desbloquear: filesystem</div>
+          <div>$ proximo repaso en: 2026-09-24</div>
+          <div>$ temas pendientes: 13 (variables, condiciones...)</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

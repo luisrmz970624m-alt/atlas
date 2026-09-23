@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlas V0.9 — Opción 2: Clean Minimal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f9fa;
+      color: #37352f;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+      background: #ffffff;
+    }
+    /* Sidebar izquierdo */
+    .sidebar {
+      width: 320px;
+      background: #f5f5f5;
+      border-right: 1px solid #e5e5e5;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .sidebar-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+    .stat-item {
+      margin-bottom: 20px;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0369a1;
+    }
+    .stat-meta {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+    .tema-section {
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+    .tema-name {
+      font-size: 14px;
+      color: #1e293b;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .tema-detail {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    button {
+      padding: 8px 12px;
+      background: #0369a1;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #0c5995;
+    }
+    /* Contenido principal */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 24px;
+      overflow-y: auto;
+    }
+    .header-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .stat-box {
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .stat-box-label {
+      font-size: 11px;
+      color: #999;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .stat-box-value {
+      font-size: 24px;
+      color: #0369a1;
+      font-weight: 700;
+    }
+    .stat-box-meta {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 24px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 12px;
+    }
+    .card-meta {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 16px;
+    }
+    .leccion-preview {
+      background: #f5f5f5;
+      border-left: 3px solid #0369a1;
+      padding: 16px;
+      border-radius: 4px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #666;
+      max-height: 200px;
+      overflow: hidden;
+      font-family: 'Monaco', monospace;
+    }
+    .theme-badge {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #0369a1;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="theme-badge">OPCIÓN 2: CLEAN MINIMAL</div>
+
+  <div class="container">
+    <!-- Sidebar izquierdo -->
+    <aside class="sidebar">
+      <div class="sidebar-title">Atlas v0.9</div>
+
+      <div class="stat-item">
+        <div class="stat-label">Practicados</div>
+        <div class="stat-value">2</div>
+        <div class="stat-meta">terminal, filesystem</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-value">13</div>
+        <div class="stat-meta">de 15 temas</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Progreso</div>
+        <div class="stat-value">13.3%</div>
+        <div class="stat-meta">currículo</div>
+      </div>
+
+      <div class="stat-item">
+        <div class="stat-label">Memoria</div>
+        <div class="stat-value">7</div>
+        <div class="stat-meta">vigentes</div>
+      </div>
+
+      <div class="tema-section">
+        <div class="tema-name">la terminal</div>
+        <div class="tema-detail">
+          <span>Estado:</span>
+          <span style="color: #16a34a; font-weight: 600;">practicado</span>
+        </div>
+        <div class="tema-detail">
+          <span>Nivel:</span>
+          <span>1</span>
+        </div>
+        <div class="tema-detail">
+          <span>Repaso:</span>
+          <span>2026-09-24</span>
+        </div>
+
+        <div class="buttons">
+          <button>estudiar</button>
+          <button>responder</button>
+          <button>evaluar</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5e5;">
+        <div class="sidebar-title">Registro</div>
+        <div class="stat-item">
+          <div class="stat-label">Eventos</div>
+          <div class="stat-value">234</div>
+          <div class="stat-meta" style="color: #16a34a; font-weight: 600;">✅ Íntegra</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main">
+      <div class="header-stats">
+        <div class="stat-box">
+          <div class="stat-box-label">Tema Actual</div>
+          <div class="stat-box-value" style="font-size: 16px; margin-top: 8px;">terminal</div>
+          <div class="stat-box-meta">la terminal y sistema de archivos</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-label">Estado</div>
+          <div class="stat-box-value" style="font-size: 16px; color: #16a34a; margin-top: 8px;">practicado</div>
+          <div class="stat-box-meta">aprobado</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-label">Progreso Total</div>
+          <div class="stat-box-value">13.3%</div>
+          <div class="stat-box-meta">2 de 15</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-box-label">Registro</div>
+          <div class="stat-box-value" style="font-size: 20px;">234</div>
+          <div class="stat-box-meta" style="color: #16a34a; font-weight: 600;">✅ verificado</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📚 Lección: Moverse por la terminal de Linux</div>
+        <div class="card-meta">laboratorio/leccion-01.md • 1.3 KB • 2026-09-22</div>
+        <div class="leccion-preview">
+# Moverse por la terminal de Linux
+
+En esta lección aprenderás a navegar por el sistema de archivos de Linux usando comandos básicos.
+
+## Comando `cd`
+El comando cd (change directory) se usa para cambiar el directorio actual...
+
+## Comando `ls`
+El comando ls (list) se usa para listar archivos y directorios...
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎯 Próximos pasos</div>
+        <div style="font-size: 12px; color: #666; line-height: 1.8;">
+          <div style="margin-bottom: 8px;">→ Requisitos cumplidos para desbloquear: <strong>filesystem</strong></div>
+          <div style="margin-bottom: 8px;">→ Próximo repaso en: <strong>2026-09-24</strong></div>
+          <div>→ Temas pendientes: <strong>13</strong> (variables, condiciones, funciones, ...)</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
