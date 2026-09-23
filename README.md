@@ -1,6 +1,6 @@
-# Atlas V0.6.1
+# Atlas V0.8
 
-Asistente local, educativo y supervisado. Corre en tu máquina, enseña a programar, registra todo lo que hace.
+Asistente local, educativo y supervisado. Corre en tu máquina, enseña a programar, registra todo lo que hace — y desde V0.8 también compite contra ti en trading educativo con dinero simulado (bots autónomos, minería simulada, energía diaria compartida entre estudiar/minar/tradear).
 
 Esta primera pieza es el **registro auditable**: el cimiento sobre el que se apoya
 todo lo demás. Si el historial se puede alterar en silencio, el Supervisor, los
@@ -8,8 +8,10 @@ límites y las aprobaciones no valen nada.
 
 ## Requisitos
 
-Node.js 22 o superior. Nada más — sin dependencias, sin `npm install`, sin
-compilación. TypeScript corre directo gracias a `--experimental-strip-types`.
+Node.js 22 o superior. El núcleo educativo (V0.6.1) no tiene dependencias.
+Los módulos V0.8 (minería, bots, competencia) usan `better-sqlite3` —
+corre `npm install` una vez antes de usarlos. TypeScript corre directo
+gracias a `--experimental-strip-types`, sin `tsc` ni paso de compilación.
 
 ## Uso
 
@@ -29,7 +31,17 @@ npm run atlas -- ver 20                # últimos 20 eventos del registro
 npm run atlas -- auditar               # verifica la cadena completa
 npm run atlas -- limites               # límites de seguridad vigentes
 
-npm run prueba                         # 104 pruebas
+# V0.8 — trading educativo, competencia Tú vs Atlas
+npm run atlas -- minar estado          # estado del motor de minería (simulado)
+npm run atlas -- minar ejecutar 20 50  # minar con 20 energía, 50% asignada
+npm run atlas -- bots crear <nombre> <estrategia> [capital] [simbolo]
+npm run atlas -- bots listar           # tus bots y sus estadísticas
+npm run atlas -- competencia estado    # Tú vs Atlas, ganancias y líder
+npm run atlas -- ciclo                 # ejecuta un ciclo completo y persiste el estado
+npm run atlas -- estado                # último snapshot persistido (sin recalcular)
+npm run atlas -- respaldo crear        # respalda datos/atlas.db (retiene últimos 7)
+
+npm run prueba                         # 147 pruebas
 ```
 
 Modelo: se elige con `ATLAS_MODELO` (por defecto `qwen2.5-coder:14b`).
@@ -41,22 +53,37 @@ ATLAS_MODELO=qwen2.5-coder:7b npm run atlas -- objetivo "..."
 ## Estructura
 
 ```
-src/tipos.ts         Forma de los datos. Sin lógica.
-src/registro.ts      Escritura solo-agregado y verificación de la cadena.
-src/supervisor.ts    Única puerta al registro. Separa la acción del dato.
-src/herramientas.ts  Las cuatro capacidades, encerradas en laboratorio/.
-src/verificacion.ts  Comprobaciones que se ejecutan contra el disco.
-src/estandares.ts    La vara de calidad que el modelo no puede negociar.
-src/memoria.ts       Memoria persistente en SQLite, en cinco espacios.
-src/curso.ts         Temario, progreso y repasos espaciados.
-src/evaluacion.ts    Ejecuta tu respuesta y la revisa contra el enunciado.
-src/modelo.ts        Conexión con Ollama, en streaming.
-src/ciclo.ts         El ciclo completo, con aprendizaje del rechazo.
-src/atlas.ts         Línea de comandos.
-pruebas/             101 pruebas, ninguna necesita el modelo.
-datos/               registro.jsonl y memoria.db (no se versionan).
-laboratorio/         Donde Atlas trabaja. No puede salir de aquí.
-respaldos/           Copias diarias (aún no automatizadas).
+NÚCLEO EDUCATIVO (V0.6.1)
+src/tipos.ts          Forma de los datos. Sin lógica.
+src/registro.ts       Escritura solo-agregado y verificación de la cadena.
+src/supervisor.ts     Única puerta al registro. Separa la acción del dato.
+src/herramientas.ts   Las cuatro capacidades, encerradas en laboratorio/.
+src/verificacion.ts   Comprobaciones que se ejecutan contra el disco.
+src/estandares.ts     La vara de calidad que el modelo no puede negociar.
+src/memoria.ts        Memoria persistente en SQLite, en cinco espacios.
+src/curso.ts          Temario, progreso y repasos espaciados.
+src/evaluacion.ts     Ejecuta tu respuesta y la revisa contra el enunciado.
+src/modelo.ts         Conexión con Ollama, en streaming.
+src/ciclo.ts          El ciclo completo, con aprendizaje del rechazo.
+
+TRADING EDUCATIVO Y COMPETENCIA (V0.8)
+src/energia.ts        100 unidades/día repartidas entre estudiar/minar/tradear.
+src/mineria.ts        Motor de minería simulado (ETH ficticio, dificultad creciente).
+src/trading.ts        Motor de compra/venta, portafolios, cálculo de PnL.
+src/precios-realtime.ts  Precios reales (CoinGecko) con fallback simulado.
+src/bots.ts           Bots autónomos: DCA, momentum, mean-reversion, buy-and-hold.
+src/competencia.ts    Comparación Tú vs Atlas en tiempo real.
+src/evolucion-bots.ts Aprende de errores de los bots y genera versiones mejoradas.
+src/orquestador-v08.ts   Integra energía+minería+bots+competencia en un solo ciclo.
+src/persistencia.ts   Snapshot de estado en JSON, sobrevive reinicios.
+src/respaldo.ts        Respaldo seguro de SQLite con retención automática.
+src/cli-v08.ts         Comandos de línea de comandos de todo lo anterior.
+
+src/atlas.ts          Línea de comandos principal (delega V0.8 a cli-v08.ts).
+pruebas/              147 pruebas, ninguna necesita el modelo.
+datos/                *.db, registro.jsonl, atlas-state.json (no se versionan).
+laboratorio/          Donde Atlas trabaja. No puede salir de aquí.
+respaldos/            Copias automáticas de datos/atlas.db (ver GUIA_SELFHOSTING.md).
 ```
 
 ## Cómo funciona la cadena
@@ -149,14 +176,16 @@ registro que fue tuya.
 
 ## Siguiente paso
 
-**V0.6.1 (actual):** Terminal simulada. Tema nuevo `filesystem` con node:fs.
+**V0.6.1:** Terminal simulada. Tema nuevo `filesystem` con node:fs. ✅ Producción.
 
-**V0.7:** Planificador y tareas programadas. Especificar objetivos, ejecutarlos paso a paso, verificar resultado.
+**V0.8 (actual):** Trading educativo con capital ficticio — energía, minería simulada, bots autónomos, competencia Tú vs Atlas, persistencia de estado, respaldo automático. ✅ CLI integrada, 147 tests en verde.
 
-**V0.8:** Asistente de trading educativo con capital ficticio. Simulación completa, sin dinero real.
+**V0.7:** Planificador y tareas programadas. Especificar objetivos, ejecutarlos paso a paso, verificar resultado. Pendiente.
 
-**V0.9:** Interfaz web/móvil. Audio de lecciones. Copias de seguridad automáticas.
+**V0.9:** Interfaz web/móvil. Audio de lecciones. Motores de minería adaptables a hardware real (ver `GUIA_ARQUITECTURA.md`).
 
 **V1.0:** Asistente estable. Documentación completa. Listo para uso prolongado.
 
-**Largo plazo:** `chattr +a` sobre registro, firmas HMAC, copias externas.
+**Largo plazo:** `chattr +a` sobre registro, firmas HMAC.
+
+Ver [GUIA_SELFHOSTING.md](GUIA_SELFHOSTING.md) para respaldo automático y exposición segura a internet con Cloudflare Tunnel.

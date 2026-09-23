@@ -1,9 +1,10 @@
 # Atlas — Estado del proyecto
 
 **Fecha:** 23 de septiembre de 2026
-**Versión del código:** V0.6.1 (profesor + evaluador + terminal simulada)
+**Versión del código:** V0.6.1 (núcleo educativo, producción) + V0.8 (trading educativo, CLI integrada)
 **Ubicación:** `~/atlas` en tu Pop!_OS
-**Pruebas:** 104 de 104 pasan, ninguna necesita Ollama encendido
+**Pruebas:** 147 de 147 pasan, ninguna necesita Ollama encendido
+**Líneas de código:** 5,537 en `src/` (11 módulos nuevos de V0.8 suman ~2,983 líneas)
 
 ---
 
@@ -77,13 +78,37 @@ Cinco espacios: personal, programación, trading, simulaciones, sistema. Un dato
 Ejecuta tu ejercicio de verdad (`spawnSync`, 10 s de tope) y además le pide opinión al modelo. **Si los dos discrepan, manda el hecho duro:** si corre, corre.
 
 **`src/atlas.ts` — la línea de comandos (433 líneas)**
-`estudiar`, `responder`, `evaluar`, `practique`, `progreso`, `objetivo`, `auditar`, `anotar`, `permiso`, `ver`, `memoria`, `olvidar`, `exportar`, `limites`.
+Comandos del núcleo educativo: `estudiar`, `responder`, `evaluar`, `practique`, `progreso`, `objetivo`, `auditar`, `anotar`, `permiso`, `ver`, `memoria`, `olvidar`, `exportar`, `limites`. Delega los comandos de V0.8 a `cli-v08.ts` en vez de crecer con lógica de negocio ajena (regla de modularización, ver `GUIA_ARQUITECTURA.md`).
+
+---
+
+## 4.1 V0.8 — Trading educativo y competencia Tú vs Atlas
+
+Sistema completo de simulación: Atlas divide 100 unidades de energía diaria entre estudiar, minar y tradear, ejecuta bots autónomos con dinero ficticio, y compite contra tus operaciones manuales en tiempo real. **Dinero 100% simulado por diseño** — no mueve fondos reales.
+
+| Módulo | Responsabilidad |
+|---|---|
+| `src/energia.ts` | Reparto y consumo de las 100 unidades diarias |
+| `src/mineria.ts` | Motor de minería simulado (ETH ficticio, dificultad tope 5x) |
+| `src/trading.ts` | Motor base de compra/venta, portafolios, PnL |
+| `src/precios-realtime.ts` | Precios reales vía CoinGecko, con fallback simulado |
+| `src/bots.ts` | Bots autónomos: DCA, momentum, mean-reversion, buy-and-hold |
+| `src/competencia.ts` | Snapshots y estadísticas Tú vs Atlas |
+| `src/evolucion-bots.ts` | Aprende de errores de los bots y genera versiones mejoradas |
+| `src/orquestador-v08.ts` | Une todo en un solo ciclo (`ejecutar_ciclo()`) |
+| `src/persistencia.ts` | Snapshot de estado en `datos/atlas-state.json`, sobrevive reinicios |
+| `src/respaldo.ts` | Respaldo seguro de SQLite (backup nativo, retención de 7) |
+| `src/cli-v08.ts` | Comandos: `minar`, `bots`, `competencia`, `ciclo`, `estado`, `respaldo` |
+
+**Auditoría:** 8 bugs encontrados y corregidos (3 críticos: ganancia siempre 0 en ventas, método inexistente en orquestador, win_rate falso; ver `ANALISIS_FINAL_AUDITORIA.md`).
+
+**Pendiente:** interfaz de motor de minería adaptable a hardware real (diseño ya documentado en `V0.8_ARQUITECTURA_COMPETENCIA.md § 2`, no implementado).
 
 ---
 
 ## 5. Los laboratorios y las pruebas
 
-### Pruebas automáticas — 104, todas pasan
+### Pruebas automáticas — 147, todas pasan
 
 | Archivo | Pruebas | Qué defiende |
 |---|---|---|
@@ -93,6 +118,9 @@ Ejecuta tu ejercicio de verdad (`spawnSync`, 10 s de tope) y además le pide opi
 | `prueba-memoria.ts` | 17 | Que un dato nuevo supere al viejo sin borrarlo |
 | `prueba-curso.ts` | 16 | Que generar material no cuente como aprender |
 | `prueba-evaluacion.ts` | 19 | Que el hecho duro gane a la opinión del modelo |
+| `prueba-trading.ts`, `prueba-bots.ts`, `prueba-competencia.ts`, `prueba-orquestador.ts`, `prueba-evolucion.ts`, `prueba-cli-v08.ts` | 43 | Que el trading educativo, los bots y la competencia calculen ganancia real (no siempre 0) |
+| `prueba-persistencia.ts` | 4 | Que el estado sobreviva a un reinicio del proceso |
+| `prueba-respaldo.ts` | 5 | Que el respaldo no corrompa la DB y respete la retención |
 
 Ninguna necesita Ollama: el generador de texto se inyecta como dependencia. Por eso puedes correr `npm run prueba` en el trabajo, sin encender el modelo.
 
@@ -166,19 +194,24 @@ Cuando quiero que Atlas garantice algo, la pregunta ya no es "¿se lo dije?" sin
 
 ## 8. Lo que sigue
 
-**Corto plazo (V0.6.1)**
+**V0.6.1 — completado**
 
 1. ✅ Separar terminal (shell) de filesystem (TypeScript)
 2. ✅ Documentar que el evaluador no tiene sandboxing completo (el código puede acceder a red, FS)
-3. Generar la nueva lección de terminal (sin evaluar)
-4. Commit V0.6.1
-5. Actualizar documento maestro con los cambios
+
+**V0.8 — completado (CLI integrada, 147 tests)**
+
+1. ✅ Energía, minería simulada, bots autónomos, competencia Tú vs Atlas
+2. ✅ Auditoría exhaustiva: 8 bugs encontrados y corregidos
+3. ✅ CLI integrada (`minar`, `bots`, `competencia`, `ciclo`, `estado`)
+4. ✅ Persistencia de estado (`datos/atlas-state.json`)
+5. ✅ Respaldo automático de SQLite + guía de Cloudflare Tunnel
+6. ⏳ Motor de minería adaptable a hardware real (diseñado, no implementado)
 
 **Después (ruta de versiones)**
 
 - V0.7 — planificador y tareas locales programadas
-- V0.8 — asistente de trading educativo con capital ficticio
-- V0.9 — interfaz web/móvil + audio + copias de seguridad automáticas
+- V0.9 — interfaz web/móvil + audio + motor de minería adaptable a hardware real
 - V1.0 — asistente local supervisado estable
 - chattr +a sobre el registro (blindaje a nivel de sistema de archivos)
 
