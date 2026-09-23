@@ -170,10 +170,23 @@
 
 | Error | Occurrencias | Lección | Solución |
 |-------|--------------|---------|----------|
-| capital_insuficiente | ⏳ | Bot gasta más de lo disponible | Reducir tamaño de posición |
-| posicion_no_existe | ⏳ | Bot intenta vender sin posición | Verificar antes de vender |
-| precio_invalido | ⏳ | Precio no disponible | Validar disponibilidad |
-| timeout | ⏳ | Operación muy lenta | Reducir complejidad |
+| capital_insuficiente | Sistema automático | Bot gasta más de lo disponible | Reducir tamaño de posición |
+| posicion_no_existe | Sistema automático | Bot intenta vender sin posición | Verificar antes de vender |
+| precio_invalido | Sistema automático | Precio no disponible | Validar disponibilidad |
+| timeout | Sistema automático | Operación muy lenta | Reducir complejidad |
+
+### 8 Bugs Encontrados y Corregidos
+
+| Severidad | Bug | Archivo | Línea | ✅ Corregido |
+|-----------|-----|---------|-------|-------------|
+| 🔴 CRÍTICO | Ganancia siempre 0 en ventas | bots.ts | 300 | ✅ |
+| 🔴 CRÍTICO | Llamada método inexistente | orquestador-v08.ts | 121 | ✅ |
+| 🔴 CRÍTICO | Win_rate hardcodeado 50% | orquestador-v08.ts | 122 | ✅ |
+| 🟠 MEDIO | Concatenación SQL insegura | energia.ts | 163 | ✅ |
+| 🟠 MEDIO | Dificultad crece sin límite | mineria.ts | 152 | ✅ |
+| 🟡 BAJO | No valida negativos | energia.ts | 111 | ✅ |
+| 🟡 BAJO | Random walk no correlacionado | precios-realtime.ts | 172 | 📝 Documentado |
+| 🟡 BAJO | Inconsistencia reseteo | mineria.ts | 251 | ✅ |
 
 ---
 
