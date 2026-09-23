@@ -2,6 +2,7 @@ import { MotorMineria } from './mineria.ts';
 import { MotorBots, type EstrategiaBot } from './bots.ts';
 import { GestorCompetencia } from './competencia.ts';
 import { GestorEnergia } from './energia.ts';
+import { OrquestadorV08 } from './orquestador-v08.ts';
 
 const DB_PATH = process.env.ATLAS_DB ?? 'datos/atlas.db';
 
@@ -19,11 +20,60 @@ export async function ejecutarCLIv08(comando: string, args: string[]) {
       return await cliCompetencia(args);
     }
 
+    case 'ciclo': {
+      return await cliCiclo();
+    }
+
+    case 'estado': {
+      return await cliEstado();
+    }
+
     default:
       console.error(`Comando desconocido: ${comando}`);
-      console.error('Comandos V0.8: minar, bots, competencia');
+      console.error('Comandos V0.8: minar, bots, competencia, ciclo, estado');
       process.exit(1);
   }
+}
+
+async function cliCiclo() {
+  const orquestador = new OrquestadorV08(DB_PATH);
+
+  console.log('\n🚀 EJECUTANDO CICLO DE ATLAS\n');
+
+  await orquestador.ejecutar_ciclo();
+  const estado = await orquestador.obtener_estado();
+
+  console.log(`  Nivel Atlas:       ${estado.nivel}`);
+  console.log(`  Energía restante:  ${estado.energia_disponible}`);
+  console.log(`  ETH generado hoy:  ${estado.eth_generado_hoy.toFixed(6)}`);
+  console.log(`  Tú:                $${estado.portafolio_usuario.ganancia.toFixed(2)}`);
+  console.log(`  Atlas:             $${estado.portafolio_atlas.ganancia.toFixed(2)}`);
+  console.log(`  Líder:             ${estado.competencia.lider}`);
+  console.log(`\n  💾 Snapshot guardado en datos/atlas-state.json\n`);
+
+  orquestador.cerrar();
+}
+
+async function cliEstado() {
+  const orquestador = new OrquestadorV08(DB_PATH);
+  const persistido = orquestador.obtener_estado_persistido();
+
+  if (!persistido) {
+    console.log('\nAún no hay snapshot guardado. Ejecuta primero: npm run atlas -- ciclo\n');
+    orquestador.cerrar();
+    return;
+  }
+
+  console.log('\n📸 ÚLTIMO ESTADO PERSISTIDO\n');
+  console.log(`  Última actualización:  ${persistido.ultima_actualizacion}`);
+  console.log(`  Ciclos ejecutados:     ${persistido.ciclos_ejecutados}`);
+  console.log(`  Ejecución activa:      ${persistido.ejecucion_activa ? 'sí' : 'no'}`);
+  console.log(`  Nivel Atlas:           ${persistido.estado.nivel}`);
+  console.log(`  Tú:                    $${persistido.estado.portafolio_usuario.ganancia.toFixed(2)}`);
+  console.log(`  Atlas:                 $${persistido.estado.portafolio_atlas.ganancia.toFixed(2)}`);
+  console.log(`  Líder:                 ${persistido.estado.competencia.lider}\n`);
+
+  orquestador.cerrar();
 }
 
 async function cliMinar(args: string[]) {

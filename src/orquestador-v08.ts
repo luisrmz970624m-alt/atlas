@@ -7,6 +7,7 @@ import { TradingEngine } from './trading.ts';
 import { GeneradorPreciosRealtime, type PrecioActual } from './precios-realtime.ts';
 import { MotorBots, type Bot } from './bots.ts';
 import { GestorCompetencia } from './competencia.ts';
+import { guardarEstado, cargarEstado } from './persistencia.ts';
 
 export interface EstadoAtlasV08 {
   timestamp: string;
@@ -52,8 +53,10 @@ export class OrquestadorV08 {
 
   private intervalo_ejecucion: NodeJS.Timer | null = null;
   private precios_cache: Record<string, PrecioActual> = {};
+  private ciclos_ejecutados = 0;
+  private ruta_estado: string;
 
-  constructor(db_path: string = 'datos/atlas.db') {
+  constructor(db_path: string = 'datos/atlas.db', ruta_estado: string = 'datos/atlas-state.json') {
     this.db = new Database(db_path);
     this.energia = new GestorEnergia(db_path);
     this.mineria = new MotorMineria(db_path);
@@ -61,6 +64,11 @@ export class OrquestadorV08 {
     this.precios = new GeneradorPreciosRealtime(db_path);
     this.bots = new MotorBots(db_path);
     this.competencia = new GestorCompetencia(db_path);
+    this.ruta_estado = ruta_estado;
+
+    // Restaurar contador de ciclos si hay un snapshot previo
+    const previo = cargarEstado(this.ruta_estado);
+    if (previo) this.ciclos_ejecutados = previo.ciclos_ejecutados;
   }
 
   /**
@@ -223,6 +231,17 @@ export class OrquestadorV08 {
         this.evolucionar_bot(bot);
       }
     }
+
+    // 5. PERSISTIR SNAPSHOT DE ESTADO
+    this.ciclos_ejecutados++;
+    guardarEstado(estado, this.intervalo_ejecucion !== null, this.ciclos_ejecutados, this.ruta_estado);
+  }
+
+  /**
+   * Leer el último snapshot persistido sin recalcular nada (rápido, para CLI/dashboard)
+   */
+  obtener_estado_persistido() {
+    return cargarEstado(this.ruta_estado);
   }
 
   /**

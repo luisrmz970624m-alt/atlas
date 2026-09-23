@@ -414,7 +414,9 @@ switch (comando) {
 
   case 'minar':
   case 'bots':
-  case 'competencia': {
+  case 'competencia':
+  case 'ciclo':
+  case 'estado': {
     await ejecutarCLIv08(comando, args);
     break;
   }
@@ -433,7 +435,9 @@ EDUCACIÓN (V0.6):
 SISTEMAS (V0.8):
   minar [estado|ejecutar|historial]     ⛏️ Motor de minería
   bots [crear|listar|ejecutar]          🤖 Bots de trading autónomos
-  competencia [estado|resultados|registrar]  🏆 Competencia Tú vs Atlas
+  competencia [estado|snapshot|registrar]  🏆 Competencia Tú vs Atlas
+  ciclo                                 🚀 Ejecuta un ciclo completo (minar+bots+competencia) y persiste el estado
+  estado                                📸 Muestra el último snapshot persistido (datos/atlas-state.json)
 
 AUDITORÍA:
   auditar            Verifica la cadena completa del registro
