@@ -119,7 +119,14 @@ export class GeneradorPreciosRealtime {
         const coin_id = this.ID_COINGECKO[simbolo];
         const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coin_id}&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`;
 
-        const response = await fetch(url);
+        const controlador = new AbortController();
+        const timeout = setTimeout(() => controlador.abort(), 3000);
+        let response: Response;
+        try {
+          response = await fetch(url, { signal: controlador.signal });
+        } finally {
+          clearTimeout(timeout);
+        }
         if (!response.ok) return null;
 
         const data = await response.json();
@@ -188,10 +195,9 @@ export class GeneradorPreciosRealtime {
    * Obtener precios de múltiples símbolos
    */
   async obtener_precios(simbolos: string[]): Promise<Record<string, PrecioActual>> {
+    const resultados = await Promise.all(simbolos.map((sim) => this.obtener_precio(sim)));
     const precios: Record<string, PrecioActual> = {};
-    for (const sim of simbolos) {
-      precios[sim] = await this.obtener_precio(sim);
-    }
+    simbolos.forEach((sim, i) => { precios[sim] = resultados[i]; });
     return precios;
   }
 
