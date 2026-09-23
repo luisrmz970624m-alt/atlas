@@ -112,6 +112,9 @@ export class GestorEnergia {
     if (estudiar + minar + tradear !== 100) {
       throw new Error('La asignación debe sumar 100%');
     }
+    if (estudiar < 0 || minar < 0 || tradear < 0) {
+      throw new Error('La asignación no puede ser negativa');
+    }
 
     const hoy = new Date().toISOString().split('T')[0];
     const ahora = new Date().toISOString();
@@ -154,15 +157,27 @@ export class GestorEnergia {
 
     // Actualizar energía usada
     const nueva_usada = estado.energia_usada + cantidad;
-    const campo_actividad =
-      actividad === 'estudiar' ? 'estudios_completados' :
-      actividad === 'minar' ? 'bloques_minados' : 'trades_ejecutados';
 
-    this.db.prepare(`
-      UPDATE energia_estado
-      SET energia_usada = ?, ${campo_actividad} = ${campo_actividad} + 1, updated_at = ?
-      WHERE fecha = ?
-    `).run(nueva_usada, ahora, hoy);
+    // Actualizar campo de actividad (evitar inyección SQL)
+    if (actividad === 'estudiar') {
+      this.db.prepare(`
+        UPDATE energia_estado
+        SET energia_usada = ?, estudios_completados = estudios_completados + 1, updated_at = ?
+        WHERE fecha = ?
+      `).run(nueva_usada, ahora, hoy);
+    } else if (actividad === 'minar') {
+      this.db.prepare(`
+        UPDATE energia_estado
+        SET energia_usada = ?, bloques_minados = bloques_minados + 1, updated_at = ?
+        WHERE fecha = ?
+      `).run(nueva_usada, ahora, hoy);
+    } else {
+      this.db.prepare(`
+        UPDATE energia_estado
+        SET energia_usada = ?, trades_ejecutados = trades_ejecutados + 1, updated_at = ?
+        WHERE fecha = ?
+      `).run(nueva_usada, ahora, hoy);
+    }
 
     return true;
   }

@@ -148,8 +148,11 @@ export class MotorMineria {
     const nuevo_eth = estado.eth_generado_hoy + eth_generado;
     const nuevo_bloques = estado.bloques_minados + 1;
 
-    // Aumentar dificultad lentamente
-    const nueva_dificultad = estado.dificultad + (0.001 * nuevo_bloques);
+    // Aumentar dificultad lentamente (máximo 5)
+    const nueva_dificultad = Math.min(
+      estado.dificultad + (0.001 * nuevo_bloques),
+      5.0  // Cap at 5x difficulty
+    );
 
     this.db.prepare(`
       UPDATE mineria_estado

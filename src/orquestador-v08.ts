@@ -118,8 +118,8 @@ export class OrquestadorV08 {
         capital: usuario_capital,
         ganancia: usuario_ganancia,
         ganancia_porcentaje: (usuario_ganancia / usuario_capital) * 100,
-        trades: usuario_portafolio?.obtener_ordenes('usuario-1', 100).length || 0,
-        win_rate: 50, // Placeholder
+        trades: 0, // TODO: conectar con portafolio real del usuario
+        win_rate: 0, // TODO: calcular win_rate real del usuario
       },
 
       portafolio_atlas: {

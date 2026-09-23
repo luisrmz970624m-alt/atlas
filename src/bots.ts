@@ -289,6 +289,22 @@ export class MotorBots {
       );
     }
 
+    // Calcular ganancia para retorno
+    let ganancia_retorno: number | null = null;
+    let ganancia_pct_retorno: number | null = null;
+
+    if (tipo === 'venta') {
+      const orden_abierta = this.db.prepare(`
+        SELECT * FROM ordenes_bot WHERE bot_id = ? AND simbolo = ? AND estado = 'abierta'
+        ORDER BY timestamp DESC LIMIT 1
+      `).get(bot_id, simbolo) as any;
+
+      if (orden_abierta) {
+        ganancia_retorno = (cantidad * precio) - (orden_abierta.precio_entrada * cantidad);
+        ganancia_pct_retorno = (ganancia_retorno / (orden_abierta.precio_entrada * cantidad)) * 100;
+      }
+    }
+
     return {
       id,
       bot_id,
@@ -297,8 +313,8 @@ export class MotorBots {
       cantidad,
       precio_entrada: tipo === 'compra' ? precio : 0,
       precio_salida: tipo === 'venta' ? precio : null,
-      ganancia: tipo === 'venta' ? (cantidad * precio) - (cantidad * precio) : null,
-      ganancia_porcentaje: null,
+      ganancia: ganancia_retorno,
+      ganancia_porcentaje: ganancia_pct_retorno,
       estado: tipo === 'compra' ? 'abierta' : 'cerrada',
       timestamp: ahora,
     };
