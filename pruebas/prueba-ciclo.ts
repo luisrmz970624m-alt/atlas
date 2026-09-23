@@ -295,8 +295,8 @@ test('el estándar queda registrado, pase o falle', async () => {
 
   ejecutar(r0, plan);
   const eventos = leerEventos(r0).filter((e) => e.descripcion.startsWith('Estándar'));
-  assert.equal(eventos.length, 3);                       // las tres exigencias
-  assert.ok(eventos.every((e) => e.veredicto === 'fallo'));
+  assert.equal(eventos.length, 6);                       // las seis exigencias
+  assert.equal(eventos.filter((e) => e.veredicto === 'fallo').length, 3);
   assert.equal(auditar(r0).estado, 'integra');
 });
 
@@ -523,4 +523,66 @@ test('escribir y luego agregar al mismo archivo sí es válido y acumula', async
   const texto = readFileSync(join(LAB, 'acum.md'), 'utf8');
   assert.match(texto, /# Título/);        // no se perdió lo primero
   assert.match(texto, /Tercera línea/);
+});
+
+// ── Un ejercicio resuelto no es un ejercicio ───────────────────────────────
+
+const { sinSolucion } = await import('../src/verificacion.ts');
+
+test('UNA LECCIÓN QUE REGALA LA SOLUCIÓN NO PASA', () => {
+  // El caso real: qwen cerró la lección con "Aquí tienes una solución posible"
+  // y el código resuelto debajo.
+  const mala = ['# Tema', '', 'Explicación.', '', '## Ejercicio', '',
+    'Crea una función que sume.', '',
+    'Aquí tienes una solución posible:', '', '```ts', 'const f = (a,b) => a+b;', '```'].join('\n');
+
+  const r = sinSolucion(mala, 'l.md');
+  assert.equal(r.paso, false);
+  assert.match(r.evidencia, /REGALA la solución/);
+});
+
+test('explicar una solución ANTES del ejercicio sí es legítimo', () => {
+  const buena = ['# Tema', '', 'La solución de este problema de ejemplo es simple.', '',
+    '```ts', 'const x = 1;', '```', '', '## Ejercicio', '', 'Ahora hazlo tú con dos números.'].join('\n');
+
+  assert.equal(sinSolucion(buena, 'l.md').paso, true);
+});
+
+test('una lección sin ejercicio no se juzga por esto', () => {
+  assert.equal(sinSolucion('# Solo teoría\n\nTexto.', 'l.md').paso, true);
+});
+
+test('UNA LECCIÓN QUE MANDA A COMPILAR CON tsc NO PASA', async () => {
+  const r0 = ruta();
+  const cuerpo = Array.from({ length: 22 }, (_, i) => `Línea ${i} de explicación.`).join('\n');
+  const plan = await planear('crear una lección', falso(JSON.stringify({
+    criterio_final: 'x',
+    pasos: [{
+      descripcion: 'crear',
+      herramienta: 'escribir_archivo',
+      argumentos: { ruta: 'tsc.md', contenido: `# Tema\n\n${cuerpo}\n\nCompila con \`tsc archivo.ts\`.\n\n\`\`\`ts\nconst x = 1;\n\`\`\`\n\n## Ejercicio\n\nHazlo tú.` },
+      verificacion: { tipo: 'existe', archivo: 'tsc.md' },
+    }],
+  })));
+
+  const r = ejecutar(r0, plan);
+  assert.equal(r.parada, 'estándar no cumplido');
+  assert.match(r.detalle, /tsc/);
+});
+
+test('una lección que usa node directamente sí pasa', async () => {
+  const r0 = ruta();
+  const cuerpo = Array.from({ length: 22 }, (_, i) => `Línea ${i} de explicación.`).join('\n');
+  const plan = await planear('crear una lección', falso(JSON.stringify({
+    criterio_final: 'x',
+    pasos: [{
+      descripcion: 'crear',
+      herramienta: 'escribir_archivo',
+      argumentos: { ruta: 'node.md', contenido: `# Tema\n\n${cuerpo}\n\nEjecútalo con \`node --experimental-strip-types archivo.ts\`.\n\n\`\`\`ts\nconst x: number = 1;\n\`\`\`\n\n## Ejercicio\n\nHazlo tú con dos números.` },
+      verificacion: { tipo: 'existe', archivo: 'node.md' },
+    }],
+  })));
+
+  const r = ejecutar(r0, plan);
+  assert.equal(r.parada, 'objetivo cumplido', r.detalle);
 });

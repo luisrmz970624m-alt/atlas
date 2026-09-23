@@ -32,6 +32,8 @@ export interface Recuerdo {
   estado: Estado;
   objetivo: string | null;
   fecha: string;
+  /** Datos estructurados opcionales, en JSON. El resumen sigue siendo legible. */
+  datos: string | null;
 }
 
 export interface Nuevo {
@@ -42,6 +44,7 @@ export interface Nuevo {
   fuente: string;
   confianza?: number;
   objetivo?: string | null;
+  datos?: unknown;
 }
 
 /** Nunca entran a la memoria, igual que nunca entran al registro. */
@@ -65,7 +68,8 @@ CREATE TABLE IF NOT EXISTS recuerdos (
   confianza REAL    NOT NULL DEFAULT 1.0,
   estado    TEXT    NOT NULL DEFAULT 'vigente',
   objetivo  TEXT,
-  fecha     TEXT    NOT NULL
+  fecha     TEXT    NOT NULL,
+  datos     TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_clave   ON recuerdos(espacio, clave);
 CREATE INDEX IF NOT EXISTS idx_objetivo ON recuerdos(objetivo);
@@ -78,6 +82,12 @@ export class Memoria {
     if (ruta !== ':memory:') mkdirSync(dirname(ruta), { recursive: true });
     this.db = new DatabaseSync(ruta);
     this.db.exec(ESQUEMA);
+
+    // Bases creadas antes de que existiera 'datos' siguen funcionando.
+    const columnas = this.db.prepare('PRAGMA table_info(recuerdos)').all() as unknown as { name: string }[];
+    if (!columnas.some((c) => c.name === 'datos')) {
+      this.db.exec('ALTER TABLE recuerdos ADD COLUMN datos TEXT');
+    }
   }
 
   cerrar(): void { this.db.close(); }
@@ -106,15 +116,22 @@ export class Memoria {
 
     const fecha = new Date().toISOString();
     const r = this.db.prepare(
-      `INSERT INTO recuerdos (espacio, clave, resumen, origen, fuente, confianza, estado, objetivo, fecha)
-       VALUES (?, ?, ?, ?, ?, ?, 'vigente', ?, ?)`,
+      `INSERT INTO recuerdos (espacio, clave, resumen, origen, fuente, confianza, estado, objetivo, fecha, datos)
+       VALUES (?, ?, ?, ?, ?, ?, 'vigente', ?, ?, ?)`,
     ).run(
       nuevo.espacio, nuevo.clave, nuevo.resumen,
       nuevo.origen ?? 'hecho', nuevo.fuente,
       nuevo.confianza ?? 1.0, nuevo.objetivo ?? null, fecha,
+      nuevo.datos === undefined ? null : JSON.stringify(nuevo.datos),
     );
 
     return this.porId(Number(r.lastInsertRowid))!;
+  }
+
+  /** Lee los datos estructurados de un recuerdo, si los tiene. */
+  static datosDe<T>(r: Recuerdo | null): T | null {
+    if (!r?.datos) return null;
+    try { return JSON.parse(r.datos) as T; } catch { return null; }
   }
 
   porId(id: number): Recuerdo | null {

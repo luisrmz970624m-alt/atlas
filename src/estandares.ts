@@ -28,13 +28,39 @@ export interface Estandar {
 
 export const ESTANDARES: Estandar[] = [
   {
+    tipo: 'leccion-terminal',
+    descripcion: [
+      'Una lección sobre la terminal debe explicar comandos, mostrar ejemplos y pedir práctica.',
+      'El estudiante responde ejecutando comandos en su terminal real.',
+      'El ejercicio va al final y NO lleva la solución: plantear y resolver a la vez lo anula.',
+    ].join(' '),
+    senales: /\bterminal\b|\b(?:cd|ls|pwd|mkdir|cat|shell|bash)\b/i,
+    exigir: () => [
+      { tipo: 'min_lineas', valor: 20, texto: 'el material suma al menos 20 líneas' },
+      { tipo: 'contiene', valor: '```', texto: 'hay ejemplos mostrando comandos' },
+      { tipo: 'contiene', valor: '## Ejercicio', texto: 'hay una sección "## Ejercicio"' },
+      { tipo: 'sin_solucion', texto: 'el ejercicio no viene resuelto' },
+    ],
+  },
+  {
     tipo: 'leccion',
-    descripcion: 'Una lección debe explicar, mostrar código y pedir práctica.',
+    descripcion: [
+      'Una lección debe explicar, mostrar código y pedir práctica.',
+      'El estudiante ejecuta TypeScript directamente con `node --experimental-strip-types archivo.ts`:',
+      'NO uses tsc, no le digas que compile, no le digas que instale nada.',
+      'El ejercicio va al final y NO lleva la solución: plantear y resolver a la vez lo anula.',
+    ].join(' '),
     senales: /\blecci[oó]n|\bense[ñn]|\btutorial|\bexplica|\bcurso\b/i,
     exigir: () => [
       { tipo: 'min_lineas', valor: 20, texto: 'el material suma al menos 20 líneas' },
       { tipo: 'contiene', valor: '```', texto: 'hay al menos un ejemplo de código' },
       { tipo: 'contiene', valor: '## Ejercicio', texto: 'hay una sección "## Ejercicio"' },
+      { tipo: 'sin_solucion', texto: 'el ejercicio no viene resuelto' },
+      // El estudiante corre TypeScript directo con node. Enseñarle a compilar
+      // con tsc o a instalar paquetes globales lo manda por un camino que su
+      // entorno no usa — y decírselo al modelo no bastó tres veces seguidas.
+      { tipo: 'no_contiene', valor: 'tsc', texto: 'no le manda a compilar con tsc' },
+      { tipo: 'no_contiene', valor: 'npm install -g', texto: 'no le manda a instalar paquetes globales' },
     ],
   },
   {

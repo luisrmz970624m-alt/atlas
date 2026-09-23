@@ -58,6 +58,13 @@ export interface Resultado {
 const SISTEMA = `Eres el planificador de Atlas, un asistente local supervisado.
 Divides un objetivo en pasos que Atlas ejecuta con sus herramientas.
 
+ENTORNO DEL ESTUDIANTE — vale para TODO el material que escribas:
+- Node 22 ya instalado. No hay nada más que instalar, nunca.
+- TypeScript se ejecuta DIRECTO, sin compilar:  node --experimental-strip-types archivo.ts
+- Las palabras "tsc", "compilar" y "npm install" están PROHIBIDAS en el material.
+  Ese flujo existe en otros proyectos, pero aquí no, y mencionarlo manda al
+  estudiante por un camino que su equipo no usa.
+
 Herramientas disponibles (no existe ninguna otra):
 ${catalogo()}
 

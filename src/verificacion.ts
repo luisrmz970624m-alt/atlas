@@ -9,7 +9,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { rutaSegura } from './herramientas.ts';
 
-export type TipoVerificacion = 'existe' | 'min_bytes' | 'contiene' | 'min_lineas';
+export type TipoVerificacion = 'existe' | 'min_bytes' | 'contiene' | 'no_contiene' | 'min_lineas' | 'sin_solucion';
 
 export interface Verificacion {
   tipo: TipoVerificacion;
@@ -22,7 +22,7 @@ export interface Comprobacion {
   evidencia: string;
 }
 
-const TIPOS: TipoVerificacion[] = ['existe', 'min_bytes', 'contiene', 'min_lineas'];
+const TIPOS: TipoVerificacion[] = ['existe', 'min_bytes', 'contiene', 'min_lineas'];  // 'sin_solucion' es solo de estándar
 
 export function esVerificacionValida(v: unknown): v is Verificacion {
   if (typeof v !== 'object' || v === null) return false;
@@ -69,7 +69,47 @@ export function comprobar(v: Verificacion): Comprobacion {
       const hay = texto.includes(buscado);
       return { paso: hay, evidencia: `${v.archivo} ${hay ? 'contiene' : 'NO contiene'} "${buscado}"` };
     }
+
+    case 'no_contiene': {
+      const buscado = String(v.valor);
+      const hay = readFileSync(destino, 'utf8').toLowerCase().includes(buscado.toLowerCase());
+      return { paso: !hay, evidencia: `${v.archivo} ${hay ? 'MENCIONA' : 'no menciona'} "${buscado}"` };
+    }
+
+    case 'sin_solucion':
+      return sinSolucion(readFileSync(destino, 'utf8'), v.archivo);
   }
+}
+
+/**
+ * Un ejercicio con la solución al lado no es un ejercicio.
+ *
+ * Pasó de verdad: el modelo cerró la lección con "Aquí tienes una solución
+ * posible" y el código resuelto debajo. El material parecía completo y el
+ * ejercicio valía cero.
+ *
+ * Se mira SOLO lo que hay después de "## Ejercicio": un texto que explique la
+ * solución de un problema de ejemplo, antes del ejercicio, es legítimo.
+ */
+export function sinSolucion(texto: string, archivo = 'el material'): Comprobacion {
+  const lineas = texto.split('\n');
+  const i = lineas.findIndex((l) => /^##\s+Ejercicio/i.test(l));
+  if (i === -1) return { paso: true, evidencia: `${archivo} no tiene sección de ejercicio` };
+
+  const despues = lineas.slice(i + 1).join('\n');
+  const delata = [
+    /soluci[oó]n/i,
+    /respuesta correcta/i,
+    /aqu[ií] tienes (el|la|un|una)/i,
+    /c[oó]digo resuelto/i,
+  ];
+
+  for (const patron of delata) {
+    if (patron.test(despues)) {
+      return { paso: false, evidencia: `${archivo} REGALA la solución en el ejercicio (${patron})` };
+    }
+  }
+  return { paso: true, evidencia: `${archivo} plantea el ejercicio sin resolverlo` };
 }
 
 /**
@@ -94,6 +134,22 @@ export function comprobarConjunto(tipo: TipoVerificacion, valor: string | number
   switch (tipo) {
     case 'existe':
       return { paso: true, evidencia: `${nombres} existe(n)` };
+
+    case 'sin_solucion': {
+      for (const a of archivos) {
+        const r = sinSolucion(readFileSync(rutaSegura(a), 'utf8'), a);
+        if (!r.paso) return r;
+      }
+      return { paso: true, evidencia: 'ningún archivo regala la solución' };
+    }
+
+    case 'no_contiene': {
+      const buscado = String(valor).toLowerCase();
+      const donde = archivos.find((a) => readFileSync(rutaSegura(a), 'utf8').toLowerCase().includes(buscado));
+      return donde
+        ? { paso: false, evidencia: `${donde} MENCIONA "${valor}", que no aplica a este entorno` }
+        : { paso: true, evidencia: `ningún archivo menciona "${valor}"` };
+    }
 
     case 'contiene': {
       const buscado = String(valor);
@@ -125,5 +181,7 @@ export function describir(v: Verificacion): string {
     case 'min_bytes': return `${v.archivo} mide al menos ${v.valor} bytes`;
     case 'min_lineas': return `${v.archivo} tiene al menos ${v.valor} líneas`;
     case 'contiene': return `${v.archivo} contiene "${v.valor}"`;
+    case 'no_contiene': return `${v.archivo} no menciona "${v.valor}"`;
+    case 'sin_solucion': return `${v.archivo} no trae la solución del ejercicio`;
   }
 }

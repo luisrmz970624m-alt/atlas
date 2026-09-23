@@ -10,6 +10,9 @@ import { auditar, leerEventos } from './registro.ts';
 import { registrar, pedirPermiso, LIMITES } from './supervisor.ts';
 import { perseguir, describir } from './ciclo.ts';
 import { Memoria } from './memoria.ts';
+import { siguiente, progreso, registrarMaterial, registrarPractica, avanceDe, tema, TEMARIO } from './curso.ts';
+import { evaluar as evaluarRespuesta, enunciado, plantilla } from './evaluacion.ts';
+import { rutaSegura } from './herramientas.ts';
 import { generar, alGenerar, MODELO, MAX_SALIDA, ModeloNoDisponible, RespuestaIncompleta } from './modelo.ts';
 
 const RUTA = process.env.ATLAS_REGISTRO ?? 'datos/registro.jsonl';
@@ -106,6 +109,250 @@ switch (comando) {
     break;
   }
 
+  case 'estudiar': {
+    const m = new Memoria(MEMORIA);
+    const s = siguiente(m);
+
+    if (!s) {
+      console.log('✅ Nada pendiente por ahora. Todo practicado y sin repasos vencidos.');
+      console.log('   Mira el plan completo con: npm run atlas -- progreso');
+      m.cerrar();
+      break;
+    }
+
+    const cabecera = {
+      repaso:    `🔁 Toca repasar: ${s.tema.titulo}`,
+      continuar: `▶️  Tienes material sin practicar: ${s.tema.titulo}`,
+      nuevo:     `🆕 Tema nuevo: ${s.tema.titulo}`,
+    }[s.motivo];
+    console.log(`${cabecera}\n`);
+
+    if (s.avance.archivos.length > 0) {
+      console.log(`Material ya creado: ${s.avance.archivos.join(', ')}`);
+      console.log(`Ábrelo con: cat laboratorio/${s.avance.archivos[0]}\n`);
+    }
+
+    if (s.motivo !== 'nuevo' && s.avance.archivos.length > 0) {
+      console.log('Cuando hagas el ejercicio:');
+      console.log(`   npm run atlas -- responder ${s.tema.id}   # crea tu plantilla`);
+      console.log(`   npm run atlas -- evaluar ${s.tema.id}     # Atlas revisa tu solución`);
+      m.cerrar();
+      break;
+    }
+
+    // No hay material: Atlas lo genera ahora.
+    console.log(`Preparando la lección con ${MODELO}…`);
+    console.log('(un modelo local en CPU tarda unos minutos)\n');
+
+    const inicio = Date.now();
+    alGenerar((n) => {
+      if (n % 25 !== 0) return;
+      const seg = Math.round((Date.now() - inicio) / 1000);
+      process.stdout.write(`\r   ${n} tokens · ${seg}s · ${(n / Math.max(seg, 1)).toFixed(1)} t/s   `);
+    });
+
+    try {
+      const objetivo = s.tema.objetivo;
+      const { resultado: r } = await perseguir(RUTA, objetivo, generar, 2, m);
+      process.stdout.write('\r' + ' '.repeat(50) + '\r');
+
+      if (r.parada === 'objetivo cumplido') {
+        registrarMaterial(m, s.tema.id, r.producidos);
+        console.log(`✅ Lección lista: ${r.producidos.join(', ')}`);
+        console.log(`   Léela con: cat laboratorio/${r.producidos[0]}`);
+        console.log(`\nCuando la hayas leído:`);
+        console.log(`   npm run atlas -- responder ${s.tema.id}   # crea tu plantilla`);
+        console.log(`   npm run atlas -- evaluar ${s.tema.id}     # Atlas revisa tu solución`);
+      } else {
+        console.log(`⚠️  ${r.parada}: ${r.detalle}`);
+        console.log('   No se registró material: la lección no salió bien.');
+      }
+    } catch (e) {
+      if (e instanceof ModeloNoDisponible) { console.error(`⚠️  ${e.message}`); m.cerrar(); process.exit(1); }
+      if (e instanceof RespuestaIncompleta) { console.error(`⚠️  ${e.message}`); m.cerrar(); process.exit(1); }
+      throw e;
+    }
+    m.cerrar();
+    break;
+  }
+
+  case 'responder': {
+    const id = args[0];
+    if (!id || !tema(id)) {
+      console.error(`Falta el tema. Válidos:\n   ${TEMARIO.map((t) => t.id).join(', ')}`);
+      process.exit(1);
+    }
+    const m = new Memoria(MEMORIA);
+    const a = avanceDe(m, id!);
+    m.cerrar();
+
+    if (a.archivos.length === 0) {
+      console.error(`Todavía no hay lección de "${id}". Créala con: npm run atlas -- estudiar`);
+      process.exit(1);
+    }
+
+    const { existsSync, readFileSync, writeFileSync, mkdirSync } = await import('node:fs');
+    const { dirname } = await import('node:path');
+
+    const leccion = rutaSegura(a.archivos[0]!);
+    const texto = enunciado(readFileSync(leccion, 'utf8'));
+    if (!texto) {
+      console.error(`La lección ${a.archivos[0]} no tiene sección "## Ejercicio".`);
+      process.exit(1);
+    }
+
+    const relativa = `respuestas/${id}.ts`;
+    const destino = rutaSegura(relativa);
+    if (existsSync(destino)) {
+      console.log(`Ya tienes tu respuesta en laboratorio/${relativa}. No la toco.`);
+    } else {
+      mkdirSync(dirname(destino), { recursive: true });
+      writeFileSync(destino, plantilla(id!, texto), 'utf8');
+      console.log(`📝 Plantilla creada: laboratorio/${relativa}`);
+    }
+    console.log(`   Escribe ahí tu solución y luego: npm run atlas -- evaluar ${id}`);
+    break;
+  }
+
+  case 'evaluar': {
+    const id = args[0];
+    if (!id || !tema(id)) {
+      console.error(`Falta el tema. Válidos:\n   ${TEMARIO.map((t) => t.id).join(', ')}`);
+      process.exit(1);
+    }
+    const m = new Memoria(MEMORIA);
+    const a = avanceDe(m, id!);
+    if (a.archivos.length === 0) {
+      console.error(`No hay lección de "${id}" todavía.`);
+      m.cerrar();
+      process.exit(1);
+    }
+
+    console.log(`Revisando tu respuesta con ${MODELO}…\n`);
+    const inicio = Date.now();
+    alGenerar((n) => {
+      if (n % 25 !== 0) return;
+      const seg = Math.round((Date.now() - inicio) / 1000);
+      process.stdout.write(`\r   ${n} tokens · ${seg}s   `);
+    });
+
+    try {
+      const r = await evaluarRespuesta(a.archivos[0]!, `respuestas/${id}.ts`, generar);
+      process.stdout.write('\r' + ' '.repeat(40) + '\r');
+
+      if (r.ejecucion) {
+        console.log(r.ejecucion.corrio
+          ? `▶️  Tu código corrió en ${r.ejecucion.ms} ms.`
+          : `❌ Tu código no llegó a correr.`);
+        if (r.ejecucion.salida) console.log(`   Salida: ${r.ejecucion.salida.split('\n').join(' | ')}`);
+        if (r.ejecucion.error)  console.log(`   Error:  ${r.ejecucion.error.split('\n')[0]}`);
+        console.log('');
+      }
+
+      if (r.revision) {
+        for (const x of r.revision.aciertos)  console.log(`   ✓ ${x}`);
+        for (const x of r.revision.faltantes) console.log(`   ✗ ${x}`);
+        if (r.revision.pista) console.log(`\n   💡 ${r.revision.pista}`);
+        console.log('');
+      }
+
+      // La revisión del modelo es una opinión: se guarda como deducción.
+      if (r.revision) {
+        m.recordar({
+          espacio: 'programacion',
+          clave: `revision:${id}`,
+          resumen: r.aprobado ? 'la respuesta cumple el enunciado' : `faltó: ${r.detalle || r.motivo}`,
+          origen: 'deduccion',
+          fuente: MODELO,
+          confianza: r.ejecucion ? 0.8 : 0.6,
+          datos: r.revision,
+        });
+      }
+
+      registrar(RUTA, {
+        tipo: r.aprobado ? 'resultado' : 'error',
+        descripcion: `Evaluación del ejercicio "${id}"`,
+        entrada: { tema: id, respuesta: `respuestas/${id}.ts` },
+        salida: { motivo: r.motivo, corrio: r.ejecucion?.corrio ?? null, cumple: r.revision?.cumple ?? null },
+        veredicto: r.aprobado ? 'exito' : 'fallo',
+        razon: r.detalle || r.motivo,
+      });
+
+      if (r.aprobado) {
+        const av = registrarPractica(m, id!);
+        console.log(av.estado === 'dominado'
+          ? `🏆 APROBADO — ${tema(id!)!.titulo}: DOMINADO (${av.practicas.length} prácticas en días distintos)`
+          : `✅ APROBADO — ${tema(id!)!.titulo}: practicado (${av.practicas.length} vez/veces)`);
+        console.log(`   Próximo repaso: ${av.repaso}`);
+        if (av.estado !== 'dominado') console.log('   Para dominarlo, practícalo otro día.');
+      } else {
+        const ayuda = {
+          'sin respuesta': `Crea tu respuesta con: npm run atlas -- responder ${id}`,
+          'sin enunciado': 'La lección no trae ejercicio. Genera otra con: npm run atlas -- estudiar',
+          'no ejecuta':    'Arregla el error de arriba y vuelve a evaluar.',
+          'incompleto':    'Completa lo que falta y vuelve a evaluar.',
+          'aprobado':      '',
+        }[r.motivo];
+        console.log(`⚠️  No aprobado (${r.motivo}). ${r.motivo !== 'no ejecuta' && r.detalle ? r.detalle : ''}`);
+        if (ayuda) console.log(`   ${ayuda}`);
+        console.log(`\n   Si crees que Atlas se equivoca, puedes registrarlo tú:`);
+        console.log(`   npm run atlas -- practique ${id}`);
+      }
+    } catch (e) {
+      if (e instanceof ModeloNoDisponible) { console.error(`⚠️  ${e.message}`); m.cerrar(); process.exit(1); }
+      throw e;
+    }
+    m.cerrar();
+    break;
+  }
+
+  case 'practique': {
+    const id = args[0];
+    if (!id || !tema(id)) {
+      console.error(`Falta el tema. Los válidos son:\n   ${TEMARIO.map((t) => t.id).join(', ')}`);
+      process.exit(1);
+    }
+    const m = new Memoria(MEMORIA);
+    const a = registrarPractica(m, id!);
+
+    registrar(RUTA, {
+      tipo: 'sistema',
+      descripcion: `Luis practicó "${tema(id!)!.titulo}"`,
+      entrada: { tema: id },
+      salida: { estado: a.estado, practicas: a.practicas.length, repaso: a.repaso },
+      veredicto: 'exito',
+      razon: 'práctica declarada por el usuario',
+    });
+
+    console.log(a.estado === 'dominado'
+      ? `🏆 ${tema(id!)!.titulo}: DOMINADO (${a.practicas.length} prácticas en días distintos)`
+      : `✔️  ${tema(id!)!.titulo}: practicado (${a.practicas.length} vez/veces)`);
+    console.log(`   Próximo repaso: ${a.repaso}`);
+    if (a.estado !== 'dominado') {
+      console.log('   Para dominarlo hace falta practicarlo otro día, no hoy otra vez.');
+    }
+    m.cerrar();
+    break;
+  }
+
+  case 'progreso': {
+    const m = new Memoria(MEMORIA);
+    const p = progreso(m);
+    const icono = { dominado: '🏆', practicado: '✔️ ', material: '📄', pendiente: '  ' } as const;
+
+    console.log(`${p.dominados} dominado(s) · ${p.practicados} practicado(s) · ${p.conMaterial} con material · ${p.pendientes} pendiente(s)`);
+    if (p.repasosHoy > 0) console.log(`🔁 ${p.repasosHoy} repaso(s) vencido(s)\n`); else console.log('');
+
+    let nivel = 0;
+    for (const { tema: t, avance: a } of p.temas) {
+      if (t.nivel !== nivel) { nivel = t.nivel; console.log(`── Nivel ${nivel} ──`); }
+      const repaso = a.repaso ? `  repaso ${a.repaso}` : '';
+      console.log(`${icono[a.estado]} ${t.id.padEnd(12)} ${t.titulo}${repaso}`);
+    }
+    m.cerrar();
+    break;
+  }
+
   case 'memoria': {
     const m = new Memoria(MEMORIA);
     const filtro = args.join(' ');
@@ -167,6 +414,11 @@ switch (comando) {
   default:
     console.log(`Atlas V0.3
 
+  estudiar           Qué toca hoy: repaso, terminar lo empezado o tema nuevo
+  responder <tema>   Crea la plantilla para tu respuesta al ejercicio
+  evaluar <tema>     Ejecuta tu respuesta y la revisa contra el enunciado
+  practique <tema>   Registra a mano que hiciste el ejercicio
+  progreso           Tu avance en el temario completo
   objetivo <texto>   Planea un objetivo, lo ejecuta en el laboratorio y comprueba cada paso
   auditar            Verifica la cadena completa del registro
   anotar <texto>     Escribe un evento en el registro
