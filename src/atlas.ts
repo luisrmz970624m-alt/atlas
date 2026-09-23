@@ -416,7 +416,8 @@ switch (comando) {
   case 'bots':
   case 'competencia':
   case 'ciclo':
-  case 'estado': {
+  case 'estado':
+  case 'respaldo': {
     await ejecutarCLIv08(comando, args);
     break;
   }
@@ -438,6 +439,7 @@ SISTEMAS (V0.8):
   competencia [estado|snapshot|registrar]  🏆 Competencia Tú vs Atlas
   ciclo                                 🚀 Ejecuta un ciclo completo (minar+bots+competencia) y persiste el estado
   estado                                📸 Muestra el último snapshot persistido (datos/atlas-state.json)
+  respaldo [crear|listar]               💾 Respalda datos/atlas.db a respaldos/ (retiene últimos 7)
 
 AUDITORÍA:
   auditar            Verifica la cadena completa del registro

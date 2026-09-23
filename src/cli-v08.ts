@@ -3,6 +3,7 @@ import { MotorBots, type EstrategiaBot } from './bots.ts';
 import { GestorCompetencia } from './competencia.ts';
 import { GestorEnergia } from './energia.ts';
 import { OrquestadorV08 } from './orquestador-v08.ts';
+import { respaldarTodo, listarRespaldos } from './respaldo.ts';
 
 const DB_PATH = process.env.ATLAS_DB ?? 'datos/atlas.db';
 
@@ -28,9 +29,54 @@ export async function ejecutarCLIv08(comando: string, args: string[]) {
       return await cliEstado();
     }
 
+    case 'respaldo': {
+      return await cliRespaldo(args);
+    }
+
     default:
       console.error(`Comando desconocido: ${comando}`);
-      console.error('Comandos V0.8: minar, bots, competencia, ciclo, estado');
+      console.error('Comandos V0.8: minar, bots, competencia, ciclo, estado, respaldo');
+      process.exit(1);
+  }
+}
+
+async function cliRespaldo(args: string[]) {
+  const subcomando = args[0] ?? 'crear';
+
+  switch (subcomando) {
+    case 'crear': {
+      console.log('\n💾 CREANDO RESPALDO\n');
+
+      const { respaldos, eliminados } = await respaldarTodo([DB_PATH]);
+
+      for (const r of respaldos) {
+        console.log(`  ✅ ${r.origen} → ${r.destino} (${(r.tamano_bytes / 1024).toFixed(1)} KB)`);
+      }
+      if (eliminados.length > 0) {
+        console.log(`  🗑️  ${eliminados.length} respaldo(s) viejo(s) eliminado(s) (retención: 7)`);
+      }
+      console.log('');
+      break;
+    }
+
+    case 'listar': {
+      const lista = listarRespaldos();
+
+      if (lista.length === 0) {
+        console.log('\nNo hay respaldos aún. Crea uno con: npm run atlas -- respaldo crear\n');
+      } else {
+        console.log(`\n💾 RESPALDOS (${lista.length})\n`);
+        for (const r of lista) {
+          console.log(`  ${r.archivo}  (${(r.tamano_bytes / 1024).toFixed(1)} KB)  ${r.fecha}`);
+        }
+        console.log('');
+      }
+      break;
+    }
+
+    default:
+      console.error(`\nSubcomando de respaldo desconocido: ${subcomando}`);
+      console.error('Uso: npm run atlas -- respaldo [crear|listar]\n');
       process.exit(1);
   }
 }
