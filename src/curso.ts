@@ -62,6 +62,20 @@ export const TEMARIO: Tema[] = [
     objetivo: 'crear una lección sobre guardar y consultar datos con el módulo node:sqlite' },
   { id: 'atlas', titulo: 'leer y modificar el código de Atlas', nivel: 3, requiere: ['pruebas', 'sqlite'],
     objetivo: 'crear una lección sobre leer el código de un proyecto real, entender sus módulos y cambiar algo con seguridad' },
+
+  // Trading educativo (V0.8)
+  { id: 'intro-bolsa', titulo: 'introducción a la bolsa de valores', nivel: 1, requiere: [],
+    objetivo: 'crear una lección sobre qué es una acción, un índice y cómo se compra y vende en el mercado' },
+  { id: 'ordenes-trading', titulo: 'órdenes de compra y venta', nivel: 1, requiere: ['intro-bolsa'],
+    objetivo: 'crear una lección con ejercicios prácticos: colocar órdenes límite, de mercado y calcular ganancias' },
+  { id: 'diversificacion', titulo: 'diversificación de portafolio', nivel: 2, requiere: ['ordenes-trading'],
+    objetivo: 'crear una lección sobre por qué no poner todos los huevos en una canasta y cómo armar un portafolio balanceado' },
+  { id: 'analisis-tecnico', titulo: 'análisis técnico básico', nivel: 2, requiere: ['ordenes-trading'],
+    objetivo: 'crear una lección sobre leer gráficos, detectar tendencias y soportes/resistencias' },
+  { id: 'riesgo-gestion', titulo: 'gestión del riesgo', nivel: 2, requiere: ['diversificacion'],
+    objetivo: 'crear una lección sobre calcular riesgo, stop-loss, y límites de pérdida aceptable' },
+  { id: 'estrategias-basicas', titulo: 'estrategias básicas de trading', nivel: 3, requiere: ['analisis-tecnico', 'riesgo-gestion'],
+    objetivo: 'crear una lección sobre implementar: buy-and-hold, dollar-cost-averaging, swing trading y momentum' },
 ];
 
 export function tema(id: string): Tema | null {
