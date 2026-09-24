@@ -32,6 +32,21 @@ export interface Portafolio {
   updated_at: string;
 }
 
+/** Identidad del portafolio manual de Luis en la competencia contra Atlas. */
+export const USUARIO_ID = 'usuario-1';
+
+/** Capital con el que arranca el portafolio del usuario si aún no existe. */
+export const CAPITAL_INICIAL_USUARIO = 10000;
+
+export interface EstadisticasPortafolio {
+  /** Operaciones CERRADAS (una venta cierra una operación), igual criterio que los bots. */
+  operaciones_cerradas: number;
+  ganadoras: number;
+  perdedoras: number;
+  win_rate: number;
+  pnl_realizado: number;
+}
+
 export class TradingEngine {
   private db: Database.Database;
 
@@ -50,6 +65,12 @@ export class TradingEngine {
         created_at TEXT,
         updated_at TEXT
       );
+
+      -- Un usuario, un portafolio. Sin esto, dos portafolios del mismo usuario
+      -- partirían el historial en dos y las operaciones de uno desaparecerían
+      -- del marcador sin ningún error visible.
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_portafolios_usuario
+        ON portafolios(usuario_id);
 
       CREATE TABLE IF NOT EXISTS posiciones (
         id TEXT PRIMARY KEY,
@@ -112,6 +133,19 @@ export class TradingEngine {
   obtener_portafolio(id: string): Portafolio | null {
     const stmt = this.db.prepare('SELECT * FROM portafolios WHERE id = ?');
     return stmt.get(id) as Portafolio || null;
+  }
+
+  obtener_portafolio_por_usuario(usuario_id: string): Portafolio | null {
+    const stmt = this.db.prepare(
+      'SELECT * FROM portafolios WHERE usuario_id = ? ORDER BY created_at LIMIT 1'
+    );
+    return stmt.get(usuario_id) as Portafolio || null;
+  }
+
+  /** Devuelve el portafolio del usuario, creándolo la primera vez. Idempotente. */
+  asegurar_portafolio(usuario_id: string, capital_inicial: number): Portafolio {
+    return this.obtener_portafolio_por_usuario(usuario_id)
+      ?? this.crear_portafolio(usuario_id, capital_inicial);
   }
 
   comprar(portafolio_id: string, simbolo: string, cantidad: number, precio: number): Orden {
@@ -207,15 +241,18 @@ export class TradingEngine {
     `);
     stmt_orden.run(id, portafolio_id, 'venta', simbolo, cantidad, precio, 'ejecutada', comision, ahora);
 
-    // Actualizar posición
-    if (posicion.cantidad === cantidad) {
+    // Actualizar posición. El umbral evita dejar residuos de coma flotante
+    // (vender 0.3 tras comprar 0.1 + 0.2 deja 5.55e-17, que el usuario vería
+    // como una posición abierta fantasma).
+    const restante = posicion.cantidad - cantidad;
+    if (restante < 1e-9) {
       const stmt_delete = this.db.prepare('DELETE FROM posiciones WHERE id = ?');
       stmt_delete.run(posicion.id);
     } else {
       const stmt_update = this.db.prepare(
         'UPDATE posiciones SET cantidad = ?, updated_at = ? WHERE id = ?'
       );
-      stmt_update.run(posicion.cantidad - cantidad, ahora, posicion.id);
+      stmt_update.run(restante, ahora, posicion.id);
     }
 
     // Actualizar capital
@@ -264,6 +301,70 @@ export class TradingEngine {
     return portafolio.capital_actual + valor_posiciones;
   }
 
+  /**
+   * Estadísticas reales del portafolio, reconstruidas recorriendo el historial
+   * de órdenes en orden cronológico. No requiere columnas extra: el costo de
+   * cada venta se deduce del promedio acumulado de las compras previas,
+   * comisiones incluidas en ambos lados.
+   *
+   * Cuenta una operación por cada VENTA (una venta cierra una operación), el
+   * mismo criterio que usan los bots, para que la comparación sea pareja.
+   */
+  obtener_estadisticas(portafolio_id: string): EstadisticasPortafolio {
+    // rowid desempata: executed_at tiene resolución de milisegundos, y dos
+    // órdenes en el mismo ms dejarían el orden a criterio de SQLite. Si una
+    // venta se ordenara antes de su compra, el costo base saldría mal.
+    const ordenes = this.db.prepare(`
+      SELECT * FROM ordenes
+      WHERE portafolio_id = ? AND estado = 'ejecutada'
+      ORDER BY executed_at ASC, rowid ASC
+    `).all(portafolio_id) as Orden[];
+
+    // Por símbolo: cantidad acumulada y costo total pagado por esa cantidad.
+    const acumulado = new Map<string, { cantidad: number; costo_total: number }>();
+
+    let operaciones_cerradas = 0;
+    let ganadoras = 0;
+    let perdedoras = 0;
+    let pnl_realizado = 0;
+
+    for (const orden of ordenes) {
+      const pos = acumulado.get(orden.simbolo) ?? { cantidad: 0, costo_total: 0 };
+
+      if (orden.tipo === 'compra') {
+        pos.cantidad += orden.cantidad;
+        pos.costo_total += orden.cantidad * orden.precio + orden.comision;
+        acumulado.set(orden.simbolo, pos);
+        continue;
+      }
+
+      // Venta: el costo base sale del promedio pagado hasta este momento.
+      const costo_unitario = pos.cantidad > 0 ? pos.costo_total / pos.cantidad : orden.precio;
+      const costo_base = costo_unitario * orden.cantidad;
+      const ingreso_neto = orden.cantidad * orden.precio - orden.comision;
+      const ganancia = ingreso_neto - costo_base;
+
+      pnl_realizado += ganancia;
+      operaciones_cerradas++;
+      // Una operación exactamente a cero no es victoria ni derrota: cuenta
+      // como cerrada, pero no infla ninguno de los dos contadores.
+      if (ganancia > 0) ganadoras++;
+      else if (ganancia < 0) perdedoras++;
+
+      pos.cantidad = Math.max(pos.cantidad - orden.cantidad, 0);
+      pos.costo_total = Math.max(pos.costo_total - costo_base, 0);
+      acumulado.set(orden.simbolo, pos);
+    }
+
+    return {
+      operaciones_cerradas,
+      ganadoras,
+      perdedoras,
+      win_rate: operaciones_cerradas > 0 ? (ganadoras / operaciones_cerradas) * 100 : 0,
+      pnl_realizado,
+    };
+  }
+
   calcular_pnl(portafolio_id: string, precios_actuales: Record<string, number>) {
     const portafolio = this.obtener_portafolio(portafolio_id)!;
     const posiciones = this.obtener_posiciones(portafolio_id);
@@ -275,26 +376,18 @@ export class TradingEngine {
       pnl_no_realizado += pos.cantidad * (precio_actual - pos.precio_promedio);
     });
 
-    // PnL realizado (de órdenes ejecutadas)
-    const ordenes = this.obtener_ordenes(portafolio_id, 1000);
-    let pnl_realizado = 0;
-
-    ordenes.forEach(orden => {
-      if (orden.tipo === 'venta') {
-        // Buscar la compra original (simplificado: usar precio promedio)
-        const posiciones_vendidas = posiciones.filter(p => p.simbolo === orden.simbolo);
-        if (posiciones_vendidas.length > 0) {
-          const ganancia = (orden.precio - posiciones_vendidas[0].precio_promedio) * orden.cantidad;
-          pnl_realizado += ganancia - orden.comision;
-        }
-      }
-    });
+    // PnL realizado: una sola fuente de verdad. Antes se recalculaba aquí
+    // contra las posiciones ACTUALES, lo que daba 0 para toda operación ya
+    // cerrada y no descontaba la comisión de compra.
+    const { pnl_realizado } = this.obtener_estadisticas(portafolio_id);
 
     return {
       pnl_realizado,
       pnl_no_realizado,
       pnl_total: pnl_realizado + pnl_no_realizado,
-      roi: (pnl_no_realizado + pnl_realizado) / portafolio.capital_inicial,
+      roi: portafolio.capital_inicial > 0
+        ? (pnl_no_realizado + pnl_realizado) / portafolio.capital_inicial
+        : 0,
     };
   }
 

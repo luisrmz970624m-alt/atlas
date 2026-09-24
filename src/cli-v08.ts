@@ -4,6 +4,7 @@ import { GestorCompetencia } from './competencia.ts';
 import { GestorEnergia } from './energia.ts';
 import { OrquestadorV08 } from './orquestador-v08.ts';
 import { respaldarTodo, listarRespaldos } from './respaldo.ts';
+import { SIMBOLOS_SOPORTADOS, esSimboloSoportado } from './precios-realtime.ts';
 
 const DB_PATH = process.env.ATLAS_DB ?? 'datos/atlas.db';
 
@@ -204,11 +205,18 @@ async function cliBots(args: string[]) {
       const nombre = args[1];
       const estrategia = args[2] as EstrategiaBot;
       const capital = Number(args[3] ?? 1000);
-      const simbolo = args[4] ?? 'BTC';
+      const simbolo = (args[4] ?? 'BTC').toUpperCase();
 
       if (!nombre || !estrategia) {
         console.error('\nUso: npm run atlas -- bots crear <nombre> <estrategia> [capital] [simbolo]');
-        console.error('Estrategias: dca, momentum, mean-reversion, buy-and-hold\n');
+        console.error('Estrategias: dca, momentum, mean-reversion, buy-and-hold');
+        console.error(`Símbolos: ${SIMBOLOS_SOPORTADOS.join(', ')}\n`);
+        process.exit(1);
+      }
+
+      if (!esSimboloSoportado(simbolo)) {
+        console.error(`\n❌ Símbolo no soportado: ${simbolo}`);
+        console.error(`Atlas solo cotiza: ${SIMBOLOS_SOPORTADOS.join(', ')}\n`);
         process.exit(1);
       }
 

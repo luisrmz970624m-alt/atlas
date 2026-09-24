@@ -15,6 +15,7 @@ import { evaluar as evaluarRespuesta, enunciado, plantilla } from './evaluacion.
 import { rutaSegura } from './herramientas.ts';
 import { generar, alGenerar, MODELO, MAX_SALIDA, ModeloNoDisponible, RespuestaIncompleta } from './modelo.ts';
 import { ejecutarCLIv08 } from './cli-v08.ts';
+import { ejecutarCLIUsuario } from './cli-usuario.ts';
 
 const RUTA = process.env.ATLAS_REGISTRO ?? 'datos/registro.jsonl';
 const MEMORIA = process.env.ATLAS_MEMORIA ?? 'datos/memoria.db';
@@ -422,6 +423,13 @@ switch (comando) {
     break;
   }
 
+  case 'portafolio':
+  case 'comprar':
+  case 'vender': {
+    await ejecutarCLIUsuario(comando, args);
+    break;
+  }
+
   default:
     console.log(`Atlas V0.8 CLI
 
@@ -432,6 +440,11 @@ EDUCACIÓN (V0.6):
   practique <tema>   Registra a mano que hiciste el ejercicio
   progreso           Tu avance en el temario completo
   objetivo <texto>   Planea un objetivo, lo ejecuta en el laboratorio y comprueba cada paso
+
+TU TRADING (V0.8) — compites contra los bots de Atlas:
+  portafolio                            💼 Tu capital, posiciones, PnL y win rate
+  comprar <simbolo> <cant> [precio]     🟢 Compra (precio de mercado si lo omites)
+  vender <simbolo> <cant> [precio]      🔴 Venta
 
 SISTEMAS (V0.8):
   minar [estado|ejecutar|historial]     ⛏️ Motor de minería

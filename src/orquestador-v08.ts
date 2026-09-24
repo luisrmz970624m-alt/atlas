@@ -3,8 +3,8 @@
 import Database from 'better-sqlite3';
 import { GestorEnergia } from './energia.ts';
 import { MotorMineria } from './mineria.ts';
-import { TradingEngine } from './trading.ts';
-import { GeneradorPreciosRealtime, type PrecioActual } from './precios-realtime.ts';
+import { TradingEngine, USUARIO_ID, CAPITAL_INICIAL_USUARIO } from './trading.ts';
+import { GeneradorPreciosRealtime, SIMBOLOS_SOPORTADOS, type PrecioActual } from './precios-realtime.ts';
 import { MotorBots, type Bot } from './bots.ts';
 import { GestorCompetencia } from './competencia.ts';
 import { guardarEstado, cargarEstado } from './persistencia.ts';
@@ -81,14 +81,24 @@ export class OrquestadorV08 {
     const bots_lista = this.bots.listar_bots();
 
     // Obtener precios actuales
-    const simbolos = ['BTC', 'ETH', 'ADA', 'SOL'];
+    const simbolos = [...SIMBOLOS_SOPORTADOS];
     const precios = await this.precios.obtener_precios(simbolos);
 
-    // Calcular ganancia del usuario (portafolio simulado)
-    const usuario_capital = 10000;
-    const usuario_portafolio = this.trading.obtener_portafolio('usuario-1');
-    const usuario_ganancia = usuario_portafolio?.capital_actual
-      ? usuario_portafolio.capital_actual - usuario_capital
+    // Portafolio manual del usuario. La ganancia se mide sobre el valor TOTAL
+    // (efectivo + posiciones abiertas a precio actual): si solo miráramos el
+    // efectivo, comprar algo se vería como una pérdida instantánea.
+    const usuario_portafolio = this.trading.obtener_portafolio_por_usuario(USUARIO_ID);
+    const usuario_capital = usuario_portafolio?.capital_inicial ?? CAPITAL_INICIAL_USUARIO;
+
+    const precios_planos: Record<string, number> = {};
+    for (const [simbolo, p] of Object.entries(precios)) precios_planos[simbolo] = p.precio;
+
+    const usuario_stats = usuario_portafolio
+      ? this.trading.obtener_estadisticas(usuario_portafolio.id)
+      : null;
+
+    const usuario_ganancia = usuario_portafolio
+      ? this.trading.calcular_valor_portafolio(usuario_portafolio.id, precios_planos) - usuario_capital
       : 0;
 
     // Calcular ganancia de Atlas (suma de todos los bots)
@@ -126,8 +136,8 @@ export class OrquestadorV08 {
         capital: usuario_capital,
         ganancia: usuario_ganancia,
         ganancia_porcentaje: (usuario_ganancia / usuario_capital) * 100,
-        trades: 0, // TODO: conectar con portafolio real del usuario
-        win_rate: 0, // TODO: calcular win_rate real del usuario
+        trades: usuario_stats?.operaciones_cerradas ?? 0,
+        win_rate: usuario_stats?.win_rate ?? 0,
       },
 
       portafolio_atlas: {
@@ -153,7 +163,9 @@ export class OrquestadorV08 {
    */
   async ejecutar_ciclo() {
     const energia = this.energia.obtener_estado_hoy();
-    const precios = await this.precios.obtener_precios(['BTC', 'ETH']);
+    // Todos los símbolos soportados, no solo BTC/ETH: un bot creado sobre ADA
+    // o SOL no encontraría precio y nunca llegaría a operar.
+    const precios = await this.precios.obtener_precios([...SIMBOLOS_SOPORTADOS]);
 
     // 1. MINAR
     const energia_mineria = this.energia.obtener_energia_asignada('minar');
@@ -213,7 +225,7 @@ export class OrquestadorV08 {
     // 3. REGISTRAR COMPETENCIA
     const estado = await this.obtener_estado();
     this.competencia.crear_snapshot(
-      10000,
+      estado.portafolio_usuario.capital,
       estado.portafolio_usuario.ganancia,
       estado.portafolio_usuario.trades,
       estado.portafolio_usuario.win_rate,
@@ -381,6 +393,7 @@ export class OrquestadorV08 {
 
   cerrar() {
     this.detener_ejecucion();
+    this.db.close();
     this.energia.cerrar();
     this.mineria.cerrar();
     this.trading.cerrar();

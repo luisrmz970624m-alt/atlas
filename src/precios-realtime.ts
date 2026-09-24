@@ -22,6 +22,18 @@ export interface PrecioHistorico {
   volumen: number;
 }
 
+/**
+ * Símbolos con precio conocido. Fuera de esta lista el generador inventaría
+ * un precio base de $100 y el orquestador no sabría valorarlos, así que una
+ * posición quedaría congelada a su costo sin aparecer nunca en el marcador.
+ * Es la única lista: CLI y orquestador la comparten.
+ */
+export const SIMBOLOS_SOPORTADOS = ['BTC', 'ETH', 'ADA', 'SOL'] as const;
+
+export function esSimboloSoportado(simbolo: string): boolean {
+  return (SIMBOLOS_SOPORTADOS as readonly string[]).includes(simbolo);
+}
+
 export class GeneradorPreciosRealtime {
   private db: Database.Database;
   private cache_precios = new Map<string, PrecioActual>();
