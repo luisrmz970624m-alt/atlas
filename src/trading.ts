@@ -32,6 +32,13 @@ export interface Portafolio {
   updated_at: string;
 }
 
+/**
+ * Comisión por operación, la misma para los dos lados de la competencia.
+ * Si solo la pagara el usuario, los bots ganarían por no tener costos, no
+ * por operar mejor.
+ */
+export const COMISION = 0.001; // 0.1%
+
 /** Identidad del portafolio manual de Luis en la competencia contra Atlas. */
 export const USUARIO_ID = 'usuario-1';
 
@@ -153,7 +160,7 @@ export class TradingEngine {
     if (!portafolio) throw new Error('Portafolio no encontrado');
 
     const costo = cantidad * precio;
-    const comision = costo * 0.001; // 0.1% de comisión
+    const comision = costo * COMISION;
     const total = costo + comision;
 
     if (portafolio.capital_actual < total) {
@@ -227,7 +234,7 @@ export class TradingEngine {
     }
 
     const ingreso = cantidad * precio;
-    const comision = ingreso * 0.001;
+    const comision = ingreso * COMISION;
     const neto = ingreso - comision;
 
     const id = randomUUID();

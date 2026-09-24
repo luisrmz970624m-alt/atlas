@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { randomUUID } from 'crypto';
+import { COMISION } from './trading.ts';
 
 export type EstrategiaBot = 'buy-and-hold' | 'dca' | 'momentum' | 'mean-reversion';
 
@@ -48,6 +49,7 @@ export interface OrdenBot {
   precio_salida: number | null;
   ganancia: number | null;
   ganancia_porcentaje: number | null;
+  comision: number;
   estado: 'abierta' | 'cerrada';
   timestamp: string;
 }
@@ -112,6 +114,19 @@ export class MotorBots {
         FOREIGN KEY(bot_id) REFERENCES bots(id)
       );
     `);
+
+    // CREATE TABLE IF NOT EXISTS no agrega columnas a tablas que ya existen,
+    // así que una base creada antes de que los bots pagaran comisión se
+    // quedaría sin la columna y los INSERT fallarían.
+    this.asegurar_columna('ordenes_bot', 'comision', 'REAL DEFAULT 0');
+  }
+
+  /** Agrega una columna si falta. Solo se invoca con nombres literales. */
+  private asegurar_columna(tabla: string, columna: string, definicion: string) {
+    const columnas = this.db.prepare(`PRAGMA table_info(${tabla})`).all() as { name: string }[];
+    if (!columnas.some((c) => c.name === columna)) {
+      this.db.exec(`ALTER TABLE ${tabla} ADD COLUMN ${columna} ${definicion}`);
+    }
   }
 
   crear_bot(config: ConfiguracionBot): Bot {
@@ -205,17 +220,26 @@ export class MotorBots {
     const id = randomUUID();
     const ahora = new Date().toISOString();
 
+    // Los bots pagan la misma comisión que el usuario: si no, ganarían por no
+    // tener costos en lugar de por operar mejor.
+    let comision_orden = 0;
+    let ganancia_retorno: number | null = null;
+    let ganancia_pct_retorno: number | null = null;
+
     if (tipo === 'compra') {
       const costo = cantidad * precio;
-      if (bot.capital_actual < costo) {
-        throw new Error(`Capital insuficiente. Necesitas $${costo}, tienes $${bot.capital_actual}`);
+      comision_orden = costo * COMISION;
+      const total = costo + comision_orden;
+
+      if (bot.capital_actual < total) {
+        throw new Error(`Capital insuficiente. Necesitas $${total.toFixed(2)}, tienes $${bot.capital_actual.toFixed(2)}`);
       }
 
       // Registrar orden abierta
       this.db.prepare(`
         INSERT INTO ordenes_bot
-        (id, bot_id, tipo, simbolo, cantidad, precio_entrada, estado, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (id, bot_id, tipo, simbolo, cantidad, precio_entrada, comision, estado, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id,
         bot_id,
@@ -223,12 +247,13 @@ export class MotorBots {
         simbolo,
         cantidad,
         precio,
+        comision_orden,
         'abierta',
         ahora
       );
 
       // Actualizar capital del bot
-      const nuevo_capital = bot.capital_actual - costo;
+      const nuevo_capital = bot.capital_actual - total;
       this.db.prepare('UPDATE bots SET capital_actual = ?, updated_at = ? WHERE id = ?')
         .run(nuevo_capital, ahora, bot_id);
     } else {
@@ -243,19 +268,32 @@ export class MotorBots {
       }
 
       const ingreso = cantidad * precio;
-      const ganancia = ingreso - (orden_abierta.precio_entrada * cantidad);
-      const ganancia_porcentaje = ((ingreso - (orden_abierta.precio_entrada * cantidad)) /
-        (orden_abierta.precio_entrada * cantidad)) * 100;
+      comision_orden = ingreso * COMISION;
+      const neto = ingreso - comision_orden;
+
+      // La ganancia descuenta las dos comisiones —la de esta venta y la
+      // prorrateada de la compra que se está cerrando—, igual que la del
+      // usuario. Si solo se restara el precio de entrada, un bot "ganaría"
+      // operaciones que en realidad no cubren sus costos.
+      const costo_entrada = orden_abierta.precio_entrada * cantidad;
+      const comision_entrada = (orden_abierta.comision ?? 0) *
+        (orden_abierta.cantidad > 0 ? cantidad / orden_abierta.cantidad : 1);
+      const ganancia = neto - costo_entrada - comision_entrada;
+      const base = costo_entrada + comision_entrada;
+      const ganancia_porcentaje = base > 0 ? (ganancia / base) * 100 : 0;
+
+      ganancia_retorno = ganancia;
+      ganancia_pct_retorno = ganancia_porcentaje;
 
       // Actualizar orden
       this.db.prepare(`
         UPDATE ordenes_bot
-        SET precio_salida = ?, ganancia = ?, ganancia_porcentaje = ?, estado = ?
+        SET precio_salida = ?, ganancia = ?, ganancia_porcentaje = ?, comision = comision + ?, estado = ?
         WHERE id = ?
-      `).run(precio, ganancia, ganancia_porcentaje, 'cerrada', orden_abierta.id);
+      `).run(precio, ganancia, ganancia_porcentaje, comision_orden, 'cerrada', orden_abierta.id);
 
       // Actualizar capital
-      const nuevo_capital = bot.capital_actual + ingreso;
+      const nuevo_capital = bot.capital_actual + neto;
       this.db.prepare('UPDATE bots SET capital_actual = ?, updated_at = ? WHERE id = ?')
         .run(nuevo_capital, ahora, bot_id);
 
@@ -289,22 +327,10 @@ export class MotorBots {
       );
     }
 
-    // Calcular ganancia para retorno
-    let ganancia_retorno: number | null = null;
-    let ganancia_pct_retorno: number | null = null;
-
-    if (tipo === 'venta') {
-      const orden_abierta = this.db.prepare(`
-        SELECT * FROM ordenes_bot WHERE bot_id = ? AND simbolo = ? AND estado = 'abierta'
-        ORDER BY timestamp DESC LIMIT 1
-      `).get(bot_id, simbolo) as any;
-
-      if (orden_abierta) {
-        ganancia_retorno = (cantidad * precio) - (orden_abierta.precio_entrada * cantidad);
-        ganancia_pct_retorno = (ganancia_retorno / (orden_abierta.precio_entrada * cantidad)) * 100;
-      }
-    }
-
+    // La ganancia devuelta es la misma que se guardó arriba. Antes se
+    // recalculaba volviendo a consultar una orden abierta, pero la que se
+    // acababa de cerrar ya no lo estaba: se comparaba contra otra orden
+    // distinta, o contra ninguna.
     return {
       id,
       bot_id,
@@ -315,6 +341,7 @@ export class MotorBots {
       precio_salida: tipo === 'venta' ? precio : null,
       ganancia: ganancia_retorno,
       ganancia_porcentaje: ganancia_pct_retorno,
+      comision: comision_orden,
       estado: tipo === 'compra' ? 'abierta' : 'cerrada',
       timestamp: ahora,
     };

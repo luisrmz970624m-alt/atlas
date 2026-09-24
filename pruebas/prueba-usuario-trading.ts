@@ -4,6 +4,7 @@ import { existsSync, unlinkSync } from 'node:fs';
 import Database from 'better-sqlite3';
 import { TradingEngine, USUARIO_ID, CAPITAL_INICIAL_USUARIO } from '../src/trading.ts';
 import { OrquestadorV08 } from '../src/orquestador-v08.ts';
+import { MotorBots } from '../src/bots.ts';
 
 
 const DB_TEST = 'datos/usuario-trading-test.db';
@@ -358,6 +359,69 @@ test('usuario: el orquestador usa el capital inicial real del portafolio', async
   const estado = await orq.obtener_estado();
 
   assert.equal(estado.portafolio_usuario.capital, 55000);
+
+  orq.cerrar();
+  limpiar();
+});
+
+test('competencia: los bots pagan la misma comisión que el usuario', () => {
+  limpiar();
+
+  const trading = new TradingEngine(DB_TEST);
+  const bots = new MotorBots(DB_TEST);
+
+  const p = trading.asegurar_portafolio(USUARIO_ID, 100000);
+  const bot = bots.crear_bot({
+    nombre: 'BotComision',
+    estrategia: 'dca',
+    capital_inicial: 100000,
+    simbolos: ['BTC'],
+    parametros: {},
+  });
+
+  // Misma operación en ambos lados.
+  trading.comprar(p.id, 'BTC', 1, 10000);
+  bots.ejecutar_orden_bot(bot.id, 'compra', 'BTC', 1, 10000);
+
+  const efectivo_usuario = trading.obtener_portafolio(p.id)!.capital_actual;
+  const efectivo_bot = bots.obtener_bot(bot.id)!.capital_actual;
+
+  // Antes el bot no pagaba comisión y le quedaban $10 más que al usuario
+  // por la misma compra.
+  assert.equal(efectivo_bot, efectivo_usuario);
+
+  bots.cerrar();
+  trading.cerrar();
+  limpiar();
+});
+
+test('competencia: una compra sin vender ya se refleja en la ganancia de Atlas', async () => {
+  limpiar();
+
+  const bots = new MotorBots(DB_TEST);
+  const bot = bots.crear_bot({
+    nombre: 'BotAbierto',
+    estrategia: 'dca',
+    capital_inicial: 100000,
+    simbolos: ['BTC'],
+    parametros: {},
+  });
+  // Compra y NO vende: ganancia_total sigue en 0, pero tiene el activo.
+  bots.ejecutar_orden_bot(bot.id, 'compra', 'BTC', 1, 10000);
+  assert.equal(bots.obtener_bot(bot.id)!.ganancia_total, 0);
+  bots.cerrar();
+
+  const orq = new OrquestadorV08(DB_TEST, ESTADO_TEST);
+  const estado = await orq.obtener_estado();
+
+  // Con el precio real de BTC muy por encima de los $10.000 pagados, la
+  // posición abierta vale más de lo que costó: antes esto marcaba $0 porque
+  // solo se sumaba lo ya vendido.
+  assert.notEqual(estado.portafolio_atlas.ganancia, 0);
+  assert.ok(
+    estado.portafolio_atlas.capital > 100000,
+    `valor total ${estado.portafolio_atlas.capital} debería superar el capital inicial`
+  );
 
   orq.cerrar();
   limpiar();

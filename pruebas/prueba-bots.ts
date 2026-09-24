@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import * as assert from 'node:assert';
 import { MotorBots } from '../src/bots.ts';
 import { GestorCompetencia } from '../src/competencia.ts';
+import { COMISION } from '../src/trading.ts';
 import { unlinkSync, existsSync } from 'node:fs';
 
 const DB_TEST = 'datos/bots-test.db';
@@ -58,8 +59,14 @@ test('bots: ejecutar compra', () => {
   assert.equal(orden.precio_entrada, 50000);
   assert.equal(orden.estado, 'abierta');
 
+  // Los bots pagan la misma comisión que el usuario (0.1%), para que la
+  // competencia mida quién opera mejor y no quién tiene menos costos.
+  const costo = 0.1 * 50000;
+  const comision = costo * COMISION;
+  assert.equal(orden.comision, comision);
+
   const bot_updated = motor.obtener_bot(bot.id)!;
-  assert.equal(bot_updated.capital_actual, 10000 - (0.1 * 50000));
+  assert.equal(bot_updated.capital_actual, 10000 - costo - comision);
 
   motor.cerrar();
   limpiar();

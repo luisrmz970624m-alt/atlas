@@ -108,15 +108,21 @@ export class OrquestadorV08 {
       ? this.trading.calcular_valor_portafolio(usuario_portafolio.id, precios_planos) - usuario_capital
       : 0;
 
-    // Calcular ganancia de Atlas (suma de todos los bots)
+    // Ganancia de Atlas, medida con la misma vara que la del usuario: valor
+    // total (efectivo + posiciones abiertas a precio actual) contra capital
+    // inicial. Sumar bot.ganancia_total contaría solo lo ya vendido, así que
+    // un bot DCA que solo compra marcaría $0 aunque tuviera miles en cripto.
     let atlas_capital = 0;
+    let atlas_capital_inicial = 0;
     let atlas_ganancia = 0;
     let atlas_trades = 0;
     let atlas_win_rate = 0;
 
     for (const bot of bots_lista) {
-      atlas_capital += bot.capital_actual;
-      atlas_ganancia += bot.ganancia_total;
+      const valor_bot = this.bots.calcular_valor_portafolio_bot(bot.id, precios_planos);
+      atlas_capital += valor_bot;
+      atlas_capital_inicial += bot.capital_inicial;
+      atlas_ganancia += valor_bot - bot.capital_inicial;
       atlas_trades += bot.trades_ejecutados;
       atlas_win_rate += bot.win_rate;
     }
@@ -142,7 +148,7 @@ export class OrquestadorV08 {
       portafolio_usuario: {
         capital: usuario_capital,
         ganancia: usuario_ganancia,
-        ganancia_porcentaje: (usuario_ganancia / usuario_capital) * 100,
+        ganancia_porcentaje: usuario_capital > 0 ? (usuario_ganancia / usuario_capital) * 100 : 0,
         trades: usuario_stats?.operaciones_cerradas ?? 0,
         win_rate: usuario_stats?.win_rate ?? 0,
       },
@@ -150,7 +156,11 @@ export class OrquestadorV08 {
       portafolio_atlas: {
         capital: atlas_capital,
         ganancia: atlas_ganancia,
-        ganancia_porcentaje: atlas_capital > 0 ? (atlas_ganancia / atlas_capital) * 100 : 0,
+        // Contra el capital inicial, igual que el usuario: si se midiera
+        // contra el valor actual, los dos lados no serían comparables.
+        ganancia_porcentaje: atlas_capital_inicial > 0
+          ? (atlas_ganancia / atlas_capital_inicial) * 100
+          : 0,
         trades_total: atlas_trades,
         bots_activos: bots_lista.filter(b => b.estado === 'activo').length,
         bots: bots_lista,
