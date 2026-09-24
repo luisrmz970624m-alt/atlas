@@ -5,6 +5,7 @@ import { GestorEnergia } from './energia.ts';
 import { OrquestadorV08 } from './orquestador-v08.ts';
 import { respaldarTodo, listarRespaldos } from './respaldo.ts';
 import { SIMBOLOS_SOPORTADOS, esSimboloSoportado } from './precios-realtime.ts';
+import { ordenConfigurado, proveedorActivo, PROVEEDORES } from './modelo.ts';
 
 const DB_PATH = process.env.ATLAS_DB ?? 'datos/atlas.db';
 
@@ -38,11 +39,39 @@ export async function ejecutarCLIv08(comando: string, args: string[]) {
       return await cliCorrer(args);
     }
 
+    case 'agentes': {
+      return cliAgentes();
+    }
+
     default:
       console.error(`Comando desconocido: ${comando}`);
-      console.error('Comandos V0.8: minar, bots, competencia, ciclo, estado, respaldo, correr');
+      console.error('Comandos V0.8: minar, bots, competencia, ciclo, estado, respaldo, correr, agentes');
       process.exit(1);
   }
+}
+
+/** Muestra qué agentes de IA hay configurados y cuál atendería ahora. */
+function cliAgentes() {
+  const orden = ordenConfigurado();
+  const activo = proveedorActivo();
+
+  console.log('\n🧠 AGENTES DE IA\n');
+  console.log('  Atlas decide cuál usa. Si el primero no responde, pasa al siguiente.\n');
+
+  for (const nombre of orden) {
+    const p = PROVEEDORES[nombre];
+    const listo = p.disponible();
+    const marca = listo ? '✅' : '⬜';
+    const costo = p.local ? 'local, gratis' : 'nube, se cobra por uso';
+    const nota = listo ? '' : nombre === 'claude'
+      ? '  → define ANTHROPIC_API_KEY'
+      : nombre === 'chatgpt' ? '  → define OPENAI_API_KEY' : '';
+
+    console.log(`  ${marca} ${nombre.padEnd(8)} ${p.modelo.padEnd(22)} ${costo}${nota}`);
+  }
+
+  console.log(`\n  Atendería ahora: ${activo ? `${activo.nombre} (${activo.modelo})` : 'ninguno'}`);
+  console.log('  Cambia el orden con: ATLAS_PROVEEDOR=claude,ollama\n');
 }
 
 /**

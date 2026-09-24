@@ -419,7 +419,8 @@ switch (comando) {
   case 'ciclo':
   case 'estado':
   case 'respaldo':
-  case 'correr': {
+  case 'correr':
+  case 'agentes': {
     await ejecutarCLIv08(comando, args);
     break;
   }
@@ -446,6 +447,9 @@ TU TRADING (V0.8) — compites contra los bots de Atlas:
   portafolio                            💼 Tu capital, posiciones, PnL y win rate
   comprar <simbolo> <cant> [precio]     🟢 Compra (precio de mercado si lo omites)
   vender <simbolo> <cant> [precio]      🔴 Venta
+
+AGENTES DE IA:
+  agentes                               🧠 Qué agentes hay (Ollama/Claude/ChatGPT) y cuál responde
 
 SISTEMAS (V0.8):
   minar [estado|ejecutar|historial]     ⛏️ Motor de minería
