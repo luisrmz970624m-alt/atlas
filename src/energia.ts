@@ -62,10 +62,18 @@ export class GestorEnergia {
       );
     `);
 
-    // Crear estado para hoy si no existe
+    this.asegurar_estado_hoy();
+  }
+
+  /**
+   * Crea la fila del día si aún no existe. Se llama en cada lectura, no solo
+   * al construir: un proceso que lleva días corriendo cruza la medianoche y
+   * necesitaría una fila nueva que nadie habría creado.
+   */
+  private asegurar_estado_hoy() {
     const hoy = new Date().toISOString().split('T')[0];
     const existe = this.db.prepare(
-      'SELECT * FROM energia_estado WHERE fecha = ?'
+      'SELECT 1 FROM energia_estado WHERE fecha = ?'
     ).get(hoy);
 
     if (!existe) {
@@ -82,6 +90,7 @@ export class GestorEnergia {
   }
 
   obtener_estado_hoy(): EstadoEnergia {
+    this.asegurar_estado_hoy();
     const hoy = new Date().toISOString().split('T')[0];
     const stmt = this.db.prepare(
       'SELECT * FROM energia_estado WHERE fecha = ?'
@@ -201,26 +210,6 @@ export class GestorEnergia {
       energia_consumida: row.energia_consumida,
       resultado: JSON.parse(row.resultado),
     }));
-  }
-
-  resetear_energia_manana() {
-    const manana = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    const ahora = new Date().toISOString();
-    const id = `energia-${manana}`;
-
-    const existe = this.db.prepare(
-      'SELECT * FROM energia_estado WHERE fecha = ?'
-    ).get(manana);
-
-    if (!existe) {
-      this.db.prepare(`
-        INSERT INTO energia_estado (
-          id, fecha, energia_total, energia_usada,
-          asignacion_estudiar, asignacion_minar, asignacion_tradear,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(id, manana, this.energia_diaria, 0, 40, 30, 30, ahora, ahora);
-    }
   }
 
   cerrar() {

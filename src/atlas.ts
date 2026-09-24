@@ -418,7 +418,8 @@ switch (comando) {
   case 'competencia':
   case 'ciclo':
   case 'estado':
-  case 'respaldo': {
+  case 'respaldo':
+  case 'correr': {
     await ejecutarCLIv08(comando, args);
     break;
   }
@@ -450,6 +451,7 @@ SISTEMAS (V0.8):
   minar [estado|ejecutar|historial]     ⛏️ Motor de minería
   bots [crear|listar|ejecutar]          🤖 Bots de trading autónomos
   competencia [estado|snapshot|registrar]  🏆 Competencia Tú vs Atlas
+  correr [segundos]                     🤖 Deja a Atlas corriendo solo (default 60s por ciclo)
   ciclo                                 🚀 Ejecuta un ciclo completo (minar+bots+competencia) y persiste el estado
   estado                                📸 Muestra el último snapshot persistido (datos/atlas-state.json)
   respaldo [crear|listar]               💾 Respalda datos/atlas.db a respaldos/ (retiene últimos 7)

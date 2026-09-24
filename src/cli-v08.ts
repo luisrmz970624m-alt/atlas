@@ -34,11 +34,101 @@ export async function ejecutarCLIv08(comando: string, args: string[]) {
       return await cliRespaldo(args);
     }
 
+    case 'correr': {
+      return await cliCorrer(args);
+    }
+
     default:
       console.error(`Comando desconocido: ${comando}`);
-      console.error('Comandos V0.8: minar, bots, competencia, ciclo, estado, respaldo');
+      console.error('Comandos V0.8: minar, bots, competencia, ciclo, estado, respaldo, correr');
       process.exit(1);
   }
+}
+
+/**
+ * Deja a Atlas corriendo: mina, opera sus bots y actualiza la competencia
+ * cada N segundos hasta que se le pida parar. Es el modo que usa el servicio
+ * systemd (ver GUIA_SELFHOSTING.md).
+ */
+async function cliCorrer(args: string[]) {
+  const segundos = Number(args[0] ?? 60);
+
+  // El tope evita desbordar el entero de 32 bits de setInterval: por encima,
+  // Node colapsa el intervalo a 1 ms y el daemon entra en bucle cerrado.
+  const MAX_SEGUNDOS = 86400; // un día
+
+  if (!Number.isFinite(segundos) || segundos < 10 || segundos > MAX_SEGUNDOS) {
+    console.error('\nUso: npm run atlas -- correr [segundos]');
+    console.error(`Intervalo válido: entre 10 y ${MAX_SEGUNDOS} segundos.`);
+    console.error('Por debajo de 10s los ciclos se pisarían entre sí.\n');
+    process.exit(1);
+  }
+
+  const orquestador = new OrquestadorV08(DB_PATH);
+
+  console.log(`\n🤖 ATLAS EN MARCHA — un ciclo cada ${segundos}s`);
+  console.log('   Detener con Ctrl+C\n');
+
+  orquestador.iniciar_ejecucion(segundos * 1000);
+
+  // Apagado limpio: sin esto, Ctrl+C mataría el proceso a mitad de un ciclo
+  // y dejaría la base de datos con un journal a medias.
+  let apagando = false;
+  const apagar = async (senal: string) => {
+    // Segunda señal: si el apagado se quedó atascado (un ciclo que no termina),
+    // hay que poder salir sin recurrir a SIGKILL.
+    if (apagando) {
+      console.log(`\n⚠️  ${senal} de nuevo: salida forzada.`);
+      process.exit(1);
+    }
+    apagando = true;
+    console.log(`\n\n📴 ${senal} recibido, apagando Atlas…`);
+
+    let limpio = true;
+    try {
+      await orquestador.detener_y_esperar();
+    } catch (e) {
+      // Un fallo al guardar el estado final no debe impedir cerrar la base
+      // de datos: sin este catch sería una promesa rechazada sin manejar y
+      // el proceso moriría dejando SQLite abierto.
+      limpio = false;
+      console.error(`⚠️  Error al guardar el estado final: ${(e as Error).message}`);
+    } finally {
+      orquestador.cerrar();
+    }
+
+    console.log(limpio
+      ? '✅ Atlas detenido limpiamente. El estado quedó guardado.\n'
+      : '⚠️  Atlas detenido, pero el último estado pudo no guardarse.\n');
+    process.exit(limpio ? 0 : 1);
+  };
+
+  process.on('SIGINT', () => void apagar('SIGINT'));
+  process.on('SIGTERM', () => void apagar('SIGTERM'));
+
+  // Red de seguridad: cualquier fallo no capturado debe tumbar el proceso con
+  // código de error para que systemd lo reinicie, en vez de dejarlo a medias.
+  process.on('unhandledRejection', (razon) => {
+    console.error('💥 Fallo no manejado en Atlas:', razon);
+    process.exit(1);
+  });
+
+  // Vigilante: si un ciclo se queda atascado, el proceso sigue vivo pero deja
+  // de trabajar, y systemd no tendría forma de notarlo. Salir con error deja
+  // que lo reinicie.
+  const MAX_SALTOS = 5;
+  const vigilante = setInterval(() => {
+    if (orquestador.obtener_saltos_consecutivos() >= MAX_SALTOS) {
+      console.error(`\n💥 ${MAX_SALTOS} ciclos seguidos atascados: Atlas dejó de trabajar.`);
+      console.error('   Saliendo con error para que el servicio se reinicie.\n');
+      clearInterval(vigilante);
+      process.exit(1);
+    }
+  }, segundos * 1000);
+
+  // Mantener vivo el proceso: el setInterval del orquestador ya lo hace, pero
+  // esta promesa nunca resuelta deja explícito que el comando no termina solo.
+  await new Promise<void>(() => {});
 }
 
 async function cliRespaldo(args: string[]) {

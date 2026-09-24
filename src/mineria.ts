@@ -54,10 +54,19 @@ export class MotorMineria {
       );
     `);
 
-    // Crear estado para hoy si no existe
+    this.asegurar_estado_hoy();
+  }
+
+  /**
+   * Crea la fila del día si aún no existe. Se llama en cada lectura, no solo
+   * al construir: un proceso que lleva días corriendo cruza la medianoche y
+   * necesitaría una fila nueva que nadie habría creado. La dificultad vuelve
+   * a 1.0 cada día.
+   */
+  private asegurar_estado_hoy() {
     const hoy = new Date().toISOString().split('T')[0];
     const existe = this.db.prepare(
-      'SELECT * FROM mineria_estado WHERE fecha = ?'
+      'SELECT 1 FROM mineria_estado WHERE fecha = ?'
     ).get(hoy);
 
     if (!existe) {
@@ -81,6 +90,7 @@ export class MotorMineria {
   }
 
   obtener_estado_hoy(): EstadoMineria {
+    this.asegurar_estado_hoy();
     const hoy = new Date().toISOString().split('T')[0];
     const stmt = this.db.prepare(
       'SELECT * FROM mineria_estado WHERE fecha = ?'
@@ -229,33 +239,6 @@ export class MotorMineria {
     this.db.prepare(
       'UPDATE mineria_estado SET energia_asignada = ?, updated_at = ? WHERE fecha = ?'
     ).run(pct, ahora, hoy);
-  }
-
-  resetear_estado_manana() {
-    const manana = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    const ahora = new Date().toISOString();
-
-    const existe = this.db.prepare(
-      'SELECT * FROM mineria_estado WHERE fecha = ?'
-    ).get(manana);
-
-    if (!existe) {
-      this.db.prepare(`
-        INSERT INTO mineria_estado
-        (id, fecha, energia_asignada, hash_rate, eth_generado_hoy, bloques_minados, dificultad, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        randomUUID(),
-        manana,
-        30,    // Mantener asignación anterior
-        100,
-        0,
-        0,
-        1.0,   // Resetear dificultad
-        ahora,
-        ahora
-      );
-    }
   }
 
   cerrar() {

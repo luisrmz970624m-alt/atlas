@@ -46,7 +46,76 @@ Agrega esta línea al mismo crontab, después del respaldo local.
 
 ---
 
-## 2. Exponer Atlas a internet con Cloudflare Tunnel
+## 2. Dejar a Atlas corriendo solo (servicio systemd)
+
+### Comando manual
+
+```bash
+npm run atlas -- correr          # un ciclo cada 60s (default)
+npm run atlas -- correr 300      # un ciclo cada 5 minutos
+```
+
+Cada ciclo: mina, ejecuta los bots, registra la competencia y guarda el estado. Se detiene con Ctrl+C, esperando a que termine el ciclo en vuelo antes de cerrar la base de datos.
+
+### Como servicio permanente
+
+**Primero, un enlace estable a Node.** systemd no carga nvm, y la ruta de nvm cambia en cada actualización de Node. Un symlink fijo evita que el servicio se rompa el día que actualices:
+
+```bash
+sudo ln -sf "$(which node)" /usr/local/bin/atlas-node
+/usr/local/bin/atlas-node --version   # debe decir v22 o superior
+```
+
+Crea `/etc/systemd/system/atlas.service`:
+
+```ini
+[Unit]
+Description=Atlas — asistente autónomo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=luisangel
+WorkingDirectory=/home/luisangel/atlas
+# Se invoca node directamente, NO npm: npm no reenvía SIGTERM a su hijo, así
+# que systemd mataría el proceso padre y dejaría a Atlas huérfano con la base
+# de datos abierta, sin apagado limpio.
+ExecStart=/usr/local/bin/atlas-node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts correr 60
+Restart=on-failure
+RestartSec=30
+# Dale tiempo a terminar el ciclo en curso antes de matarlo
+KillSignal=SIGTERM
+TimeoutStopSec=90
+
+[Install]
+WantedBy=multi-user.target
+```
+
+> **Por qué no `ExecStart=/usr/bin/npm`:** el npm del sistema corre sobre el Node de la distribución (a menudo v18), que no entiende `--experimental-strip-types`. El servicio fallaría en cada arranque y `Restart=on-failure` lo dejaría en un bucle de reinicios silencioso.
+
+Activar:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now atlas
+sudo systemctl status atlas
+journalctl -u atlas -f        # ver los ciclos en vivo
+```
+
+### Detalles que importan para que no falle con el tiempo
+
+- **Sin ciclos solapados:** si un ciclo tarda más que el intervalo (red lenta), el siguiente turno se salta en vez de arrancar en paralelo. Dos ciclos simultáneos consumirían la energía del día dos veces.
+- **Apagado limpio:** ante SIGTERM (systemd) o SIGINT (Ctrl+C), Atlas detiene el temporizador, espera al ciclo en vuelo, guarda un snapshot final y cierra SQLite. Por eso `TimeoutStopSec` debe ser holgado.
+- **Un error de un ciclo no tumba el servicio:** se registra y el siguiente ciclo sigue corriendo.
+- **Vigilante contra ciclos atascados:** si 5 turnos seguidos se saltan porque un ciclo no termina, Atlas sale con código de error a propósito, para que systemd lo reinicie. Sin esto, el proceso seguiría vivo sin trabajar y nadie se enteraría.
+- **Cambio de día:** el estado diario de energía y minería se crea bajo demanda, así que cruzar la medianoche no detiene a Atlas.
+- **Poda automática:** los históricos (snapshots de competencia, caché de precios, registros de energía y minería) se podan a 30 días en cada ciclo. Sin esto serían cientos de miles de filas al año, y cada respaldo copiaría todo.
+- **Intervalo válido:** entre 10 y 86.400 segundos.
+
+---
+
+## 3. Exponer Atlas a internet con Cloudflare Tunnel
 
 **Por qué no abrir puertos directo:** exponer el puerto de tu router directamente a internet expone tu IP real y convierte tu PC en blanco de escaneos automatizados constantes. Cloudflare Tunnel crea una conexión saliente cifrada desde tu PC hacia Cloudflare — nunca necesitas abrir un puerto de entrada.
 
@@ -105,11 +174,12 @@ Esto asegura que el túnel se reconecte automáticamente si tu PC reinicia.
 
 ---
 
-## 3. Checklist antes de lanzar
+## 4. Checklist antes de lanzar
 
 - [ ] `npm run atlas -- respaldo crear` corre sin errores
 - [ ] Cron configurado para respaldo diario automático
 - [ ] Respaldos también copiados a un destino externo (no solo local)
+- [ ] Servicio systemd de Atlas activo (`systemctl status atlas`)
 - [ ] Cloudflare Tunnel instalado y autenticado
 - [ ] Dominio enrutado y resolviendo (`curl https://atlas.tudominio.com`)
 - [ ] `cloudflared` corriendo como servicio systemd (sobrevive reinicios)

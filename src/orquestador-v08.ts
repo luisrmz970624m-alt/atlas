@@ -9,6 +9,9 @@ import { MotorBots, type Bot } from './bots.ts';
 import { GestorCompetencia } from './competencia.ts';
 import { guardarEstado, cargarEstado } from './persistencia.ts';
 
+/** Días de histórico que se conservan antes de podar las tablas que solo crecen. */
+export const DIAS_RETENCION_HISTORICO = 30;
+
 export interface EstadoAtlasV08 {
   timestamp: string;
   nivel: number;
@@ -55,6 +58,10 @@ export class OrquestadorV08 {
   private precios_cache: Record<string, PrecioActual> = {};
   private ciclos_ejecutados = 0;
   private ruta_estado: string;
+  /** Ciclo actualmente en vuelo, para no solapar y poder esperarlo al apagar. */
+  private ciclo_en_curso: Promise<void> | null = null;
+  /** Turnos seguidos saltados porque el ciclo anterior no terminaba. */
+  private saltos_consecutivos = 0;
 
   constructor(db_path: string = 'datos/atlas.db', ruta_estado: string = 'datos/atlas-state.json') {
     this.db = new Database(db_path);
@@ -247,6 +254,24 @@ export class OrquestadorV08 {
     // 5. PERSISTIR SNAPSHOT DE ESTADO
     this.ciclos_ejecutados++;
     guardarEstado(estado, this.intervalo_ejecucion !== null, this.ciclos_ejecutados, this.ruta_estado);
+
+    // 6. PODAR HISTÓRICOS
+    this.podar_historicos();
+  }
+
+  /**
+   * Borra filas viejas de las tablas que solo crecen. Corriendo 24/7 cada
+   * minuto, los snapshots de competencia y la caché de precios sumarían
+   * cientos de miles de filas al año, y cada respaldo copiaría todo eso.
+   * Se conservan 30 días, suficiente para las estadísticas que se consultan.
+   */
+  private podar_historicos() {
+    const corte = new Date(Date.now() - DIAS_RETENCION_HISTORICO * 86400000).toISOString();
+
+    this.db.prepare('DELETE FROM competencia_snapshots WHERE timestamp < ?').run(corte);
+    this.db.prepare('DELETE FROM precios_cache WHERE timestamp < ?').run(corte);
+    this.db.prepare('DELETE FROM energia_registro WHERE timestamp < ?').run(corte);
+    this.db.prepare('DELETE FROM mineria_registro WHERE timestamp < ?').run(corte);
   }
 
   /**
@@ -254,6 +279,15 @@ export class OrquestadorV08 {
    */
   obtener_estado_persistido() {
     return cargarEstado(this.ruta_estado);
+  }
+
+  /**
+   * Turnos seguidos que se saltaron por tener un ciclo atascado. Si esto
+   * crece sin parar, Atlas sigue vivo pero no está trabajando: quien lo
+   * supervise (el comando `correr`) debe reaccionar.
+   */
+  obtener_saltos_consecutivos(): number {
+    return this.saltos_consecutivos;
   }
 
   /**
@@ -369,14 +403,28 @@ export class OrquestadorV08 {
 
     console.log(`🚀 Atlas V0.8 iniciando ejecución cada ${intervalo_ms}ms`);
 
-    this.intervalo_ejecucion = setInterval(async () => {
-      try {
-        await this.ejecutar_ciclo();
-        const estado = await this.obtener_estado();
-        console.log(`⚡ Ciclo ejecutado | Atlas: $${estado.portafolio_atlas.ganancia.toFixed(2)} | Tú: $${estado.portafolio_usuario.ganancia.toFixed(2)}`);
-      } catch (e) {
-        console.error('Error en ciclo de Atlas:', e);
+    this.intervalo_ejecucion = setInterval(() => {
+      // Si el ciclo anterior sigue corriendo (red lenta, muchos bots), se
+      // salta este turno. Dos ciclos en paralelo consumirían la energía del
+      // día dos veces y dejarían el estado inconsistente.
+      if (this.ciclo_en_curso) {
+        this.saltos_consecutivos++;
+        console.log(`⏭️  Ciclo anterior aún en curso, se salta este turno (${this.saltos_consecutivos})`);
+        return;
       }
+
+      this.saltos_consecutivos = 0;
+      this.ciclo_en_curso = (async () => {
+        try {
+          await this.ejecutar_ciclo();
+          const estado = await this.obtener_estado();
+          console.log(`⚡ Ciclo ejecutado | Atlas: $${estado.portafolio_atlas.ganancia.toFixed(2)} | Tú: $${estado.portafolio_usuario.ganancia.toFixed(2)}`);
+        } catch (e) {
+          console.error('Error en ciclo de Atlas:', e);
+        } finally {
+          this.ciclo_en_curso = null;
+        }
+      })();
     }, intervalo_ms);
   }
 
@@ -389,6 +437,25 @@ export class OrquestadorV08 {
       this.intervalo_ejecucion = null;
       console.log('⏸️ Atlas V0.8 detenido');
     }
+  }
+
+  /**
+   * Detiene la ejecución y espera a que termine el ciclo en vuelo.
+   * Necesario antes de cerrar: si se cierra la base de datos a mitad de un
+   * ciclo, las escrituras pendientes revientan.
+   */
+  async detener_y_esperar() {
+    this.detener_ejecucion();
+    if (this.ciclo_en_curso) {
+      console.log('⏳ Esperando a que termine el ciclo en curso…');
+      await this.ciclo_en_curso;
+    }
+
+    // Snapshot final: sin esto el último guardado quedaría con
+    // ejecucion_activa=true y `atlas estado` diría que Atlas sigue corriendo
+    // después de haberlo apagado.
+    const estado = await this.obtener_estado();
+    guardarEstado(estado, false, this.ciclos_ejecutados, this.ruta_estado);
   }
 
   cerrar() {
