@@ -49,3 +49,10 @@
 - Alcance: orquestador local de workers lógicos de trading y empresa, cola con prioridades, límites globales y por dominio, perfiles `INTERACTIVE`/`NIGHT`, eventos seguros y resumen agregado.
 - Invariantes: estado y configuración se clonan por worker; un fallo queda aislado; las transiciones inválidas se rechazan; `NIGHT` conserva `TRADING_MODE=DEMO_ONLY` y `REAL_TRADING=false`.
 - Verificación: 254/254 pruebas verdes con `ATLAS_SIN_RED=true`; no usa procesos del SO, red, secretos ni MT5 real.
+
+## Entrega J
+
+- Estado: verificada y comprometida.
+- Alcance: memoria empresarial SQLite aislada, experiencias con evaluación separada del resultado financiero, política configurable de evidencia, comparación con pesos explícitos e historial de resúmenes.
+- Invariantes: ningún caller puede insertar `VALIDADA`; una regla crítica rota produce rechazo aun con ganancia; validar exige varias ejecuciones, seeds y escenarios.
+- Verificación: 257/257 pruebas verdes offline. El esquema es nuevo y aditivo; no se migró ni alteró la memoria existente de trading.
