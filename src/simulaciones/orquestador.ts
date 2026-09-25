@@ -34,7 +34,7 @@ export class SimulationWorker {
   async correr(): Promise<void> {
     if (this.datos.estado !== 'RUNNING') return;
     try { this.datos.metrics = clonar(await this.ejecutar()); if (this.datos.estado === 'RUNNING') { this.datos.progress = 100; this.datos.estado = 'COMPLETED'; this.datos.completedAt = ahora(); } }
-    catch (error) { this.datos.error = error instanceof Error ? error.message : 'Fallo desconocido'; this.datos.estado = 'FAILED'; this.datos.completedAt = ahora(); }
+    catch (error) { if (this.datos.estado === 'RUNNING') { this.datos.error = error instanceof Error ? error.message : 'Fallo desconocido'; this.datos.estado = 'FAILED'; this.datos.completedAt = ahora(); } }
   }
 }
 
@@ -62,7 +62,7 @@ export class SimulationScheduler {
   async ejecutarPendientes(): Promise<void> {
     const pendientes = [...this.workers.values()].filter((w) => w.estado().estado === 'PENDING').sort((a, b) => peso[b.estado().prioridad] - peso[a.estado().prioridad]);
     const activos: Promise<void>[] = [];
-    for (const worker of pendientes) { if (!this.capacidad(worker)) continue; worker.iniciar(); this.emitir('simulation.started', worker); activos.push(worker.correr().then(() => this.emitir(worker.estado().estado === 'FAILED' ? 'simulation.failed' : 'simulation.completed', worker))); }
+    for (const worker of pendientes) { if (!this.capacidad(worker)) continue; worker.iniciar(); this.emitir('simulation.started', worker); activos.push(worker.correr().then(() => { const estado = worker.estado().estado; if (estado === 'FAILED') this.emitir('simulation.failed', worker); else if (estado === 'COMPLETED') this.emitir('simulation.completed', worker); })); }
     await Promise.all(activos);
   }
   pausar(id: string): void { const w = this.worker(id); w.pausar(); this.emitir('simulation.paused', w); }
