@@ -14,3 +14,10 @@
 - Alcance permitido: datos históricos locales validados, estrategias declarativas y backtester reproducible.
 - Excluido: recomendaciones financieras, servicios externos, broker, MT5, paper trading y cualquier orden.
 - Verificacion: `npm run prueba` resulto en 237 pruebas verdes con `ATLAS_SIN_RED=true` forzado por el script.
+
+## Entrega D
+
+- Estado: verificada; pendiente del commit de fase.
+- Alcance permitido: validacion fuera de muestra, walk-forward y observacion paper interna.
+- Excluido: broker, MT5, credenciales y envio de ordenes.
+- Verificacion: `npm run prueba` resulto en 240 pruebas verdes, sin red.
