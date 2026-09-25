@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import * as assert from 'node:assert';
-import { ordenConfigurado, proveedoresDisponibles, generarCon, PROVEEDORES } from '../src/proveedores/seleccion.ts';
+import { ordenConfigurado, proveedoresDisponibles, generarCon, PROVEEDORES, politicaVorticeDesdeEntorno, generar } from '../src/proveedores/seleccion.ts';
+import { leerEventos } from '../src/registro.ts';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { ModeloNoDisponible, RespuestaIncompleta, type Proveedor } from '../src/proveedores/tipos.ts';
 import { crearVortice, POLITICA_VORTICE_DEFECTO } from '../src/vortice/router.ts';
 import type { Generador, PoliticaVortice, RegistroRuta, SolicitudIA } from '../src/vortice/tipos.ts';
@@ -109,7 +113,7 @@ test('selección: una respuesta cortada NO salta a otro proveedor', async () => 
   );
 });
 
-test('selección: si ninguno responde, el error dice qué falló en cada uno', async () => {
+test('selección: si ninguno responde, el error queda sanitizado', async () => {
   await assert.rejects(
     () => cascada([
       falso('claude', { falla: new ModeloNoDisponible('sin clave') }),
@@ -117,8 +121,8 @@ test('selección: si ninguno responde, el error dice qué falló en cada uno', a
     ]),
     (e: Error) => {
       assert.ok(e instanceof ModeloNoDisponible);
-      assert.ok(e.message.includes('sin clave'), 'debe nombrar el fallo de claude');
-      assert.ok(e.message.includes('rate limit'), 'debe nombrar el fallo de chatgpt');
+      assert.equal(e.message.includes('sin clave'), false);
+      assert.equal(e.message.includes('rate limit'), false);
       return true;
     },
   );
@@ -145,6 +149,21 @@ test('CLI agentes probar: un proveedor sin clave se salta sin llamar a la red', 
   process.exitCode = codigoPrevio;
 });
 
+test('CLI agentes probar: una clave no permite llamar proveedor pagado sin permiso', async () => {
+  const anterior = process.env.ATLAS_PERMITIR_API_PAGADA;
+  const codigoPrevio = process.exitCode;
+  delete process.env.ATLAS_PERMITIR_API_PAGADA;
+  let llamadas = 0;
+  const original = PROVEEDORES.claude;
+  PROVEEDORES.claude = { ...original, disponible: () => true, generar: async () => { llamadas += 1; return 'nunca'; } };
+  const { ejecutarCLIv08 } = await import('../src/cli-v08.ts');
+  await ejecutarCLIv08('agentes', ['probar', 'claude']);
+  assert.equal(llamadas, 0);
+  PROVEEDORES.claude = original;
+  process.exitCode = codigoPrevio;
+  if (anterior === undefined) delete process.env.ATLAS_PERMITIR_API_PAGADA; else process.env.ATLAS_PERMITIR_API_PAGADA = anterior;
+});
+
 test('CLI agentes: mostrar estado no lanza aunque no haya proveedores de pago configurados', async () => {
   const { ejecutarCLIv08 } = await import('../src/cli-v08.ts');
 
@@ -164,6 +183,58 @@ test('vórtice: tarea sencilla decide Ollama local de manera determinista', () =
   const esperado = { proveedor: 'ollama', razon: 'local_disponible', coste: 'local', api_pagada: false };
   assert.deepEqual(vortice.decidir(solicitudBaja), esperado);
   assert.deepEqual(vortice.decidir(solicitudBaja), esperado);
+});
+
+test('vórtice: ATLAS_PROVEEDOR aplica orden, descarta inválidos y conserva defecto', () => {
+  const previo = process.env.ATLAS_PROVEEDOR;
+  process.env.ATLAS_PROVEEDOR = 'claude,ollama';
+  assert.deepEqual(politicaVorticeDesdeEntorno().ordenSencilla, ['claude', 'ollama', 'chatgpt']);
+  process.env.ATLAS_PROVEEDOR = 'chatgpt,ollama';
+  assert.deepEqual(politicaVorticeDesdeEntorno().ordenSencilla, ['chatgpt', 'ollama', 'claude']);
+  process.env.ATLAS_PROVEEDOR = 'invalido,claude,claude';
+  assert.deepEqual(politicaVorticeDesdeEntorno().ordenSencilla, ['claude', 'ollama', 'chatgpt']);
+  delete process.env.ATLAS_PROVEEDOR;
+  assert.deepEqual(politicaVorticeDesdeEntorno().ordenSencilla, ['ollama', 'claude', 'chatgpt']);
+  if (previo === undefined) delete process.env.ATLAS_PROVEEDOR; else process.env.ATLAS_PROVEEDOR = previo;
+});
+
+test('generar: audita una decisión real sin prompt, respuesta ni secreto', async () => {
+  const carpeta = mkdtempSync(join(tmpdir(), 'atlas-vortice-'));
+  const ruta = join(carpeta, 'registro.jsonl');
+  const registroPrevio = process.env.ATLAS_REGISTRO;
+  const permisoPrevio = process.env.ATLAS_PERMITIR_API_PAGADA;
+  process.env.ATLAS_REGISTRO = ruta; delete process.env.ATLAS_PERMITIR_API_PAGADA;
+  const original = PROVEEDORES.ollama;
+  PROVEEDORES.ollama = { ...original, disponible: () => true, generar: async () => 'respuesta-secreta' };
+  await generar('prompt sk-secreto', 'usuario sensible');
+  const texto = JSON.stringify(leerEventos(ruta));
+  assert.match(texto, /Vórtice: ollama exito/);
+  for (const secreto of ['sk-secreto', 'usuario sensible', 'respuesta-secreta']) assert.equal(texto.includes(secreto), false);
+  PROVEEDORES.ollama = original;
+  if (registroPrevio === undefined) delete process.env.ATLAS_REGISTRO; else process.env.ATLAS_REGISTRO = registroPrevio;
+  if (permisoPrevio === undefined) delete process.env.ATLAS_PERMITIR_API_PAGADA; else process.env.ATLAS_PERMITIR_API_PAGADA = permisoPrevio;
+  rmSync(carpeta, { recursive: true, force: true });
+});
+
+test('CLI y ruta heredada no imprimen errores remotos crudos', async () => {
+  const secreto = 'token-ficticio-super-secreto';
+  await assert.rejects(() => generarCon([falso('ollama', { falla: new ModeloNoDisponible(secreto) })], 's', 'u'), (e: Error) => !e.message.includes(secreto));
+  const anterior = process.env.ATLAS_PERMITIR_API_PAGADA;
+  const codigoPrevio = process.exitCode;
+  process.env.ATLAS_PERMITIR_API_PAGADA = 'true';
+  const original = PROVEEDORES.claude;
+  PROVEEDORES.claude = { ...original, disponible: () => true, generar: async () => { throw new Error(secreto); } };
+  const mensajes: string[] = []; const salida = process.stdout.write;
+  process.stdout.write = ((trozo: string) => { mensajes.push(trozo); return true; }) as typeof process.stdout.write;
+  const { ejecutarCLIv08 } = await import('../src/cli-v08.ts');
+  try {
+    await ejecutarCLIv08('agentes', ['probar', 'claude']);
+  } finally {
+    process.stdout.write = salida; PROVEEDORES.claude = original;
+    if (anterior === undefined) delete process.env.ATLAS_PERMITIR_API_PAGADA; else process.env.ATLAS_PERMITIR_API_PAGADA = anterior;
+    process.exitCode = codigoPrevio;
+  }
+  assert.equal(mensajes.join('').includes(secreto), false);
 });
 
 test('vórtice: proveedor sin clave se salta hacia el siguiente permitido', () => {

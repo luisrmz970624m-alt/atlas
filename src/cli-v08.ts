@@ -6,6 +6,7 @@ import { OrquestadorV08 } from './orquestador-v08.ts';
 import { respaldarTodo, listarRespaldos } from './respaldo.ts';
 import { SIMBOLOS_SOPORTADOS, esSimboloSoportado } from './precios-realtime.ts';
 import { ordenConfigurado, proveedorActivo, PROVEEDORES, ModeloNoDisponible, RespuestaIncompleta } from './modelo.ts';
+import { apiPagadaPermitida, clasificarErrorProveedor } from './proveedores/seleccion.ts';
 
 const DB_PATH = process.env.ATLAS_DB ?? 'datos/atlas.db';
 
@@ -117,6 +118,12 @@ async function cliProbarAgentes(nombreFiltro?: string) {
       continue;
     }
 
+    if (!proveedor.local && !apiPagadaPermitida()) {
+      algunoFallo = true;
+      console.log(`  🔒 ${nombre.padEnd(8)} bloqueado: API pagada no permitida`);
+      continue;
+    }
+
     process.stdout.write(`  ⏳ ${nombre.padEnd(8)} preguntando…`);
     const inicio = Date.now();
 
@@ -132,9 +139,7 @@ async function cliProbarAgentes(nombreFiltro?: string) {
       console.log(parece_json ? '' : '  (respuesta rara, revisar formato)');
     } catch (e) {
       algunoFallo = true;
-      const motivo = e instanceof ModeloNoDisponible ? e.message
-        : e instanceof RespuestaIncompleta ? `respuesta incompleta: ${e.message}`
-        : (e as Error).message;
+      const motivo = clasificarErrorProveedor(e);
       process.stdout.write(`\r  ❌ ${nombre.padEnd(8)} falló: ${motivo}\n`);
     }
   }
