@@ -56,3 +56,10 @@
 - Alcance: memoria empresarial SQLite aislada, experiencias con evaluación separada del resultado financiero, política configurable de evidencia, comparación con pesos explícitos e historial de resúmenes.
 - Invariantes: ningún caller puede insertar `VALIDADA`; una regla crítica rota produce rechazo aun con ganancia; validar exige varias ejecuciones, seeds y escenarios.
 - Verificación: 257/257 pruebas verdes offline. El esquema es nuevo y aditivo; no se migró ni alteró la memoria existente de trading.
+
+## Entrega K
+
+- Estado: verificada y comprometida.
+- Alcance: contrato interno serializable para el panel El Vórtice, agregador de empresa, trading, simulaciones, memoria, auditoría, recursos y alertas, con polling local mínimo.
+- Etiquetas: toda métrica empresarial se marca `simulated`; recursos reales quedan `UNAVAILABLE`; bridge MT5 local aparece implementado y MT5 real permanece `PENDIENTE`.
+- Verificación: 259/259 pruebas verdes offline, sin frontend, red, credenciales ni datos de una cuenta MT5.
