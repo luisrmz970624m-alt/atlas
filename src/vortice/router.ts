@@ -18,6 +18,7 @@ import type {
   TipoErrorRuta,
   Vortice,
 } from './tipos.ts';
+import { ContextoNoReducible, prepararContexto, type FuenteContexto, type PresupuestoContexto } from './contexto.ts';
 
 export const POLITICA_VORTICE_DEFECTO: PoliticaVortice = {
   apiPagadaPermitida: false,
@@ -71,7 +72,7 @@ export function crearVortice(
       coste: coste(proveedor), api_pagada: !esLocal };
   };
 
-  const ejecutar = async (solicitud: SolicitudIA, sistema: string, usuario: string): Promise<string> => {
+  const ejecutar = async (solicitud: SolicitudIA, sistema: string, usuario: string, contexto?: { caracteres: number; tokens_aproximados: number; reducido: boolean; resumen_utilizado: boolean }): Promise<string> => {
     const lista = candidatos(solicitud);
     if (lista.length === 0) throw new ModeloNoDisponible('El Vórtice no encontró un proveedor permitido y disponible.');
 
@@ -82,14 +83,18 @@ export function crearVortice(
       try {
         const respuesta = await proveedor.generar(sistema, usuario);
         registrar({ proveedor: proveedor.nombre, razon, coste: coste(proveedor), api_pagada: !proveedor.local,
-          duracion_ms: Date.now() - inicio, resultado: 'exito', fallback_utilizado: indice > 0 });
+          duracion_ms: Date.now() - inicio, resultado: 'exito', fallback_utilizado: indice > 0,
+          ...(contexto ? { contexto_caracteres: contexto.caracteres, contexto_tokens_aproximados: contexto.tokens_aproximados,
+            contexto_reducido: contexto.reducido, resumen_utilizado: contexto.resumen_utilizado } : {}) });
         return respuesta;
       } catch (error) {
         const clase = tipoError(error);
         registrar({ proveedor: proveedor.nombre, razon, coste: coste(proveedor), api_pagada: !proveedor.local,
           duracion_ms: Date.now() - inicio,
           resultado: clase === 'no_disponible' ? 'no_disponible' : clase === 'respuesta_incompleta' ? 'truncada' : 'error_no_recuperable',
-          tipo_error: clase, fallback_utilizado: indice > 0 });
+          tipo_error: clase, fallback_utilizado: indice > 0,
+          ...(contexto ? { contexto_caracteres: contexto.caracteres, contexto_tokens_aproximados: contexto.tokens_aproximados,
+            contexto_reducido: contexto.reducido, resumen_utilizado: contexto.resumen_utilizado } : {}) });
         // Una salida truncada es tamaño/contexto, no indisponibilidad. Un error
         // inesperado tampoco se oculta con un segundo envío que duplicaría trabajo.
         if (!(error instanceof ModeloNoDisponible) || error instanceof RespuestaIncompleta) throw error;
@@ -101,5 +106,13 @@ export function crearVortice(
   const generador = (solicitud: SolicitudIA = SOLICITUD_GENERICA): Generador =>
     (sistema, usuario) => ejecutar(solicitud, sistema, usuario);
 
-  return { decidir, ejecutar, generador };
+  const ejecutarConContexto = async (solicitud: SolicitudIA, sistema: string, fuentes: FuenteContexto[], presupuesto: PresupuestoContexto) => {
+    const contexto = prepararContexto(fuentes, presupuesto);
+    if (contexto.rechazo) throw new ContextoNoReducible('El contexto no cabe de forma segura en el presupuesto.');
+    // La decisión de coste se toma después de reducir, pero sigue pasando por
+    // la misma política del Vórtice: reducir no concede permiso de API.
+    return { respuesta: await ejecutar(solicitud, sistema, contexto.texto, contexto), contexto };
+  };
+
+  return { decidir, ejecutar, ejecutarConContexto, generador };
 }

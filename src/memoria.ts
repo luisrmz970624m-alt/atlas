@@ -13,6 +13,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
+import type { Experiencia, NuevaExperiencia, EstadoExperiencia } from './vortice/experiencia.ts';
 
 /** Los cinco espacios. Un resultado ficticio de trading no puede acabar en personal. */
 export const ESPACIOS = ['personal', 'programacion', 'trading', 'simulaciones', 'sistema'] as const;
@@ -73,6 +74,17 @@ CREATE TABLE IF NOT EXISTS recuerdos (
 );
 CREATE INDEX IF NOT EXISTS idx_clave   ON recuerdos(espacio, clave);
 CREATE INDEX IF NOT EXISTS idx_objetivo ON recuerdos(objetivo);
+CREATE TABLE IF NOT EXISTS experiencias (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, fecha TEXT NOT NULL, dominio TEXT NOT NULL,
+  hipotesis TEXT NOT NULL, evidencia TEXT NOT NULL, resultado TEXT NOT NULL,
+  reglas_cumplidas TEXT NOT NULL, reglas_rotas TEXT NOT NULL, confianza REAL NOT NULL,
+  fuente TEXT NOT NULL, estado TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_experiencias_dominio ON experiencias(dominio, estado);
+CREATE TABLE IF NOT EXISTS resumenes_contexto (
+  id TEXT PRIMARY KEY, version INTEGER NOT NULL, origen TEXT NOT NULL,
+  texto TEXT NOT NULL, fuentes TEXT NOT NULL, fecha TEXT NOT NULL
+);
 `;
 
 export class Memoria {
@@ -196,6 +208,36 @@ export class Memoria {
       `SELECT espacio, COUNT(*) AS n FROM recuerdos WHERE estado = 'vigente' GROUP BY espacio`,
     ).all() as unknown as { espacio: string; n: number }[];
     return Object.fromEntries(filas.map((f) => [f.espacio, Number(f.n)]));
+  }
+
+  guardarExperiencia(nueva: NuevaExperiencia & { estado: EstadoExperiencia }): Experiencia {
+    if (!nueva.dominio || !nueva.hipotesis || !nueva.evidencia || !nueva.fuente || nueva.confianza < 0 || nueva.confianza > 1) throw new Error('Experiencia inválida.');
+    const fecha = new Date().toISOString();
+    const r = this.db.prepare(`INSERT INTO experiencias (fecha, dominio, hipotesis, evidencia, resultado, reglas_cumplidas, reglas_rotas, confianza, fuente, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .run(fecha, nueva.dominio, nueva.hipotesis, nueva.evidencia, nueva.resultado, JSON.stringify(nueva.reglas_cumplidas), JSON.stringify(nueva.reglas_rotas), nueva.confianza, nueva.fuente, nueva.estado);
+    return this.experienciaPorId(Number(r.lastInsertRowid))!;
+  }
+
+  experienciaPorId(id: number): Experiencia | null {
+    const fila = this.db.prepare('SELECT * FROM experiencias WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+    if (!fila) return null;
+    return { ...fila, reglas_cumplidas: JSON.parse(String(fila.reglas_cumplidas)), reglas_rotas: JSON.parse(String(fila.reglas_rotas)) } as Experiencia;
+  }
+
+  buscarExperiencias(filtro: { dominio: string; texto?: string; maximo?: number }): Experiencia[] {
+    const texto = filtro.texto ? `%${filtro.texto}%` : '%';
+    const filas = this.db.prepare(`SELECT * FROM experiencias WHERE dominio = ? AND estado != 'descartada' AND (hipotesis LIKE ? OR evidencia LIKE ? OR resultado LIKE ?) ORDER BY id DESC LIMIT ?`).all(filtro.dominio, texto, texto, texto, filtro.maximo ?? 3) as Record<string, unknown>[];
+    return filas.map((fila) => ({ ...fila, reglas_cumplidas: JSON.parse(String(fila.reglas_cumplidas)), reglas_rotas: JSON.parse(String(fila.reglas_rotas)) } as Experiencia));
+  }
+
+  guardarResumenContexto(resumen: { id: string; version: number; origen: string; texto: string; fuentes: string[] }): void {
+    this.db.prepare(`INSERT OR REPLACE INTO resumenes_contexto (id, version, origen, texto, fuentes, fecha) VALUES (?, ?, ?, ?, ?, ?)`)
+      .run(resumen.id, resumen.version, resumen.origen, resumen.texto, JSON.stringify(resumen.fuentes), new Date().toISOString());
+  }
+
+  obtenerResumenContexto(id: string): { id: string; version: number; origen: string; texto: string; fuentes: string[]; fecha: string } | null {
+    const fila = this.db.prepare('SELECT * FROM resumenes_contexto WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+    return fila ? { ...fila, fuentes: JSON.parse(String(fila.fuentes)) } as { id: string; version: number; origen: string; texto: string; fuentes: string[]; fecha: string } : null;
   }
 }
 

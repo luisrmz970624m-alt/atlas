@@ -1,4 +1,5 @@
 import type { Generador, NombreProveedor, Proveedor } from '../proveedores/tipos.ts';
+import type { FuenteContexto, PresupuestoContexto, ContextoPreparado } from './contexto.ts';
 
 /** Datos mínimos para elegir una ruta; no contiene prompts ni secretos. */
 export interface SolicitudIA {
@@ -36,11 +37,16 @@ export interface RegistroRuta {
   resultado: ResultadoRuta;
   tipo_error?: TipoErrorRuta;
   fallback_utilizado: boolean;
+  contexto_caracteres?: number;
+  contexto_tokens_aproximados?: number;
+  contexto_reducido?: boolean;
+  resumen_utilizado?: boolean;
 }
 
 export interface Vortice {
   decidir(solicitud: SolicitudIA): DecisionRuta;
   ejecutar(solicitud: SolicitudIA, sistema: string, usuario: string): Promise<string>;
+  ejecutarConContexto(solicitud: SolicitudIA, sistema: string, fuentes: FuenteContexto[], presupuesto: PresupuestoContexto): Promise<{ respuesta: string; contexto: ContextoPreparado }>;
   /** Adaptador para los consumidores existentes del contrato Generador. */
   generador(solicitud?: SolicitudIA): Generador;
 }
