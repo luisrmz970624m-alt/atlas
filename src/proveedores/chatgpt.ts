@@ -27,7 +27,9 @@ const generarChatGPT: Generador = async (sistema, usuario) => {
   try {
     const flujo = await openai.chat.completions.create({
       model: MODELO_CHATGPT,
-      max_tokens: MAX_SALIDA,
+      // max_tokens está deprecado en la API de Chat Completions desde 2024;
+      // OpenAI puede retirarlo del todo más adelante.
+      max_completion_tokens: MAX_SALIDA,
       stream: true,
       // A diferencia de Claude, OpenAI sí tiene un modo JSON sin esquema.
       response_format: { type: 'json_object' },
