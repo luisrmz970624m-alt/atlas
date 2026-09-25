@@ -32,13 +32,20 @@
 
 ## Entrega G
 
-- Estado: verificada; pendiente del commit de fase.
+- Estado: verificada y comprometida (`c52fc0b`).
 - Alcance: Empresa Simulator sintético y reproducible: clientes, proveedores, empleados, productos, inventario, ventas, compras, FacturaSimulada, NominaSimulada, banco interno y ledger de doble partida simplificado.
 - Invariantes: sin datos personales, fiscales, bancarios ni pagos reales; no hay stock negativo y los estados financieros llevan etiqueta `SIMULACIÓN`.
 - Pruebas: 249/249 verdes offline. MT5 real sigue pendiente.
 
 ## Entrega H
 
-- Estado: verificada; pendiente del commit de fase.
+- Estado: verificada y comprometida (`5d4974f`).
 - Alcance: reloj virtual sin `Date.now`, scheduler de eventos, velocidades lógicas, escenarios sintéticos y checkpoints reproducibles.
 - Pruebas: 250/250 verdes offline. No se consumen servicios externos.
+
+## Entrega I
+
+- Estado: verificada y comprometida.
+- Alcance: orquestador local de workers lógicos de trading y empresa, cola con prioridades, límites globales y por dominio, perfiles `INTERACTIVE`/`NIGHT`, eventos seguros y resumen agregado.
+- Invariantes: estado y configuración se clonan por worker; un fallo queda aislado; las transiciones inválidas se rechazan; `NIGHT` conserva `TRADING_MODE=DEMO_ONLY` y `REAL_TRADING=false`.
+- Verificación: 254/254 pruebas verdes con `ATLAS_SIN_RED=true`; no usa procesos del SO, red, secretos ni MT5 real.
