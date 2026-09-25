@@ -1,0 +1,5 @@
+import type { PeticionBridge, TransporteBridge } from './tipos.ts';
+export class FakeMT5ReadOnly implements TransporteBridge {
+  desconectado = false; demorar = false; fallarUnaVez = false; cuenta: unknown = { tipo: 'DEMO', idSeguro: 'demo-001', moneda: 'USD', apalancamiento: 100 };
+  async solicitar(p: PeticionBridge): Promise<unknown> { if (this.demorar) return await new Promise(() => {}); if (this.fallarUnaVez) { this.fallarUnaVez = false; throw new Error('error remoto con secret=oculto'); } if (this.desconectado) throw new Error('desconectado'); switch (p.operacion) { case 'estado': return { conectado: true, terminal: 'disponible', servidor: 'privado' }; case 'cuenta': return this.cuenta; case 'simbolos': return [{ nombre: 'EURUSD', digitos: 5 }]; case 'tick': return { simbolo: p.simbolo, fecha: '2026-01-01T00:00:00.000Z', bid: 1.1, ask: 1.1002 }; case 'velas': return [{ fecha: '2026-01-01T00:00:00.000Z', apertura: 1.1, maximo: 1.2, minimo: 1.0, cierre: 1.15, volumen: 10 }]; case 'posiciones': return []; case 'historial': return []; default: throw new Error('operacion_no_permitida'); } }
+}

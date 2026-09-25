@@ -21,3 +21,11 @@
 - Alcance permitido: validacion fuera de muestra, walk-forward y observacion paper interna.
 - Excluido: broker, MT5, credenciales y envio de ordenes.
 - Verificacion: `npm run prueba` resulto en 240 pruebas verdes, sin red.
+
+## Entrega E
+
+- Estado: implementación local verificada; conexión real pendiente.
+- Arquitectura: cliente Atlas de solo lectura y protocolo inyectable; el servidor real será un bridge local privado dentro de una VM Windows aislada.
+- Controles: `TRADING_MODE=DEMO_ONLY`, `REAL_TRADING=false`, cuenta DEMO obligatoria, timeouts, reconexión limitada, validación de mensajes y sin métodos de escritura.
+- Verificación local: fake DEMO para estado, cuenta, símbolos, tick, velas, posiciones e historial; rechaza cuenta real, datos corruptos, timeout, desconexión y operaciones no permitidas.
+- Pendiente externo: crear VM Windows, instalar MT5, elegir broker/servidor DEMO, login manual y comprobar el bridge real. No se han realizado estas acciones.
