@@ -5,6 +5,7 @@ import { ModeloNoDisponible, type Generador, type NombreProveedor, type Proveedo
 import { ollama } from './ollama.ts';
 import { claude } from './claude.ts';
 import { chatgpt } from './chatgpt.ts';
+import { crearVortice, POLITICA_VORTICE_DEFECTO } from '../vortice/router.ts';
 
 export const PROVEEDORES: Record<NombreProveedor, Proveedor> = { ollama, claude, chatgpt };
 
@@ -35,7 +36,20 @@ export function ordenConfigurado(valor = process.env.ATLAS_PROVEEDOR): NombrePro
 
 /** Proveedores configurados y listos, en orden de preferencia. */
 export function proveedoresDisponibles(orden = ordenConfigurado()): Proveedor[] {
-  return orden.map((n) => PROVEEDORES[n]).filter((p) => p.disponible());
+  // Una clave presente solo configura el proveedor: no autoriza gastar API.
+  // Esto protege la ruta histórica mientras El Vórtice se adopta encima del
+  // contrato Generador.
+  const apiPagadaPermitida = process.env.ATLAS_PERMITIR_API_PAGADA === 'true';
+  return orden.map((n) => PROVEEDORES[n])
+    .filter((p) => p.local || apiPagadaPermitida)
+    .filter((p) => p.disponible());
+}
+
+function politicaVorticeDesdeEntorno() {
+  return {
+    ...POLITICA_VORTICE_DEFECTO,
+    apiPagadaPermitida: process.env.ATLAS_PERMITIR_API_PAGADA === 'true',
+  };
 }
 
 /**
@@ -77,7 +91,7 @@ export async function generarCon(
 
 /** El generador que usa Atlas: la cascada sobre los proveedores configurados. */
 export const generar: Generador = (sistema, usuario) =>
-  generarCon(proveedoresDisponibles(), sistema, usuario);
+  crearVortice(PROVEEDORES, politicaVorticeDesdeEntorno()).generador()(sistema, usuario);
 
 /** Proveedor que Atlas usaría ahora mismo. Para mostrarlo, no para decidir. */
 export function proveedorActivo(): Proveedor | null {
