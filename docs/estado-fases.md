@@ -70,4 +70,5 @@
 - Documentación: `docs/arquitectura-actual.md` distingue explícitamente implementado, probado, simulado y pendiente; MT5 real permanece pendiente.
 - Auditoría final: no hay `Math.random` ni `Date.now` en los módulos de empresa/orquestador; los únicos accesos de red encontrados pertenecen a proveedores/precios opt-in y no son requisito de la suite.
 - Hallazgos: un comentario heredado contiene `TODO`; no representa trabajo ejecutable pendiente. Las coincidencias de secretos son validadores, documentación o datos de prueba, sin valor sensible detectado.
-- Verificación: `npm run prueba` finalizó con 259/259 pruebas verdes y `ATLAS_SIN_RED=true`.
+- Verificación inicial: `npm run prueba` finalizó con 259/259 pruebas verdes y `ATLAS_SIN_RED=true`.
+- Auditoría posterior: `16af00c` añadió regresiones de atomicidad, centavos, checkpoints, calendario y parada de workers; la suite cerró con 266/266 pruebas verdes offline.
