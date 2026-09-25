@@ -75,3 +75,12 @@
 - Verificación inicial: `npm run prueba` finalizó con 259/259 pruebas verdes y `ATLAS_SIN_RED=true`.
 - Auditoría posterior: `16af00c` añadió regresiones de atomicidad, centavos, checkpoints, calendario y parada de workers; la suite cerró con 266/266 pruebas verdes offline.
 - Cierre de hallazgos: la suite posterior de inventario completo y snapshots cerró con 271/271 pruebas verdes offline.
+
+## Entrega N
+
+- Estado: implementada y probada localmente.
+- Alcance: cerebro empresarial estrictamente simulado. Las políticas reciben `BusinessObservation` congelada y solo pueden producir `BusinessDecisionProposal` declarativas; la única frontera de ejecución aplica validación, `Supervisor` central y handlers limitados a compra, reserva, liberación de reserva o `HOLD`.
+- Vórtice: `VorticeBusinessPolicy` consume el contrato inyectable `Generador`; la suite usa únicamente un fake determinista. Ollama, Claude y OpenAI no son requisito ni se invocan.
+- Seguridad: acciones no implementadas se marcan `UNAVAILABLE`; JSON inválido, IDs inexistentes, números no finitos, rechazo del Supervisor y fallos de handler no mutan la empresa. No se expone shell, red, archivos arbitrarios, MT5, banca, SAT/CFDI ni pagos reales.
+- Memoria y auditoría: cada tick registra evidencia operativa concisa en memoria empresarial sin escribir `VALIDADA` directamente, y conserva un evento de auditoría sin prompts, chain-of-thought ni secretos.
+- Verificación: 281/281 pruebas verdes con `ATLAS_SIN_RED=true`. Las entregas O, P, Q y R continúan pendientes.
