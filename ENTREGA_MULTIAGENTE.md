@@ -1,8 +1,8 @@
 # Atlas — Entrega: Sistema Multiagente (Ollama + Claude + ChatGPT)
 
-**Fecha:** 24 de septiembre de 2026
-**Commits de esta entrega:** `b016074`, `cc02805`
-**Estado:** ✅ Verificado, probado desde cero, listo para usar con claves reales
+**Fecha:** 24-25 de septiembre de 2026
+**Commits de esta entrega:** `b016074`, `cc02805`, `5bba6c7`, `45de670`
+**Estado:** ✅ Verificado, probado desde cero, **y confirmado con una respuesta real de Claude de punta a punta**
 
 ---
 
@@ -112,7 +112,53 @@ Ya probado en este entorno con Ollama (el único disponible aquí):
   ⬜ chatgpt  sin configurar, se salta
 ```
 
-Esa fue una respuesta **real** de Ollama, no simulada — confirma que el mecanismo de prueba funciona de extremo a extremo. En cuanto definas `ANTHROPIC_API_KEY` u `OPENAI_API_KEY` en tu propia terminal, corre el mismo comando y verás si Claude o ChatGPT responden de verdad, sin que yo necesite tocar ni ver la clave en ningún momento.
+Esa fue una respuesta **real** de Ollama, no simulada — confirma que el mecanismo de prueba funciona de extremo a extremo.
+
+---
+
+## 4.1 Actualización: Claude verificado con una respuesta real (25 de septiembre)
+
+Después de la entrega inicial, tú mismo configuraste `ANTHROPIC_API_KEY` en tu terminal y corriste la prueba. Resultado final, ya con la clave correcta:
+
+```
+🔌 PROBANDO CONEXIÓN REAL
+
+  (petición mínima, no simulada — cuesta lo mínimo posible en los de pago)
+
+  ✅ claude   respondió en 1134ms
+```
+
+Esto **no es una simulación ni una suposición**: es una respuesta HTTP 200 real de la API de Anthropic, con un modelo `claude-opus-5` real contestando. La cadena completa está confirmada:
+
+```
+Atlas → src/proveedores/claude.ts → SDK oficial de Anthropic → API real → respuesta real
+```
+
+### El camino hasta llegar ahí (con lecciones útiles)
+
+No fue automático — hubo tres intentos fallidos, cada uno con una causa distinta, y sirve dejarlos documentados porque son errores comunes que te pueden volver a pasar con cualquier otra clave de API en el futuro:
+
+| Intento | Qué pasó | Causa real |
+|---|---|---|
+| 1º | `npm error ENOENT ... package.json` | Se corrió el comando fuera de la carpeta `~/atlas` |
+| 2º | "Clave inválida o ausente" | Se pegó literalmente el texto de ejemplo `"tu-clave-aquí"`, no una clave real |
+| 3º | Mismo error, con clave real | El `export` se corrió en una terminal distinta a donde se ejecutó `npm run atlas` — cada ventana de terminal tiene su propia memoria de variables |
+| 4º | Mismo error otra vez, en la misma terminal | La clave se copió incompleta: quedó en solo 23 caracteres en vez de ~109 |
+| 5º | `curl` directo a Anthropic → `"API key is invalid"` | Confirmó que el problema no era el código de Atlas, sino el valor exacto de la clave (corrupción al copiar/pegar) |
+| 6º ✅ | `curl` respondió con un mensaje real de Claude | Clave copiada de nuevo con el botón de copiar de la consola, largo correcto (109), en la misma terminal |
+
+### ⚠️ Incidente de seguridad durante la prueba (resuelto)
+
+Tres veces, sin querer, apareció un fragmento o el valor completo de una clave real de Anthropic pegado en la conversación (al copiar salida de terminal que incluía el comando `export` de arriba, o el historial de scroll). Cada vez que se detectó:
+
+1. Se te avisó de inmediato, antes de continuar con cualquier otra cosa
+2. Nunca se usó, escribió, ni reenvió esa clave desde este lado
+3. Se te pidió confirmar que la revocabas en https://console.anthropic.com/settings/keys y crearas una nueva
+4. Solo se siguió adelante después de tu confirmación explícita
+
+**Estado final: las claves expuestas fueron revocadas por ti; la clave activa ahora nunca apareció en esta conversación.**
+
+**Para que no se repita:** usa siempre el botón de copiar (📋) de la consola en vez de seleccionar texto a mano, y antes de pegarme cualquier salida de terminal, revisa que no aparezca `sk-ant-` ni `sk-` en ningún lado.
 
 ---
 
@@ -130,9 +176,15 @@ Esa fue una respuesta **real** de Ollama, no simulada — confirma que el mecani
 
 ---
 
-## 6. Qué NO se hizo (para que no haya sorpresas)
+## 6. Qué se confirmó y qué sigue pendiente
 
-- No se gastó dinero real: sin claves configuradas, ninguna llamada a Claude o ChatGPT pudo ejecutarse. Ollama sí se probó con una petición real (local, gratis).
-- No entré, pedí ni vi ninguna clave de API en ningún momento — es una restricción de seguridad sin excepción, no una elección de esta tarea en particular.
-- No se implementó todavía el módulo de "empresa simulada" de Atlas Business OS (nómina, facturación, inventario) — eso sigue pendiente, es un proyecto separado que reusa este mismo núcleo cuando se decida arrancarlo.
-- No se hizo la revisión de 5 copias en paralelo que se había planeado — se sustituyó por verificación manual directa contra el código fuente del SDK, que es más lenta pero no depende de que la API esté disponible.
+**Confirmado con evidencia real:**
+- ✅ Ollama responde de verdad (local, gratis, probado)
+- ✅ Claude responde de verdad (`claude-opus-5`, 1134ms, probado con tu clave)
+- ⬜ ChatGPT — el código está verificado igual que Claude (§3), pero no se probó con una clave real de OpenAI en esta sesión. Mismo comando cuando quieras: `npm run atlas -- agentes probar chatgpt`
+
+**Qué NO se hizo (para que no haya sorpresas):**
+- No se gastó dinero en Claude/ChatGPT más allá de la prueba mínima real que tú autorizaste al correr el comando
+- En ningún momento entré, pedí ni escribí una clave de API — cuando aparecieron expuestas por accidente en el chat, se señalaron y se te pidió rotarlas, nunca se usaron
+- No se implementó todavía el módulo de "empresa simulada" de Atlas Business OS (nómina, facturación, inventario) — eso sigue pendiente, es un proyecto separado que reusa este mismo núcleo cuando se decida arrancarlo
+- La revisión de 5 copias en paralelo planeada originalmente se cortó por límite de la API; se sustituyó por verificación manual del código (§3) más la prueba real de conexión (§4.1), que en conjunto cubren tanto "el código está bien escrito" como "funciona de verdad"
