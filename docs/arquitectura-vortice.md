@@ -13,9 +13,11 @@ El núcleo conserva `Generador` en `src/proveedores/tipos.ts`. `src/curso.ts`, `
 - `ModeloNoDisponible` puede usar el siguiente candidato permitido una vez.
 - `RespuestaIncompleta` y errores no recuperables se propagan sin fallback.
 - El registro recibe únicamente proveedor, razón, coste, duración, resultado, tipo de error y fallback. No recibe prompts, respuestas, errores crudos, claves ni tokens.
-- El contexto se ordena por identificador de fuente y se recorta por fuente completa dentro de un presupuesto de caracteres y tokens aproximados; si ninguna fuente cabe, se rechaza antes de llamar a un proveedor.
+- El contexto se ordena por relevancia y después por identificador, y se recorta por fuente completa dentro de un presupuesto de caracteres y tokens aproximados. El presupuesto descuenta sistema, usuario y un margen de seguridad; si ninguna fuente cabe, se rechaza antes de llamar a un proveedor.
 - Los resúmenes reutilizables se persisten con `id`, versión, origen y fuentes. No se encadenan automáticamente.
 - Las experiencias se persisten como evidencia estructurada; una ganancia aislada nunca eleva su estado a `validada`.
+- Los resúmenes conservan cada versión y la migración desde el esquema anterior preserva las filas existentes.
+- El registro genérico redacta valores y campos con aspecto de secreto antes de encadenarlos.
 
 ## Alcance excluido
 

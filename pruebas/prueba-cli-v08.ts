@@ -1,11 +1,17 @@
-import { test } from 'node:test';
+import { after, before, test } from 'node:test';
 import { deepStrictEqual, strictEqual } from 'node:assert';
+import { existsSync, rmSync } from 'node:fs';
 import { MotorMineria } from '../src/mineria.ts';
 import { MotorBots } from '../src/bots.ts';
 import { GestorCompetencia } from '../src/competencia.ts';
 import { GestorEnergia } from '../src/energia.ts';
 
 const DB_TEST = 'datos/test-cli.db';
+
+// La suite puede repetirse el mismo día: parte de una base efímera y no
+// acumula energía, bots ni resultados de una ejecución anterior.
+before(() => { if (existsSync(DB_TEST)) rmSync(DB_TEST, { force: true }); });
+after(() => { if (existsSync(DB_TEST)) rmSync(DB_TEST, { force: true }); });
 
 test('CLI V0.8 - Minería: obtener estado', () => {
   const mineria = new MotorMineria(DB_TEST);
