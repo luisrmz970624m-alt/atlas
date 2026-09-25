@@ -36,3 +36,9 @@
 - Alcance: Empresa Simulator sintético y reproducible: clientes, proveedores, empleados, productos, inventario, ventas, compras, FacturaSimulada, NominaSimulada, banco interno y ledger de doble partida simplificado.
 - Invariantes: sin datos personales, fiscales, bancarios ni pagos reales; no hay stock negativo y los estados financieros llevan etiqueta `SIMULACIÓN`.
 - Pruebas: 249/249 verdes offline. MT5 real sigue pendiente.
+
+## Entrega H
+
+- Estado: verificada; pendiente del commit de fase.
+- Alcance: reloj virtual sin `Date.now`, scheduler de eventos, velocidades lógicas, escenarios sintéticos y checkpoints reproducibles.
+- Pruebas: 250/250 verdes offline. No se consumen servicios externos.
