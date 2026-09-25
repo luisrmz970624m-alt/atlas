@@ -36,12 +36,14 @@
 - Alcance: Empresa Simulator sintético y reproducible: clientes, proveedores, empleados, productos, inventario, ventas, compras, FacturaSimulada, NominaSimulada, banco interno y ledger de doble partida simplificado.
 - Invariantes: sin datos personales, fiscales, bancarios ni pagos reales; no hay stock negativo y los estados financieros llevan etiqueta `SIMULACIÓN`.
 - Pruebas: 249/249 verdes offline. MT5 real sigue pendiente.
+- Cierre de auditoría: reservas, liberación/consumo, devoluciones, mermas e idempotencia por `eventId` implementados y probados. La idempotencia se conserva en snapshots; su retención es deliberadamente ilimitada dentro de una simulación finita.
 
 ## Entrega H
 
 - Estado: verificada y comprometida (`5d4974f`).
 - Alcance: reloj virtual sin `Date.now`, scheduler de eventos, velocidades lógicas, escenarios sintéticos y checkpoints reproducibles.
 - Pruebas: 250/250 verdes offline. No se consumen servicios externos.
+- Cierre de auditoría: snapshots empresariales serializables incluyen estado de empresa, inventario, reservas, ventas, devoluciones, mermas, ledger e IDs procesados. Eventos pendientes se restauran como descriptores con resolver explícito; ramas restauradas no comparten referencias.
 
 ## Entrega I
 
@@ -72,3 +74,4 @@
 - Hallazgos: un comentario heredado contiene `TODO`; no representa trabajo ejecutable pendiente. Las coincidencias de secretos son validadores, documentación o datos de prueba, sin valor sensible detectado.
 - Verificación inicial: `npm run prueba` finalizó con 259/259 pruebas verdes y `ATLAS_SIN_RED=true`.
 - Auditoría posterior: `16af00c` añadió regresiones de atomicidad, centavos, checkpoints, calendario y parada de workers; la suite cerró con 266/266 pruebas verdes offline.
+- Cierre de hallazgos: la suite posterior de inventario completo y snapshots cerró con 271/271 pruebas verdes offline.
