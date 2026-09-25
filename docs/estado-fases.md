@@ -84,3 +84,12 @@
 - Seguridad: acciones no implementadas se marcan `UNAVAILABLE`; JSON inválido, IDs inexistentes, números no finitos, rechazo del Supervisor y fallos de handler no mutan la empresa. No se expone shell, red, archivos arbitrarios, MT5, banca, SAT/CFDI ni pagos reales.
 - Memoria y auditoría: cada tick registra evidencia operativa concisa en memoria empresarial sin escribir `VALIDADA` directamente, y conserva un evento de auditoría sin prompts, chain-of-thought ni secretos.
 - Verificación: 281/281 pruebas verdes con `ATLAS_SIN_RED=true`. Las entregas O, P, Q y R continúan pendientes.
+
+## Entrega O
+
+- Estado: implementada y probada localmente.
+- Alcance: laboratorio empresarial simulado con particiones estrictas `TRAINING`, `VALIDATION` y `HOLDOUT`; rechaza seeds o escenarios solapados por defecto.
+- Garantías: cada combinación seed/escenario parte de un checkpoint común restaurado por policy; resultados, fallos y estadísticas quedan separados por partición. Holdout no se ejecuta ni expone antes de la evaluación final.
+- Evaluación: métricas etiquetadas `SIMULATED`, estadística poblacional explícita y conjunto Pareto con direcciones MAXIMIZE/MINIMIZE; no existe ranking ni ganador automático.
+- Memoria: guarda evidencia observada mediante la frontera central de memoria, sin insertar `VALIDADA` directamente. No hay red, trading, MT5, dinero ni datos reales.
+- Verificación: pruebas locales de particiones, fair start, Pareto, estadísticas, reproducibilidad e idempotencia. Las entregas P, Q y R continúan pendientes.
