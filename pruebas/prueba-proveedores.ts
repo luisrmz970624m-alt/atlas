@@ -106,7 +106,7 @@ test('selección: una respuesta cortada NO salta a otro proveedor', async () => 
   // problema es el contenido pedido, no el proveedor.
   await assert.rejects(
     () => cascada([
-      falso('claude', { falla: new RespuestaIncompleta('se cortó') }),
+      falso('claude', { local: true, falla: new RespuestaIncompleta('se cortó') }),
       falso('ollama', { respuesta: 'no debería llegar aquí' }),
     ]),
     RespuestaIncompleta,

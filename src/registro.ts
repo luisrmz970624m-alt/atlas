@@ -14,6 +14,21 @@ import type { Evento, EventoNuevo, ResultadoAuditoria } from './tipos.ts';
 
 export const GENESIS = 'genesis';
 
+/** Redacción mínima para entradas genéricas; conserva estructura y evidencia útil. */
+export function sanearRegistro(valor: unknown): unknown {
+  if (typeof valor === 'string') return valor
+    .replace(/(api[-_ ]?key|token|secret|password|contraseña)\s*[:=]\s*[^\s,;]+/gi, '$1=[REDACTADO]')
+    .replace(/-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, '[CLAVE_PRIVADA_REDACTADA]')
+    .replace(/\b(?:Error|TypeError|ReferenceError):[^\n]+/g, '[ERROR_REDACTADO]');
+  if (Array.isArray(valor)) return valor.map(sanearRegistro);
+  if (valor && typeof valor === 'object') return Object.fromEntries(Object.entries(valor as Record<string, unknown>).map(([k, v]) =>
+    /(?:api[-_ ]?key|token|secret|password|contraseña|cookie|authorization)/i.test(k)
+      ? [k, '[REDACTADO]']
+      : [k, sanearRegistro(v)],
+  ));
+  return valor;
+}
+
 /**
  * Calcula la huella de un evento.
  * Se calcula sobre todos los campos MENOS 'hash' (que es el resultado).
@@ -63,11 +78,12 @@ export function agregar(ruta: string, nuevo: EventoNuevo): Evento {
   mkdirSync(dirname(ruta), { recursive: true });
 
   const anterior = ultimoEvento(ruta);
+  const seguro = sanearRegistro(nuevo) as EventoNuevo;
   const sinHash: Omit<Evento, 'hash'> = {
     id: anterior ? anterior.id + 1 : 1,
     fecha: new Date().toISOString(),
     hash_anterior: anterior ? anterior.hash : GENESIS,
-    ...nuevo,
+    ...seguro,
   };
 
   const evento: Evento = { ...sinHash, hash: calcularHash(sinHash) };

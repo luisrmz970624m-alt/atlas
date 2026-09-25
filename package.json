@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "atlas": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts",
-    "prueba": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test pruebas/*.ts",
+    "prueba": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test --test-concurrency=1 pruebas/*.ts",
     "auditar": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts auditar",
     "memoria": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts memoria"
   },

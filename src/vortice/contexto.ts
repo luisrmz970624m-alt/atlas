@@ -5,11 +5,15 @@ export interface FuenteContexto {
   id: string;
   texto: string;
   origen: string;
+  /** Mayor primero; ausente conserva prioridad 0 para compatibilidad. */
+  prioridad?: number;
 }
 
 export interface PresupuestoContexto {
   maxCaracteres: number;
   maxTokensAproximados: number;
+  /** Reserva contra la estimación caracteres/4; se descuenta antes de llamar. */
+  margenSeguridadCaracteres?: number;
 }
 
 export interface ContextoPreparado {
@@ -30,7 +34,7 @@ const estimarTokens = (texto: string): number => Math.ceil(texto.length / 4);
 
 function limite(p: PresupuestoContexto): number {
   if (!Number.isInteger(p.maxCaracteres) || p.maxCaracteres <= 0 || !Number.isInteger(p.maxTokensAproximados) || p.maxTokensAproximados <= 0) return 0;
-  return Math.min(p.maxCaracteres, p.maxTokensAproximados * 4);
+  return Math.max(0, Math.min(p.maxCaracteres, p.maxTokensAproximados * 4) - (p.margenSeguridadCaracteres ?? 0));
 }
 
 /**
@@ -38,10 +42,12 @@ function limite(p: PresupuestoContexto): number {
  * caben. Nunca corta una fuente ni inventa un resumen; así la reducción se
  * puede reproducir y siempre mantiene trazabilidad.
  */
-export function prepararContexto(fuentes: FuenteContexto[], presupuesto: PresupuestoContexto): ContextoPreparado {
-  const maximo = limite(presupuesto);
+export function prepararContexto(fuentes: FuenteContexto[], presupuesto: PresupuestoContexto, componentes: { sistema?: string; usuario?: string } = {}): ContextoPreparado {
+  // caracteres/4 es una estimación, no un conteo exacto: se reserva margen.
+  const fijos = (componentes.sistema?.length ?? 0) + (componentes.usuario?.length ?? 0);
+  const maximo = limite(presupuesto) - fijos;
   if (!maximo) return { texto: '', fuentes: [], caracteres: 0, tokens_aproximados: 0, reducido: false, resumen_utilizado: false, rechazo: true, razon_rechazo: 'presupuesto_invalido' };
-  const ordenadas = [...fuentes].sort((a, b) => a.id.localeCompare(b.id));
+  const ordenadas = [...fuentes].sort((a, b) => (b.prioridad ?? 0) - (a.prioridad ?? 0) || a.id.localeCompare(b.id));
   const partes: string[] = []; const usadas: string[] = [];
   let longitud = 0; let reducido = false;
   for (const fuente of ordenadas) {

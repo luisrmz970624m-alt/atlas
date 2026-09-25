@@ -9,6 +9,7 @@ export interface NuevaExperiencia {
 export interface Experiencia extends NuevaExperiencia { id: number; fecha: string; estado: EstadoExperiencia; }
 
 /** Una ganancia aislada permanece provisional: validar exige evidencia externa. */
+/** Invariante compartida: la persistencia también la aplica. */
 export function estadoSeguro(e: NuevaExperiencia): EstadoExperiencia {
   if (e.estado === 'descartada') return 'descartada';
   return e.estado === 'validada' && e.evidencia.trim().length > 0 && !/ganancia aislada/i.test(e.evidencia) ? 'validada' : 'provisional';

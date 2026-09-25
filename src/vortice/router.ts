@@ -107,7 +107,9 @@ export function crearVortice(
     (sistema, usuario) => ejecutar(solicitud, sistema, usuario);
 
   const ejecutarConContexto = async (solicitud: SolicitudIA, sistema: string, fuentes: FuenteContexto[], presupuesto: PresupuestoContexto) => {
-    const contexto = prepararContexto(fuentes, presupuesto);
+    // La llamada final usa sistema + contexto como usuario; ambos cuentan antes
+    // de decidir proveedor, con el margen configurado en el presupuesto.
+    const contexto = prepararContexto(fuentes, presupuesto, { sistema });
     if (contexto.rechazo) throw new ContextoNoReducible('El contexto no cabe de forma segura en el presupuesto.');
     // La decisión de coste se toma después de reducir, pero sigue pasando por
     // la misma política del Vórtice: reducir no concede permiso de API.

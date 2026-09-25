@@ -22,6 +22,11 @@ export interface PrecioHistorico {
   volumen: number;
 }
 
+/** Límite de infraestructura: inyectable para que las pruebas jamás llamen red. */
+export interface ProveedorPrecios {
+  obtener(simbolo: string): Promise<PrecioActual | null>;
+}
+
 /**
  * Símbolos con precio conocido. Fuera de esta lista el generador inventaría
  * un precio base de $100 y el orquestador no sabría valorarlos, así que una
@@ -55,9 +60,16 @@ export class GeneradorPreciosRealtime {
     'TSLA': 'TSLA',
   };
 
-  constructor(db_path: string = 'datos/atlas.db') {
+  private proveedor: ProveedorPrecios;
+
+  constructor(db_path: string = 'datos/atlas.db', proveedor?: ProveedorPrecios) {
     this.db = new Database(db_path);
     this.inicializar_schema();
+    // Seguro por defecto: producción habilita el proveedor real de forma
+    // explícita con ATLAS_PERMITIR_RED=true o inyectándolo al construirlo.
+    this.proveedor = proveedor ?? (process.env.ATLAS_PERMITIR_RED === 'true'
+      ? { obtener: (simbolo) => this.obtener_precio_real(simbolo) }
+      : { obtener: async () => null });
   }
 
   private inicializar_schema() {
@@ -98,7 +110,7 @@ export class GeneradorPreciosRealtime {
     }
 
     // Intentar obtener precio real
-    let precio = await this.obtener_precio_real(simbolo);
+    let precio = await this.proveedor.obtener(simbolo);
     if (!precio) {
       // Si falla, usar simulado
       precio = this.obtener_precio_simulado(simbolo);

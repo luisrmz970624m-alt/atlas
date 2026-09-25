@@ -9,6 +9,9 @@ import type { Proveedor } from '../src/proveedores/tipos.ts';
 import { Memoria } from '../src/memoria.ts';
 import { guardarExperiencia, recuperarEvidencia } from '../src/vortice/experiencia.ts';
 import { agregar, leerEventos } from '../src/registro.ts';
+import { DatabaseSync } from 'node:sqlite';
+import { GeneradorPreciosRealtime } from '../src/precios-realtime.ts';
+import { generarCon } from '../src/proveedores/seleccion.ts';
 
 const presupuesto = { maxCaracteres: 30, maxTokensAproximados: 8 };
 const fuentes = [
@@ -78,6 +81,68 @@ test('B: una ganancia aislada nunca se convierte en validada', () => {
   const m = new Memoria(':memory:');
   const e = guardarExperiencia(m, { dominio: 'trading', hipotesis: 'estrategia', evidencia: 'ganancia aislada', resultado: 'ganó', reglas_cumplidas: [], reglas_rotas: [], confianza: 0.5, fuente: 'simulacion', estado: 'validada' });
   assert.equal(e.estado, 'provisional');
+});
+
+test('B.1: Memoria.guardarExperiencia directamente degrada una ganancia aislada', () => {
+  const m = new Memoria(':memory:');
+  const e = m.guardarExperiencia({ dominio: 'trading', hipotesis: 'atajo', evidencia: 'ganancia aislada', resultado: 'ganó', reglas_cumplidas: [], reglas_rotas: [], confianza: 0.5, fuente: 'test', estado: 'validada' });
+  assert.equal(e.estado, 'provisional');
+});
+
+test('B.1: prioridad desplaza una fuente menor con id anterior', () => {
+  const r = prepararContexto([
+    { id: 'a-menor', origen: 'x', texto: 'baja', prioridad: 0 },
+    { id: 'z-alta', origen: 'x', texto: 'alta', prioridad: 10 },
+  ], { maxCaracteres: 20, maxTokensAproximados: 5 });
+  assert.deepEqual(r.fuentes, ['z-alta']);
+});
+
+test('B.1: presupuesto descuenta sistema y margen antes de invocar proveedor', async () => {
+  const llamadas = { n: 0 };
+  const v = crearVortice({ ollama: proveedor('ollama', true, llamadas), claude: proveedor('claude', false, llamadas), chatgpt: proveedor('claude', false, llamadas) });
+  await assert.rejects(() => v.ejecutarConContexto(solicitud, 's'.repeat(20), [{ id: 'x', origen: 'x', texto: 'dato' }], { maxCaracteres: 25, maxTokensAproximados: 10, margenSeguridadCaracteres: 3 }), ContextoNoReducible);
+  assert.equal(llamadas.n, 0);
+});
+
+test('B.1: resúmenes conservan historial y rechazan regresión', () => {
+  const m = new Memoria(':memory:');
+  m.guardarResumenContexto({ id: 'x', version: 1, origen: 'o', texto: 'uno', fuentes: [] });
+  m.guardarResumenContexto({ id: 'x', version: 2, origen: 'o', texto: 'dos', fuentes: [] });
+  assert.equal(m.obtenerResumenContexto('x')!.texto, 'dos');
+  assert.equal(m.obtenerResumenContexto('x', 1)!.texto, 'uno');
+  assert.throws(() => m.guardarResumenContexto({ id: 'x', version: 1, origen: 'o', texto: 'regresión', fuentes: [] }));
+});
+
+test('B.1: migra una base previa de resumenes sin perder datos', () => {
+  const carpeta = mkdtempSync(join(tmpdir(), 'atlas-migracion-')); const ruta = join(carpeta, 'vieja.db');
+  const vieja = new DatabaseSync(ruta);
+  vieja.exec("CREATE TABLE resumenes_contexto (id TEXT PRIMARY KEY, version INTEGER NOT NULL, origen TEXT NOT NULL, texto TEXT NOT NULL, fuentes TEXT NOT NULL, fecha TEXT NOT NULL); INSERT INTO resumenes_contexto VALUES ('legacy', 1, 'o', 'texto', '[]', '2020-01-01');"); vieja.close();
+  const m = new Memoria(ruta);
+  assert.equal(m.obtenerResumenContexto('legacy')!.texto, 'texto');
+  m.guardarResumenContexto({ id: 'legacy', version: 2, origen: 'o', texto: 'nuevo', fuentes: [] });
+  assert.equal(m.obtenerResumenContexto('legacy', 1)!.texto, 'texto'); m.cerrar(); rmSync(carpeta, { recursive: true, force: true });
+});
+
+test('B.1: registro genérico redacta secretos y errores crudos', () => {
+  const carpeta = mkdtempSync(join(tmpdir(), 'atlas-registro-')); const ruta = join(carpeta, 'r.jsonl');
+  agregar(ruta, { tipo: 'error', nivel: 'rojo', descripcion: 'x', tarea: null, plan: null, entrada: { token: 'abc', anidado: { authorization: 'Bearer secreto' } }, salida: { error: 'TypeError: secreto interno' }, duracion_ms: 0, veredicto: 'fallo', razon: 'x' });
+  const texto = readFileSync(ruta, 'utf8'); assert.equal(texto.includes('abc'), false); assert.equal(texto.includes('Bearer secreto'), false); assert.equal(texto.includes('secreto interno'), false); rmSync(carpeta, { recursive: true, force: true });
+});
+
+test('B.1: modo de pruebas de precios no toca fetch/red', async () => {
+  const previo = globalThis.fetch;
+  globalThis.fetch = (async () => { throw new Error('RED REAL PROHIBIDA'); }) as typeof fetch;
+  const carpeta = mkdtempSync(join(tmpdir(), 'atlas-precios-')); const p = new GeneradorPreciosRealtime(join(carpeta, 'p.db'));
+  try { assert.equal((await p.obtener_precio('BTC')).fuente, 'simulado'); } finally { p.cerrar(); globalThis.fetch = previo; rmSync(carpeta, { recursive: true, force: true }); }
+});
+
+test('B.1: generarCon no invoca proveedor pagado sin permiso', async () => {
+  const previo = process.env.ATLAS_PERMITIR_API_PAGADA; delete process.env.ATLAS_PERMITIR_API_PAGADA;
+  let llamadas = 0;
+  try {
+    await assert.rejects(() => generarCon([{ nombre: 'claude', modelo: 'x', local: false, disponible: () => true, generar: async () => { llamadas++; return 'nunca'; } }], 's', 'u'));
+    assert.equal(llamadas, 0);
+  } finally { if (previo === undefined) delete process.env.ATLAS_PERMITIR_API_PAGADA; else process.env.ATLAS_PERMITIR_API_PAGADA = previo; }
 });
 
 test('B: Generador sigue compatible y fallback local no cambia', async () => {

@@ -13,7 +13,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import type { Experiencia, NuevaExperiencia, EstadoExperiencia } from './vortice/experiencia.ts';
+import { estadoSeguro, type Experiencia, type NuevaExperiencia, type EstadoExperiencia } from './vortice/experiencia.ts';
 
 /** Los cinco espacios. Un resultado ficticio de trading no puede acabar en personal. */
 export const ESPACIOS = ['personal', 'programacion', 'trading', 'simulaciones', 'sistema'] as const;
@@ -82,8 +82,9 @@ CREATE TABLE IF NOT EXISTS experiencias (
 );
 CREATE INDEX IF NOT EXISTS idx_experiencias_dominio ON experiencias(dominio, estado);
 CREATE TABLE IF NOT EXISTS resumenes_contexto (
-  id TEXT PRIMARY KEY, version INTEGER NOT NULL, origen TEXT NOT NULL,
+  id TEXT NOT NULL, version INTEGER NOT NULL, origen TEXT NOT NULL,
   texto TEXT NOT NULL, fuentes TEXT NOT NULL, fecha TEXT NOT NULL
+  , PRIMARY KEY (id, version)
 );
 `;
 
@@ -94,6 +95,19 @@ export class Memoria {
     if (ruta !== ':memory:') mkdirSync(dirname(ruta), { recursive: true });
     this.db = new DatabaseSync(ruta);
     this.db.exec(ESQUEMA);
+
+    // B.1: el esquema anterior tenía id como PK y reemplazaba el historial.
+    // La reconstrucción es aditiva: copia cada fila antes de retirar la tabla vieja.
+    const resumenes = this.db.prepare('PRAGMA table_info(resumenes_contexto)').all() as unknown as { name: string; pk: number }[];
+    if (resumenes.find((c) => c.name === 'id')?.pk === 1) {
+      this.db.exec(`BEGIN;
+        ALTER TABLE resumenes_contexto RENAME TO resumenes_contexto_pre_b1;
+        CREATE TABLE resumenes_contexto (id TEXT NOT NULL, version INTEGER NOT NULL, origen TEXT NOT NULL, texto TEXT NOT NULL, fuentes TEXT NOT NULL, fecha TEXT NOT NULL, PRIMARY KEY (id, version));
+        INSERT INTO resumenes_contexto SELECT id, version, origen, texto, fuentes, fecha FROM resumenes_contexto_pre_b1;
+        DROP TABLE resumenes_contexto_pre_b1;
+        COMMIT;`);
+    }
+    this.db.exec('PRAGMA user_version = 2');
 
     // Bases creadas antes de que existiera 'datos' siguen funcionando.
     const columnas = this.db.prepare('PRAGMA table_info(recuerdos)').all() as unknown as { name: string }[];
@@ -214,7 +228,7 @@ export class Memoria {
     if (!nueva.dominio || !nueva.hipotesis || !nueva.evidencia || !nueva.fuente || nueva.confianza < 0 || nueva.confianza > 1) throw new Error('Experiencia inválida.');
     const fecha = new Date().toISOString();
     const r = this.db.prepare(`INSERT INTO experiencias (fecha, dominio, hipotesis, evidencia, resultado, reglas_cumplidas, reglas_rotas, confianza, fuente, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .run(fecha, nueva.dominio, nueva.hipotesis, nueva.evidencia, nueva.resultado, JSON.stringify(nueva.reglas_cumplidas), JSON.stringify(nueva.reglas_rotas), nueva.confianza, nueva.fuente, nueva.estado);
+      .run(fecha, nueva.dominio, nueva.hipotesis, nueva.evidencia, nueva.resultado, JSON.stringify(nueva.reglas_cumplidas), JSON.stringify(nueva.reglas_rotas), nueva.confianza, nueva.fuente, estadoSeguro(nueva));
     return this.experienciaPorId(Number(r.lastInsertRowid))!;
   }
 
@@ -231,12 +245,17 @@ export class Memoria {
   }
 
   guardarResumenContexto(resumen: { id: string; version: number; origen: string; texto: string; fuentes: string[] }): void {
-    this.db.prepare(`INSERT OR REPLACE INTO resumenes_contexto (id, version, origen, texto, fuentes, fecha) VALUES (?, ?, ?, ?, ?, ?)`)
+    const ultimo = this.obtenerResumenContexto(resumen.id);
+    if (!Number.isInteger(resumen.version) || resumen.version < 1) throw new Error('Versión de resumen inválida.');
+    if (ultimo && resumen.version <= ultimo.version) throw new Error('La versión del resumen no puede retroceder ni sobrescribirse.');
+    this.db.prepare(`INSERT INTO resumenes_contexto (id, version, origen, texto, fuentes, fecha) VALUES (?, ?, ?, ?, ?, ?)`)
       .run(resumen.id, resumen.version, resumen.origen, resumen.texto, JSON.stringify(resumen.fuentes), new Date().toISOString());
   }
 
-  obtenerResumenContexto(id: string): { id: string; version: number; origen: string; texto: string; fuentes: string[]; fecha: string } | null {
-    const fila = this.db.prepare('SELECT * FROM resumenes_contexto WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+  obtenerResumenContexto(id: string, version?: number): { id: string; version: number; origen: string; texto: string; fuentes: string[]; fecha: string } | null {
+    const fila = version === undefined
+      ? this.db.prepare('SELECT * FROM resumenes_contexto WHERE id = ? ORDER BY version DESC LIMIT 1').get(id)
+      : this.db.prepare('SELECT * FROM resumenes_contexto WHERE id = ? AND version = ?').get(id, version);
     return fila ? { ...fila, fuentes: JSON.parse(String(fila.fuentes)) } as { id: string; version: number; origen: string; texto: string; fuentes: string[]; fecha: string } : null;
   }
 }

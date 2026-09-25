@@ -98,6 +98,8 @@ export async function generarCon(
   sistema: string,
   usuario: string,
 ): Promise<string> {
+  // Ruta heredada: nunca acepta un candidato pagado si la puerta global está cerrada.
+  candidatos = candidatos.filter((p) => p.local || apiPagadaPermitida());
   if (candidatos.length === 0) {
     throw new ModeloNoDisponible(
       'Ningún proveedor de IA disponible. Enciende Ollama, o define ANTHROPIC_API_KEY u OPENAI_API_KEY.',
