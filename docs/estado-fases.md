@@ -29,3 +29,10 @@
 - Controles: `TRADING_MODE=DEMO_ONLY`, `REAL_TRADING=false`, cuenta DEMO obligatoria, timeouts, reconexión limitada, validación de mensajes y sin métodos de escritura.
 - Verificación local: fake DEMO para estado, cuenta, símbolos, tick, velas, posiciones e historial; rechaza cuenta real, datos corruptos, timeout, desconexión y operaciones no permitidas.
 - Pendiente externo: crear VM Windows, instalar MT5, elegir broker/servidor DEMO, login manual y comprobar el bridge real. No se han realizado estas acciones.
+
+## Entrega G
+
+- Estado: verificada; pendiente del commit de fase.
+- Alcance: Empresa Simulator sintético y reproducible: clientes, proveedores, empleados, productos, inventario, ventas, compras, FacturaSimulada, NominaSimulada, banco interno y ledger de doble partida simplificado.
+- Invariantes: sin datos personales, fiscales, bancarios ni pagos reales; no hay stock negativo y los estados financieros llevan etiqueta `SIMULACIÓN`.
+- Pruebas: 249/249 verdes offline. MT5 real sigue pendiente.
