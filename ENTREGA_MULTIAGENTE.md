@@ -86,14 +86,33 @@ Los tres proveedores importan, se instancian y responden correctamente sobre su 
 
 ## 4. Lo único que falta para usar Claude o ChatGPT de verdad
 
-No se pudo probar una respuesta **real** de Claude o ChatGPT porque este entorno no tiene `ANTHROPIC_API_KEY` ni `OPENAI_API_KEY` configuradas. Eso es correcto y esperado — no se inventaron respuestas ni se simuló nada.
+No se pudo probar una respuesta **real** de Claude o ChatGPT porque este entorno no tiene `ANTHROPIC_API_KEY` ni `OPENAI_API_KEY` configuradas, y por seguridad nunca debo pedirte que me pegues una clave ni escribirla yo mismo — eso queda prohibido sin excepción. La verificación anterior (§3) confirmó que el código está bien construido contra el SDK real, pero **no** que una petición real de ida y vuelta funcione.
 
-Para activarlos:
+### Solución: comando de prueba de conexión real
+
+Se agregó `npm run atlas -- agentes probar`, que manda una petición mínima y barata a cada proveedor configurado y confirma si respondió de verdad — nunca imprime la clave, solo si la conexión funcionó:
 
 ```bash
+# 1. Tú defines la clave en TU terminal (yo nunca la veo ni la toco)
 export ANTHROPIC_API_KEY="tu-clave-aquí"
-npm run atlas -- agentes     # debería mostrar claude como ✅ disponible
+
+# 2. Corres la prueba real
+npm run atlas -- agentes probar claude
 ```
+
+Ya probado en este entorno con Ollama (el único disponible aquí):
+
+```
+🔌 PROBANDO CONEXIÓN REAL
+
+  (petición mínima, no simulada — cuesta lo mínimo posible en los de pago)
+
+  ✅ ollama   respondió en 26331ms
+  ⬜ claude   sin configurar, se salta
+  ⬜ chatgpt  sin configurar, se salta
+```
+
+Esa fue una respuesta **real** de Ollama, no simulada — confirma que el mecanismo de prueba funciona de extremo a extremo. En cuanto definas `ANTHROPIC_API_KEY` u `OPENAI_API_KEY` en tu propia terminal, corre el mismo comando y verás si Claude o ChatGPT responden de verdad, sin que yo necesite tocar ni ver la clave en ningún momento.
 
 ---
 
@@ -104,15 +123,16 @@ npm run atlas -- agentes     # debería mostrar claude como ✅ disponible
 | Líneas de código en `src/` | 6,397 |
 | Archivos de código | 30 |
 | Archivos de pruebas | 16 |
-| Tests totales | 201 |
-| Tests pasando | 201 (100%) |
+| Tests totales | 203 |
+| Tests pasando | 203 (100%) |
 | Proveedores de IA | 3 (Ollama, Claude, ChatGPT) |
-| Commits en esta sesión | 2 (`b016074`, `cc02805`) |
+| Commits en esta sesión | 4 (`b016074`, `cc02805`, `5bba6c7`, y este) |
 
 ---
 
 ## 6. Qué NO se hizo (para que no haya sorpresas)
 
-- No se gastó dinero real: sin claves configuradas, ninguna llamada a Claude o ChatGPT pudo ejecutarse.
+- No se gastó dinero real: sin claves configuradas, ninguna llamada a Claude o ChatGPT pudo ejecutarse. Ollama sí se probó con una petición real (local, gratis).
+- No entré, pedí ni vi ninguna clave de API en ningún momento — es una restricción de seguridad sin excepción, no una elección de esta tarea en particular.
 - No se implementó todavía el módulo de "empresa simulada" de Atlas Business OS (nómina, facturación, inventario) — eso sigue pendiente, es un proyecto separado que reusa este mismo núcleo cuando se decida arrancarlo.
 - No se hizo la revisión de 5 copias en paralelo que se había planeado — se sustituyó por verificación manual directa contra el código fuente del SDK, que es más lenta pero no depende de que la API esté disponible.

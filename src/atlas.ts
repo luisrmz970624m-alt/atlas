@@ -450,6 +450,7 @@ TU TRADING (V0.8) — compites contra los bots de Atlas:
 
 AGENTES DE IA:
   agentes                               🧠 Qué agentes hay (Ollama/Claude/ChatGPT) y cuál responde
+  agentes probar [nombre]               🔌 Prueba una respuesta REAL (no simulada) de cada uno
 
 SISTEMAS (V0.8):
   minar [estado|ejecutar|historial]     ⛏️ Motor de minería

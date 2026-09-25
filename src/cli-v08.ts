@@ -5,7 +5,7 @@ import { GestorEnergia } from './energia.ts';
 import { OrquestadorV08 } from './orquestador-v08.ts';
 import { respaldarTodo, listarRespaldos } from './respaldo.ts';
 import { SIMBOLOS_SOPORTADOS, esSimboloSoportado } from './precios-realtime.ts';
-import { ordenConfigurado, proveedorActivo, PROVEEDORES } from './modelo.ts';
+import { ordenConfigurado, proveedorActivo, PROVEEDORES, ModeloNoDisponible, RespuestaIncompleta } from './modelo.ts';
 
 const DB_PATH = process.env.ATLAS_DB ?? 'datos/atlas.db';
 
@@ -40,7 +40,7 @@ export async function ejecutarCLIv08(comando: string, args: string[]) {
     }
 
     case 'agentes': {
-      return cliAgentes();
+      return await cliAgentes(args);
     }
 
     default:
@@ -50,8 +50,18 @@ export async function ejecutarCLIv08(comando: string, args: string[]) {
   }
 }
 
+async function cliAgentes(args: string[]) {
+  const subcomando = args[0];
+
+  if (subcomando === 'probar') {
+    return await cliProbarAgentes(args[1]);
+  }
+
+  mostrarEstadoAgentes();
+}
+
 /** Muestra qué agentes de IA hay configurados y cuál atendería ahora. */
-function cliAgentes() {
+function mostrarEstadoAgentes() {
   const orden = ordenConfigurado();
   const activo = proveedorActivo();
 
@@ -71,7 +81,66 @@ function cliAgentes() {
   }
 
   console.log(`\n  Atendería ahora: ${activo ? `${activo.nombre} (${activo.modelo})` : 'ninguno'}`);
-  console.log('  Cambia el orden con: ATLAS_PROVEEDOR=claude,ollama\n');
+  console.log('  Cambia el orden con: ATLAS_PROVEEDOR=claude,ollama');
+  console.log('  Prueba una respuesta real con: npm run atlas -- agentes probar\n');
+}
+
+/**
+ * Manda una petición real y mínima a cada proveedor disponible (o a uno solo
+ * si se pide por nombre) para confirmar que responde de verdad — no solo que
+ * esté "configurado". Nunca imprime la clave, solo si la respuesta llegó bien.
+ *
+ * El costo es mínimo a propósito: un enunciado corto que solo puede
+ * responderse con un JSON de una palabra, para no gastar de más en cada prueba.
+ */
+async function cliProbarAgentes(nombreFiltro?: string) {
+  const nombres = nombreFiltro
+    ? [nombreFiltro as keyof typeof PROVEEDORES].filter((n) => n in PROVEEDORES)
+    : (Object.keys(PROVEEDORES) as (keyof typeof PROVEEDORES)[]);
+
+  if (nombreFiltro && nombres.length === 0) {
+    console.error(`\nProveedor desconocido: ${nombreFiltro}`);
+    console.error(`Opciones: ${Object.keys(PROVEEDORES).join(', ')}\n`);
+    process.exit(1);
+  }
+
+  console.log('\n🔌 PROBANDO CONEXIÓN REAL\n');
+  console.log('  (petición mínima, no simulada — cuesta lo mínimo posible en los de pago)\n');
+
+  let algunoFallo = false;
+
+  for (const nombre of nombres) {
+    const proveedor = PROVEEDORES[nombre];
+
+    if (!proveedor.disponible()) {
+      console.log(`  ⬜ ${nombre.padEnd(8)} sin configurar, se salta`);
+      continue;
+    }
+
+    process.stdout.write(`  ⏳ ${nombre.padEnd(8)} preguntando…`);
+    const inicio = Date.now();
+
+    try {
+      const respuesta = await proveedor.generar(
+        'Responde ÚNICAMENTE este JSON exacto, sin nada más: {"ok":true}',
+        'ping',
+      );
+      const ms = Date.now() - inicio;
+      const parece_json = respuesta.trim().includes('"ok"');
+
+      process.stdout.write(`\r  ✅ ${nombre.padEnd(8)} respondió en ${ms}ms`);
+      console.log(parece_json ? '' : '  (respuesta rara, revisar formato)');
+    } catch (e) {
+      algunoFallo = true;
+      const motivo = e instanceof ModeloNoDisponible ? e.message
+        : e instanceof RespuestaIncompleta ? `respuesta incompleta: ${e.message}`
+        : (e as Error).message;
+      process.stdout.write(`\r  ❌ ${nombre.padEnd(8)} falló: ${motivo}\n`);
+    }
+  }
+
+  console.log('');
+  if (algunoFallo) process.exitCode = 1;
 }
 
 /**

@@ -113,3 +113,23 @@ test('selección: sin ningún proveedor configurado, el error explica qué hacer
     /Ningún proveedor de IA disponible/,
   );
 });
+
+test('CLI agentes probar: un proveedor sin clave se salta sin llamar a la red', async () => {
+  const { ejecutarCLIv08 } = await import('../src/cli-v08.ts');
+
+  // claude no tiene ANTHROPIC_API_KEY en este entorno de pruebas: debe
+  // saltarse limpiamente, sin intentar una petición real ni marcar error.
+  const codigoPrevio = process.exitCode;
+  process.exitCode = undefined;
+
+  await assert.doesNotReject(() => ejecutarCLIv08('agentes', ['probar', 'claude']));
+  assert.notEqual(process.exitCode, 1);
+
+  process.exitCode = codigoPrevio;
+});
+
+test('CLI agentes: mostrar estado no lanza aunque no haya proveedores de pago configurados', async () => {
+  const { ejecutarCLIv08 } = await import('../src/cli-v08.ts');
+
+  await assert.doesNotReject(() => ejecutarCLIv08('agentes', []));
+});
