@@ -63,3 +63,11 @@
 - Alcance: contrato interno serializable para el panel El Vórtice, agregador de empresa, trading, simulaciones, memoria, auditoría, recursos y alertas, con polling local mínimo.
 - Etiquetas: toda métrica empresarial se marca `simulated`; recursos reales quedan `UNAVAILABLE`; bridge MT5 local aparece implementado y MT5 real permanece `PENDIENTE`.
 - Verificación: 259/259 pruebas verdes offline, sin frontend, red, credenciales ni datos de una cuenta MT5.
+
+## Entrega L
+
+- Estado: verificada y comprometida.
+- Documentación: `docs/arquitectura-actual.md` distingue explícitamente implementado, probado, simulado y pendiente; MT5 real permanece pendiente.
+- Auditoría final: no hay `Math.random` ni `Date.now` en los módulos de empresa/orquestador; los únicos accesos de red encontrados pertenecen a proveedores/precios opt-in y no son requisito de la suite.
+- Hallazgos: un comentario heredado contiene `TODO`; no representa trabajo ejecutable pendiente. Las coincidencias de secretos son validadores, documentación o datos de prueba, sin valor sensible detectado.
+- Verificación: `npm run prueba` finalizó con 259/259 pruebas verdes y `ATLAS_SIN_RED=true`.
