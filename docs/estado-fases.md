@@ -93,3 +93,10 @@
 - Evaluación: métricas etiquetadas `SIMULATED`, estadística poblacional explícita y conjunto Pareto con direcciones MAXIMIZE/MINIMIZE; no existe ranking ni ganador automático.
 - Memoria: guarda evidencia observada mediante la frontera central de memoria, sin insertar `VALIDADA` directamente. No hay red, trading, MT5, dinero ni datos reales.
 - Verificación: pruebas locales de particiones, fair start, Pareto, estadísticas, reproducibilidad e idempotencia. Las entregas P, Q y R continúan pendientes.
+
+## Entrega P
+
+- Estado: implementación local de API HTTP en loopback.
+- Alcance: `node:http` sin dependencias nuevas, bind exclusivo `127.0.0.1`, puerto efímero en pruebas, JSON con límite de 64 KiB, respuestas sin stack y errores con correlation ID.
+- Seguridad: rechaza bind público, origen externo en POST, JSON inválido, medios no JSON y claves de prototype pollution. No existen rutas de shell, archivos, secretos, banca ni órdenes de trading/MT5.
+- Estado: API de consulta y control simulado; MT5 real sigue `PENDIENTE`. Q y R continúan pendientes.
