@@ -1,1 +1,283 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATLAS · El Vórtice</title><link rel="stylesheet" href="/panel-vortice/app.css"><link rel="stylesheet" href="/panel-vortice/premium.css"></head><body><header><div><strong>ATLAS</strong><span>EL VÓRTICE</span></div><div id="system">LOADING</div><b class="simulated">SIMULATED</b></header><nav aria-label="Modo de panel"><button data-mode="simple">SIMPLE</button><button data-mode="executive">EXECUTIVE</button><button data-mode="advanced">ADVANCED</button></nav><aside id="appearance" aria-label="Configuración visual"><div><span>TEMA</span><button data-theme-choice="dark">Oscuro</button><button data-theme-choice="light">Claro</button><button data-theme-choice="auto">Automático</button></div><div><span>ACENTO</span><button data-accent-choice="crimson">Carmesí</button><button data-accent-choice="blue">Azul</button><button data-accent-choice="violet">Violeta</button><button data-accent-choice="green">Verde</button><button data-accent-choice="orange">Naranja</button></div><div><span>ESTILO VISUAL</span><button data-style-choice="atlas-crimson">Atlas Crimson</button><button data-style-choice="neon-blue">Neon Blue</button><button data-style-choice="cyber-violet">Cyber Violet</button><button data-style-choice="emerald-grid">Emerald Grid</button><button data-style-choice="industrial-dark">Industrial Dark</button></div><div><span>EFECTOS</span><button data-effects-choice="off">OFF</button><button data-effects-choice="low">LOW</button><button data-effects-choice="normal">NORMAL</button><button data-effects-choice="high">HIGH</button></div><button id="appearance-reset">Restablecer apariencia</button></aside><section id="vortex-core" data-vortex-state="idle" aria-labelledby="vortex-title"><svg class="vortex-art" viewBox="0 0 500 280" role="img" aria-label="Núcleo visual El Vórtice"><defs><radialGradient id="core-gradient"><stop stop-color="var(--core-bright)"/><stop offset="1" stop-color="var(--core-color)" stop-opacity=".1"/></radialGradient></defs><g class="neural-lines"><path d="M42 138H185M315 138H458M120 48l88 61m172-61-88 61M120 228l88-61m172 61-88-61"/><path class="energy-flow" d="M42 138H185M315 138H458"/></g><circle class="energy-wave wave-one" cx="250" cy="138" r="48"/><circle class="energy-wave wave-two" cx="250" cy="138" r="48"/><circle class="core-glow" cx="250" cy="138" r="66"/><circle class="core-shell" cx="250" cy="138" r="42"/><circle class="core-dot" cx="250" cy="138" r="15"/><g class="orbit orbit-a"><circle cx="250" cy="74" r="5"/></g><g class="orbit orbit-b"><circle cx="250" cy="204" r="4"/></g></svg><div class="core-details"><p class="eyebrow">NÚCLEO LOCAL · SIMULATED</p><h1 id="vortex-title">EL VÓRTICE</h1><p id="vortex-state" class="core-state">IDLE</p><dl><div><dt>Estado</dt><dd id="core-estado">UNAVAILABLE</dd></div><div><dt>Policy activa</dt><dd id="core-policy">UNAVAILABLE</dd></div><div><dt>Supervisor</dt><dd id="core-supervisor">UNAVAILABLE</dd></div><div><dt>Queue</dt><dd id="core-queue">UNAVAILABLE</dd></div><div><dt>Decisiones</dt><dd id="core-decisions">UNAVAILABLE</dd></div><div><dt>Última acción</dt><dd id="core-last-action">UNAVAILABLE</dd></div><div><dt>Tiempo activo</dt><dd id="core-active-time">UNAVAILABLE</dd></div></dl></div><div class="module-links" aria-label="Conexiones conceptuales"><span>Empresa</span><span>Trading</span><span>Memoria</span><span>Workers</span><span>Simulación</span><span>Agentes · UNAVAILABLE</span><span>Datos · UNAVAILABLE</span><span>Video · UNAVAILABLE</span><span>Voz · UNAVAILABLE</span><span>Texto · UNAVAILABLE</span><span>Imágenes · UNAVAILABLE</span></div></section><main id="app" data-mode="simple"><p class="state">LOADING · consultando API local…</p></main><template id="card"><section class="card"><h2></h2><div class="content"></div></section></template><script src="/panel-vortice/app.js"></script></body></html>
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ATLAS · El Vórtice</title>
+<link rel="stylesheet" href="/panel-vortice/app.css">
+<link rel="stylesheet" href="/panel-vortice/premium.css">
+</head>
+<body>
+<div class="shell">
+
+<aside id="sidebar" class="sidebar" aria-label="Navegación principal">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13"/><circle cx="16" cy="16" r="7"/><circle class="brand-dot" cx="16" cy="16" r="3"/></svg>
+    <div><strong>ATLAS</strong><span>BUSINESS OS</span></div>
+    <button class="icon-button sidebar-close" id="sidebar-close" type="button" aria-label="Cerrar menú"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </div>
+  <nav class="side-nav">
+    <a href="#inicio" data-nav="inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>Inicio</span></a>
+    <p class="nav-group">Operación</p>
+    <a href="#empresa" data-nav="empresa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5l8-3v19M12 8h8v13M2 21h20M8 8v.01M8 12v.01M8 16v.01M16 12v.01M16 16v.01"/></svg><span>Empresa</span></a>
+    <a href="#finanzas" data-nav="finanzas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Finanzas</span></a>
+    <a href="#ventas" data-nav="ventas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg><span>Ventas</span></a>
+    <a href="#inventario" data-nav="inventario"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg><span>Inventario</span></a>
+    <a href="#nomina" data-nav="nomina"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg><span>Nómina</span></a>
+    <a href="#facturacion" data-nav="facturacion"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5"/></svg><span>Facturación</span></a>
+    <a href="#clientes" data-nav="clientes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg><span>Clientes</span></a>
+    <a href="#proveedores" data-nav="proveedores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 4h14v12H1zM15 9h4l3 3v4h-7M5.5 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM18.5 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg><span>Proveedores</span></a>
+    <p class="nav-group">Laboratorio</p>
+    <a href="#simulacion" data-nav="simulacion"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l10 5-10 5L2 7zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg><span>Simulación</span></a>
+    <a href="#trading" data-nav="trading"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v18M17 3v18M4 7h6v8H4zM14 10h6v6h-6z"/></svg><span>Trading</span></a>
+    <a href="#video" data-nav="video"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 10l5-3v10l-5-3zM3 6h12v12H3z"/></svg><span>Análisis de Video</span></a>
+    <p class="nav-group">Inteligencia</p>
+    <a href="#agentes" data-nav="agentes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2M6 5h12v14H6zM10 9h4v6h-4z"/></svg><span>Agentes IA</span></a>
+    <a href="#vortice" data-nav="vortice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2a10 10 0 1 0 10 10M12 6a6 6 0 1 0 6 6"/></svg><span>El Vórtice</span></a>
+    <p class="nav-group">Sistema</p>
+    <a href="#reportes" data-nav="reportes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M8 17v-7M13 17V6M18 17v-4"/></svg><span>Reportes</span></a>
+    <button type="button" class="nav-button" data-open-settings><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Configuración</span></button>
+  </nav>
+  <div class="side-foot">
+    <span class="dot-live" aria-hidden="true"></span>
+    <span>LOCAL · <b id="side-host">UNAVAILABLE</b></span>
+    <span>OFFLINE · sin CDN</span>
+  </div>
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="workspace">
+  <header class="topbar">
+    <button class="icon-button menu-toggle" id="menu-toggle" type="button" aria-label="Abrir menú" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <nav class="modes" aria-label="Modo de panel">
+      <button type="button" data-mode="simple">Simple</button>
+      <button type="button" data-mode="executive">Ejecutivo</button>
+      <button type="button" data-mode="advanced">Avanzado</button>
+      <button type="button" data-mode="visual">Visual</button>
+      <button type="button" data-mode="custom">Personalizado</button>
+    </nav>
+    <label class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3"/></svg>
+      <input id="search" type="search" placeholder="Buscar módulo…" autocomplete="off" aria-label="Buscar módulo">
+      <kbd>/</kbd>
+    </label>
+    <div class="top-status">
+      <a class="icon-button alerts-button" href="#alertas" aria-label="Alertas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><b id="alert-count" class="badge" hidden>0</b></a>
+      <div id="system" class="status-pill" role="status">LOADING</div>
+      <b class="simulated">SIMULATED</b>
+      <button class="icon-button" type="button" data-open-settings aria-label="Configuración visual"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
+    </div>
+  </header>
+
+  <main id="app" data-mode="simple" data-view="inicio">
+    <div class="view-head">
+      <p class="eyebrow">ATLAS OS / <span id="view-crumb">Inicio</span></p>
+      <h1 id="view-title">Centro de mando</h1>
+      <p id="view-lead" class="view-lead"></p>
+      <p id="banner" class="banner" role="status">LOADING · consultando API local…</p>
+    </div>
+
+    <div class="board">
+
+      <section id="vortex-core" class="panel hero span-8" data-views="inicio vortice" data-group="vortice" data-vortex-state="idle" aria-labelledby="vortex-title">
+        <div class="hero-stage">
+          <svg class="vortex-art" viewBox="0 0 640 440" role="img" aria-label="Núcleo visual El Vórtice y sus canales">
+            <defs>
+              <radialGradient id="core-gradient"><stop stop-color="var(--core-bright)"/><stop offset="1" stop-color="var(--core-color)" stop-opacity=".1"/></radialGradient>
+              <radialGradient id="halo-gradient"><stop stop-color="var(--core-color)" stop-opacity=".28"/><stop offset="1" stop-color="var(--core-color)" stop-opacity="0"/></radialGradient>
+            </defs>
+            <circle class="halo" cx="320" cy="220" r="210"/>
+            <g class="grid-rings"><circle cx="320" cy="220" r="96"/><circle cx="320" cy="220" r="140"/><circle cx="320" cy="220" r="186"/></g>
+            <circle class="ring-ticks" cx="320" cy="220" r="118"/>
+            <circle class="ring-arc" cx="320" cy="220" r="132"/>
+            <g class="neural-lines">
+              <path class="link" data-link="texto" d="M145 154L273 202"/>
+              <path class="link" data-link="voz" d="M320 96V170"/>
+              <path class="link" data-link="imagenes" d="M495 154L367 202"/>
+              <path class="link" data-link="video" d="M495 286L367 238"/>
+              <path class="link" data-link="datos" d="M320 344V270"/>
+              <path class="link" data-link="simulacion" d="M145 286L273 238"/>
+              <path class="energy-flow" data-flow="texto" d="M145 154L273 202"/>
+              <path class="energy-flow" data-flow="voz" d="M320 96V170"/>
+              <path class="energy-flow" data-flow="imagenes" d="M495 154L367 202"/>
+              <path class="energy-flow" data-flow="video" d="M495 286L367 238"/>
+              <path class="energy-flow" data-flow="datos" d="M320 344V270"/>
+              <path class="energy-flow" data-flow="simulacion" d="M145 286L273 238"/>
+            </g>
+            <circle class="energy-wave wave-one" cx="320" cy="220" r="56"/>
+            <circle class="energy-wave wave-two" cx="320" cy="220" r="56"/>
+            <circle class="core-glow" cx="320" cy="220" r="78"/>
+            <circle class="core-shell" cx="320" cy="220" r="50"/>
+            <circle class="core-dot" cx="320" cy="220" r="18"/>
+            <g class="orbit orbit-a"><circle cx="320" cy="152" r="5"/></g>
+            <g class="orbit orbit-b"><circle cx="320" cy="316" r="4"/></g>
+            <g class="channel" data-channel="texto" data-link-state="off"><circle cx="121" cy="145" r="30"/><text class="ch-name" x="121" y="195">TEXTO</text><text class="ch-state" id="ch-texto" x="121" y="212">UNAVAILABLE</text></g>
+            <g class="channel" data-channel="voz" data-link-state="off"><circle cx="320" cy="70" r="30"/><text class="ch-name" x="278" y="66">VOZ</text><text class="ch-state" id="ch-voz" x="278" y="83">UNAVAILABLE</text></g>
+            <g class="channel" data-channel="imagenes" data-link-state="off"><circle cx="519" cy="145" r="30"/><text class="ch-name" x="519" y="195">IMÁGENES</text><text class="ch-state" id="ch-imagenes" x="519" y="212">UNAVAILABLE</text></g>
+            <g class="channel" data-channel="video" data-link-state="off"><circle cx="519" cy="295" r="30"/><text class="ch-name" x="519" y="345">VIDEO</text><text class="ch-state" id="ch-video" x="519" y="362">UNAVAILABLE</text></g>
+            <g class="channel" data-channel="datos" data-link-state="off"><circle cx="320" cy="370" r="30"/><text class="ch-name" x="362" y="366">DATOS</text><text class="ch-state" id="ch-datos" x="362" y="383">UNAVAILABLE</text></g>
+            <g class="channel" data-channel="simulacion" data-link-state="off"><circle cx="121" cy="295" r="30"/><text class="ch-name" x="121" y="345">SIMULACIÓN</text><text class="ch-state" id="ch-simulacion" x="121" y="362">UNAVAILABLE</text></g>
+            <g class="glyphs" aria-hidden="true">
+              <path d="M111 139h20M111 145h20M111 151h12"/>
+              <path d="M314 62v16M320 57v26M326 62v16"/>
+              <path d="M507 135h24v20h-24zM511 151l6-7 5 5 3-3 4 5"/>
+              <path d="M507 287h16v16h-16zM523 292l8-4v14l-8-4"/>
+              <path d="M310 362h20M310 370h20M310 378h20"/>
+              <path d="M111 290l10-6 10 6-10 6zM111 300l10 6 10-6"/>
+            </g>
+          </svg>
+        </div>
+        <div class="core-details">
+          <p class="eyebrow">NÚCLEO LOCAL · SIMULATED</p>
+          <h2 id="vortex-title">EL VÓRTICE</h2>
+          <p id="vortex-state" class="core-state">IDLE</p>
+          <dl class="core-hud executive">
+            <div><dt>Estado</dt><dd id="core-estado" data-status="off">UNAVAILABLE</dd></div>
+            <div><dt>Policy activa</dt><dd id="core-policy" data-status="off">UNAVAILABLE</dd></div>
+            <div><dt>Supervisor</dt><dd id="core-supervisor" data-status="off">UNAVAILABLE</dd></div>
+            <div><dt>Queue</dt><dd id="core-queue" data-status="off">UNAVAILABLE</dd></div>
+            <div><dt>Decisiones</dt><dd id="core-decisions" data-status="off">UNAVAILABLE</dd></div>
+            <div><dt>Última acción</dt><dd id="core-last-action" data-status="off">UNAVAILABLE</dd></div>
+            <div><dt>Tiempo activo</dt><dd id="core-active-time" data-status="off">UNAVAILABLE</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <div class="side-stack span-4" data-views="inicio agentes vortice alertas">
+      <section class="panel span-4 executive" data-views="inicio agentes vortice" data-group="providers">
+        <header class="panel-head"><h2>Proveedores IA</h2><span class="tag">SOLO ESTADO</span></header>
+        <div data-slot="providers" class="provider-list"></div>
+        <p class="panel-note">Sin cuotas inventadas ni API keys: solo el estado que entrega la API local.</p>
+      </section>
+
+      <section class="panel span-4" data-views="inicio alertas" data-group="alertas">
+        <header class="panel-head"><h2>Alertas</h2><span class="tag" id="alerts-tag">EMPTY</span></header>
+        <div data-slot="alerts" class="alert-list"></div>
+      </section>
+      </div>
+
+      <div class="panel-bare span-6 only-simple" data-views="inicio" data-slot="summary"></div>
+
+      <section class="panel span-12 executive" data-views="inicio empresa finanzas ventas inventario nomina facturacion clientes proveedores" data-group="empresa">
+        <header class="panel-head"><h2 id="kpi-title">Empresa · KPIs</h2><span class="tag">SIMULATED</span></header>
+        <div data-slot="kpis" class="kpi-grid"></div>
+        <p class="panel-note">Tendencias construidas solo con las lecturas de esta sesión del navegador.</p>
+      </section>
+
+      <section class="panel span-6" data-views="inicio trading" data-group="trading">
+        <header class="panel-head"><h2>Trading Lab</h2><span class="tag tag-safe">SIN DINERO REAL</span></header>
+        <div data-slot="trading"></div>
+        <p class="panel-note">Solo estado. Sin trading real, sin MT5 real y sin botones de operación.</p>
+      </section>
+
+      <section class="panel span-6 executive" data-views="inicio simulacion" data-group="simulacion">
+        <header class="panel-head"><h2>Simulación empresarial</h2><span class="tag">SIMULATED</span></header>
+        <div data-slot="simulation"></div>
+      </section>
+
+      <section class="panel span-4 executive" data-views="inicio empresa finanzas ventas nomina" data-group="finanzas">
+        <header class="panel-head"><h2>Flujo financiero</h2><span class="tag">SIMULATED</span></header>
+        <div data-slot="finance" class="bars"></div>
+      </section>
+
+      <section class="panel span-4 executive" data-views="inicio finanzas clientes proveedores facturacion" data-group="finanzas">
+        <header class="panel-head"><h2>Cuentas</h2><span class="tag">SIMULATED</span></header>
+        <div data-slot="accounts" class="bars"></div>
+      </section>
+
+      <section class="panel span-4 executive" data-views="inicio vortice agentes reportes" data-group="memoria">
+        <header class="panel-head"><h2>Memoria empresarial</h2><span class="tag">SIMULATED</span></header>
+        <div data-slot="memory" class="bars"></div>
+      </section>
+
+      <section class="panel span-4 executive" data-views="inicio video" data-group="video">
+        <header class="panel-head"><h2>Análisis de video</h2><span class="tag" id="video-tag">UNAVAILABLE</span></header>
+        <div data-slot="video"></div>
+      </section>
+
+      <section class="panel span-8" data-views="vortice" data-group="vortice">
+        <header class="panel-head"><h2>Registro del núcleo</h2><span class="tag">LOCAL</span></header>
+        <div data-slot="vortex-log"></div>
+      </section>
+
+      <section class="panel span-6" data-views="agentes" data-group="providers">
+        <header class="panel-head"><h2>Agentes IA</h2><span class="tag">SUPERVISADO</span></header>
+        <div data-slot="agents"></div>
+      </section>
+
+      <section class="panel span-12" data-views="ventas inventario nomina facturacion clientes proveedores empresa finanzas" data-group="empresa">
+        <header class="panel-head"><h2>Detalle por registro</h2><span class="tag">UNAVAILABLE</span></header>
+        <p class="panel-note">La API local <code>/api/dashboard</code> entrega agregados de la empresa simulada. El detalle por registro (ventas, facturas, clientes, movimientos) todavía no se expone al panel, por eso no se muestra.</p>
+      </section>
+
+      <section class="panel span-8 advanced" data-views="inicio simulacion" data-group="simulacion">
+        <header class="panel-head"><h2>Workers</h2><span class="tag">AVANZADO</span></header>
+        <div data-slot="workers" class="table-wrap"></div>
+      </section>
+
+      <section class="panel span-4 advanced" data-views="inicio simulacion reportes" data-group="reportes">
+        <header class="panel-head"><h2>Recursos</h2><span class="tag">AVANZADO</span></header>
+        <div data-slot="resources"></div>
+      </section>
+
+      <section class="panel span-12 advanced" data-views="inicio reportes" data-group="reportes">
+        <header class="panel-head"><h2>Auditoría reciente</h2><span class="tag">AVANZADO</span></header>
+        <div data-slot="audit" class="timeline"></div>
+      </section>
+
+      <section class="panel span-12" data-views="reportes" data-group="reportes">
+        <header class="panel-head"><h2>Reporte de sesión</h2><span class="tag">LOCAL</span></header>
+        <div data-slot="session"></div>
+      </section>
+
+    </div>
+  </main>
+</div>
+</div>
+
+<dialog id="settings" class="drawer" aria-labelledby="settings-title">
+  <header class="drawer-head">
+    <div><p class="eyebrow">CONFIGURACIÓN</p><h2 id="settings-title">Apariencia</h2></div>
+    <button class="icon-button" type="button" id="settings-close" aria-label="Cerrar configuración"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+  </header>
+  <div id="appearance" aria-label="Configuración visual">
+    <fieldset><legend>Tema</legend><div class="choices"><button type="button" data-theme-choice="dark">Oscuro</button><button type="button" data-theme-choice="light">Claro</button><button type="button" data-theme-choice="auto">Automático</button></div></fieldset>
+    <fieldset><legend>Acento</legend><div class="choices swatches">
+      <button type="button" data-accent-choice="crimson"><i class="swatch sw-crimson"></i>Carmesí</button>
+      <button type="button" data-accent-choice="blue"><i class="swatch sw-blue"></i>Azul</button>
+      <button type="button" data-accent-choice="violet"><i class="swatch sw-violet"></i>Violeta</button>
+      <button type="button" data-accent-choice="green"><i class="swatch sw-green"></i>Verde</button>
+      <button type="button" data-accent-choice="orange"><i class="swatch sw-orange"></i>Naranja</button>
+    </div></fieldset>
+    <fieldset><legend>Estilo visual</legend><div class="choices presets">
+      <button type="button" data-style-choice="atlas-crimson"><i class="preset pr-crimson"></i>Atlas Crimson</button>
+      <button type="button" data-style-choice="neon-blue"><i class="preset pr-blue"></i>Neon Blue</button>
+      <button type="button" data-style-choice="cyber-violet"><i class="preset pr-violet"></i>Cyber Violet</button>
+      <button type="button" data-style-choice="emerald-grid"><i class="preset pr-emerald"></i>Emerald Grid</button>
+      <button type="button" data-style-choice="industrial-dark"><i class="preset pr-industrial"></i>Industrial Dark</button>
+    </div></fieldset>
+    <fieldset><legend>Efectos</legend><div class="choices"><button type="button" data-effects-choice="off">OFF</button><button type="button" data-effects-choice="low">LOW</button><button type="button" data-effects-choice="normal">NORMAL</button><button type="button" data-effects-choice="high">HIGH</button></div></fieldset>
+    <fieldset id="custom-prefs"><legend>Modo Personalizado · módulos en Inicio</legend>
+      <div class="toggles">
+        <label><input type="checkbox" data-custom-group="providers">Proveedores IA</label>
+        <label><input type="checkbox" data-custom-group="alertas">Alertas</label>
+        <label><input type="checkbox" data-custom-group="empresa">Empresa</label>
+        <label><input type="checkbox" data-custom-group="trading">Trading</label>
+        <label><input type="checkbox" data-custom-group="simulacion">Simulación</label>
+        <label><input type="checkbox" data-custom-group="finanzas">Finanzas</label>
+        <label><input type="checkbox" data-custom-group="memoria">Memoria</label>
+        <label><input type="checkbox" data-custom-group="video">Video</label>
+        <label><input type="checkbox" data-custom-group="reportes">Reportes</label>
+      </div>
+      <label class="switch"><input type="checkbox" id="custom-core-large">Núcleo grande</label>
+    </fieldset>
+    <button type="button" id="appearance-reset" class="reset">Restablecer apariencia</button>
+    <p class="panel-note">Preferencias guardadas solo en este navegador (localStorage).</p>
+  </div>
+</dialog>
+
+<template id="card"><section class="card"><h2></h2><div class="content"></div></section></template>
+<template id="kpi"><article class="kpi"><span class="kpi-label"></span><strong class="kpi-value"></strong><span class="kpi-meta"></span><svg class="spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><polyline class="spark-area"/><polyline class="spark-line"/></svg></article></template>
+<script src="/panel-vortice/app.js"></script>
+</body>
+</html>
