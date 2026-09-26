@@ -28,13 +28,16 @@
 .module-card[data-link-state=live] .mc-state{color:color-mix(in srgb,var(--hue) 60%,#fff);border-color:color-mix(in srgb,var(--hue) 55%,var(--line))}
 
 /* ---- Rótulo central sobre el núcleo ---- */
-.core-caption{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;text-align:center;pointer-events:none;width:max-content}
+.core-caption{position:absolute;left:50%;top:90%;transform:translate(-50%,-50%);z-index:3;text-align:center;pointer-events:none;width:max-content;padding:3px 8px;border-radius:999px;background:color-mix(in srgb,#050817 18%,transparent);box-shadow:0 0 18px -12px var(--v-magenta)}
 .v-eyebrow{margin:0 0 2px;font:600 9px var(--mono);letter-spacing:.24em;text-transform:uppercase;color:color-mix(in srgb,var(--v-cyan) 70%,var(--muted))}
 .core-caption h2{margin:0;font:800 clamp(20px,2.3vw,34px)/1 var(--sans);letter-spacing:.08em;color:#fff;text-shadow:0 0 26px var(--v-magenta),0 0 48px color-mix(in srgb,var(--v-magenta) 60%,transparent)}
 .core-state{display:inline-block;margin-top:8px;padding:3px 12px;border:1px solid color-mix(in srgb,var(--v-magenta) 70%,transparent);border-radius:999px;font:800 10px var(--mono);letter-spacing:.24em;color:#fff;background:color-mix(in srgb,var(--v-magenta) 22%,rgba(6,9,20,.6));box-shadow:0 0 18px -4px var(--v-magenta)}
 
 /* ---- Capas SVG: halo, campo y órbitas ---- */
 .halo{transform-box:fill-box;transform-origin:center;animation:halo-breathe calc(9s/var(--vortex-speed)) ease-in-out infinite}
+.halo-outer{opacity:.34;filter:blur(20px);animation-duration:calc(15s/var(--vortex-speed))}
+.halo-middle{opacity:.5;filter:blur(13px);animation-duration:calc(11s/var(--vortex-speed));animation-direction:reverse}
+.halo-inner{opacity:.7;filter:blur(7px);animation-duration:calc(7s/var(--vortex-speed))}
 .ambient-field ellipse{fill:none;stroke:color-mix(in srgb,var(--v-blue) 16%,transparent);stroke-width:1;stroke-dasharray:1 10;opacity:.28}
 .far-particles circle{fill:color-mix(in srgb,var(--v-blue) 80%,#fff);opacity:.5}
 .far-particles{transform-origin:500px 255px;animation:spin calc(120s/var(--vortex-speed)) linear infinite}
@@ -48,13 +51,18 @@
 .orb-c{stroke:color-mix(in srgb,var(--v-magenta) 34%,transparent);stroke-dasharray:60 320;opacity:.16;animation:spin calc(38s/var(--vortex-speed)) linear infinite}
 
 /* ---- Filamentos (masa neuronal) ---- */
-.filaments-back path,.filaments-front path{fill:none;stroke-linecap:round}
-.filaments-back{transform-origin:500px 255px;filter:url(#soft-glow);opacity:.9;animation:spin calc(150s/var(--vortex-speed)) linear infinite}
-.filaments-front{transform-origin:500px 255px;filter:url(#soft-glow);animation:spin calc(120s/var(--vortex-speed)) linear infinite reverse}
+.filaments-back path,.filaments-mid path,.filaments-front path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.filaments-back{transform:scaleX(1.12);transform-origin:500px 255px;filter:url(#soft-glow) blur(.45px);opacity:.46;animation:spin calc(150s/var(--vortex-speed)) linear infinite}
+.filaments-mid{transform:scaleX(1.12);transform-origin:500px 255px;filter:url(#soft-glow);opacity:.82;animation:spin calc(96s/var(--vortex-speed)) linear infinite reverse}
+.filaments-front{transform:scaleX(1.12);transform-origin:500px 255px;filter:url(#soft-glow);animation:spin calc(120s/var(--vortex-speed)) linear infinite reverse}
+.filaments-back path:nth-child(n+9),.filaments-front path:nth-child(n+7){display:none}
 .fil-b{stroke:url(#fil-cool)}
 .fil-b:nth-child(3n+1){stroke:url(#fil-violet)}
 .fil-f{stroke:url(#fil-warm)}
 .fil-f:nth-child(3n){stroke:url(#fil-violet)}
+.fil-m{fill:none;stroke:url(#fil-violet);stroke-width:2.1;opacity:.8;animation:fil-flicker calc(7s/var(--vortex-speed)) ease-in-out infinite}
+.fil-m:nth-child(2n){stroke:url(#fil-warm);stroke-width:2.8;opacity:.9}
+.fil-branch{stroke:url(#fil-cool);stroke-width:1.6;opacity:.86}
 /* grosor / opacidad variables por posición (determinista) */
 .fil{stroke-width:1.8;opacity:.78;animation:fil-flicker calc(6s/var(--vortex-speed)) ease-in-out infinite;animation-delay:calc(var(--i,0)*-0.4s)}
 .fil-f{opacity:.9}
@@ -63,13 +71,20 @@
 .fil:nth-child(4n){stroke-width:3.4;opacity:.95;stroke-dasharray:4 9;animation:fil-flow calc(4s/var(--vortex-speed)) linear infinite}
 .fil:nth-child(5n){stroke-width:1.5;opacity:.66;animation:none}
 .fil:nth-child(7n){stroke-dasharray:3 8;animation:fil-flow calc(5.5s/var(--vortex-speed)) linear infinite}
+.filaments-back .fil{stroke-width:1.15;opacity:.42;stroke-dasharray:none;animation:none}
+.filaments-mid .fil{stroke-linecap:round;stroke-linejoin:round}
+.filaments-mid .fil-web{stroke-width:2.25;opacity:.88;stroke-dasharray:none}
+.filaments-front .fil{stroke-width:2.45;opacity:.9}
+.filaments-front-cross{transform:scaleX(1.12);transform-origin:500px 255px;filter:url(#soft-glow);opacity:.96}
+.filaments-front-cross path{fill:none;stroke:url(#fil-warm);stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.filaments-front-cross path:nth-child(2){stroke:url(#fil-cool);stroke-width:2.35}.filaments-front-cross path:nth-child(3){stroke:#fff;stroke-opacity:.68;stroke-width:1.6}
 
 /* ---- Núcleo (multicapa) ---- */
 .core circle{transform-origin:500px 255px}
-.core-halo{fill:url(#halo-gradient);opacity:.9;animation:core-breathe calc(3.6s/var(--vortex-speed)) ease-in-out infinite}
-.core-glow{fill:url(#core-gradient);filter:url(#core-bloom);animation:core-breathe calc(3.2s/var(--vortex-speed)) ease-in-out infinite}
-.core-ring-outer{fill:none;stroke:color-mix(in srgb,var(--v-cyan) 65%,#fff);stroke-width:1.6;stroke-dasharray:6 8;opacity:.7;animation:spin calc(15s/var(--vortex-speed)) linear infinite}
-.core-ring-inner{fill:none;stroke:#fff;stroke-width:2.4;opacity:.92;filter:drop-shadow(0 0 8px var(--v-magenta));animation:core-breathe calc(3.2s/var(--vortex-speed)) ease-in-out infinite}
+.core-halo{fill:url(#halo-gradient);opacity:.72;animation:core-breathe calc(3.6s/var(--vortex-speed)) ease-in-out infinite}
+.core-glow{fill:url(#core-gradient);opacity:.52;filter:url(#core-bloom);animation:core-breathe calc(3.2s/var(--vortex-speed)) ease-in-out infinite}
+.core-ring-outer{fill:none;stroke:color-mix(in srgb,var(--v-cyan) 65%,#fff);stroke-width:1.25;stroke-dasharray:6 10;opacity:.42;animation:spin calc(15s/var(--vortex-speed)) linear infinite}
+.core-ring-inner{fill:none;stroke:color-mix(in srgb,#fff 48%,var(--v-magenta));stroke-width:1.8;opacity:.62;filter:drop-shadow(0 0 8px var(--v-magenta));animation:core-breathe calc(3.2s/var(--vortex-speed)) ease-in-out infinite}
 .core-center{fill:url(#core-center-gradient);stroke:color-mix(in srgb,var(--v-magenta) 40%,transparent);stroke-width:1}
 .core-hot{fill:var(--v-magenta);opacity:.35;filter:blur(3px);animation:pulse calc(2.7s/var(--vortex-speed)) ease-in-out infinite}
 .core-spark{fill:#fff;opacity:.9;filter:drop-shadow(0 0 6px #fff);animation:twinkle calc(2.4s/var(--vortex-speed)) ease-in-out infinite}
@@ -79,6 +94,14 @@
 .n-hot{fill:#fff;filter:drop-shadow(0 0 4px #fff)}
 .n-cyan{fill:var(--v-cyan);filter:drop-shadow(0 0 4px var(--v-cyan))}
 .n-magenta{fill:var(--v-magenta);filter:drop-shadow(0 0 4px var(--v-magenta))}
+.intersection-flares circle{animation:twinkle calc(3.8s/var(--vortex-speed)) ease-in-out infinite}
+.flare-hot{fill:#fff;filter:drop-shadow(0 0 8px #fff)}
+.flare-cyan{fill:var(--v-cyan);filter:drop-shadow(0 0 8px var(--v-cyan))}
+.flare-magenta{fill:var(--v-magenta);filter:drop-shadow(0 0 8px var(--v-magenta))}
+.energy-nodes .enode:nth-child(n+13){display:none}
+.network-nodes .small-node{fill:var(--v-cyan);filter:drop-shadow(0 0 4px var(--v-cyan))}
+.network-nodes .junction-node{fill:var(--v-magenta);filter:drop-shadow(0 0 6px var(--v-magenta))}
+.network-nodes .hot-junction{fill:#fff;filter:drop-shadow(0 0 8px #fff);animation:twinkle calc(2.8s/var(--vortex-speed)) ease-in-out infinite}
 .enode:nth-child(3n){animation:twinkle calc(3.4s/var(--vortex-speed)) ease-in-out infinite;animation-delay:calc(var(--i,0)*-0.3s)}
 .enode:nth-child(4n+1){animation:twinkle calc(5s/var(--vortex-speed)) ease-in-out infinite;animation-delay:calc(var(--i,0)*-0.5s)}
 
@@ -102,6 +125,12 @@
 .conn-term[data-flow=simulacion]{fill:var(--v-violet);filter:drop-shadow(0 0 5px var(--v-violet))}
 .conn-term[data-flow=voz]{fill:var(--v-amber);filter:drop-shadow(0 0 5px var(--v-amber))}
 .conn-term[data-link-state=live]{animation:twinkle calc(2.6s/var(--vortex-speed)) ease-in-out infinite}
+.module-anchors .anchor{fill:#07101e;stroke-width:1.5}
+.module-anchors .anchor-texto,.module-anchors .anchor-datos{stroke:var(--v-cyan);filter:drop-shadow(0 0 6px var(--v-cyan))}
+.module-anchors .anchor-voz{stroke:var(--v-amber);filter:drop-shadow(0 0 6px var(--v-amber))}
+.module-anchors .anchor-imagenes,.module-anchors .anchor-video{stroke:var(--v-magenta);filter:drop-shadow(0 0 6px var(--v-magenta))}
+.module-anchors .anchor-simulacion{stroke:var(--v-violet);filter:drop-shadow(0 0 6px var(--v-violet))}
+.module-anchors .anchor-core{fill:#fff;stroke:var(--v-magenta);stroke-width:1;filter:drop-shadow(0 0 5px var(--v-magenta));opacity:.82}
 /* solo canales vivos muestran el pulso; el resto queda con la línea base tenue */
 .conn-pulse:not([data-link-state=live]){opacity:0}
 
