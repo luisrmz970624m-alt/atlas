@@ -75,3 +75,38 @@
 - Verificación inicial: `npm run prueba` finalizó con 259/259 pruebas verdes y `ATLAS_SIN_RED=true`.
 - Auditoría posterior: `16af00c` añadió regresiones de atomicidad, centavos, checkpoints, calendario y parada de workers; la suite cerró con 266/266 pruebas verdes offline.
 - Cierre de hallazgos: la suite posterior de inventario completo y snapshots cerró con 271/271 pruebas verdes offline.
+
+## Entrega N
+
+- Estado: implementada y probada localmente.
+- Alcance: cerebro empresarial estrictamente simulado. Las políticas reciben `BusinessObservation` congelada y solo pueden producir `BusinessDecisionProposal` declarativas; la única frontera de ejecución aplica validación, `Supervisor` central y handlers limitados a compra, reserva, liberación de reserva o `HOLD`.
+- Vórtice: `VorticeBusinessPolicy` consume el contrato inyectable `Generador`; la suite usa únicamente un fake determinista. Ollama, Claude y OpenAI no son requisito ni se invocan.
+- Seguridad: acciones no implementadas se marcan `UNAVAILABLE`; JSON inválido, IDs inexistentes, números no finitos, rechazo del Supervisor y fallos de handler no mutan la empresa. No se expone shell, red, archivos arbitrarios, MT5, banca, SAT/CFDI ni pagos reales.
+- Memoria y auditoría: cada tick registra evidencia operativa concisa en memoria empresarial sin escribir `VALIDADA` directamente, y conserva un evento de auditoría sin prompts, chain-of-thought ni secretos.
+- Verificación: 281/281 pruebas verdes con `ATLAS_SIN_RED=true`. Las entregas O, P, Q y R continúan pendientes.
+
+## Entrega O
+
+- Estado: implementada y probada localmente.
+- Alcance: laboratorio empresarial simulado con particiones estrictas `TRAINING`, `VALIDATION` y `HOLDOUT`; rechaza seeds o escenarios solapados por defecto.
+- Garantías: cada combinación seed/escenario parte de un checkpoint común restaurado por policy; resultados, fallos y estadísticas quedan separados por partición. Holdout no se ejecuta ni expone antes de la evaluación final.
+- Evaluación: métricas etiquetadas `SIMULATED`, estadística poblacional explícita y conjunto Pareto con direcciones MAXIMIZE/MINIMIZE; no existe ranking ni ganador automático.
+- Memoria: guarda evidencia observada mediante la frontera central de memoria, sin insertar `VALIDADA` directamente. No hay red, trading, MT5, dinero ni datos reales.
+- Verificación: pruebas locales de particiones, fair start, Pareto, estadísticas, reproducibilidad e idempotencia. Las entregas P, Q y R continúan pendientes.
+
+## Entrega P
+
+- Estado: implementación local de API HTTP en loopback.
+- Alcance: `node:http` sin dependencias nuevas, bind exclusivo `127.0.0.1`, puerto efímero en pruebas, JSON con límite de 64 KiB, respuestas sin stack y errores con correlation ID.
+- Seguridad: rechaza bind público, origen externo en POST, JSON inválido, medios no JSON y claves de prototype pollution. No existen rutas de shell, archivos, secretos, banca ni órdenes de trading/MT5.
+- Estado: API de consulta y control simulado; MT5 real sigue `PENDIENTE`. Q y R continúan pendientes.
+
+## Entrega Q
+
+- Estado: completa y probada localmente. Panel El Vórtice servido por la API en `/panel-vortice/`, con HTML/CSS/JS locales y polling de 4 segundos.
+- Límites: consume solo `/api/dashboard`, etiqueta `SIMULATED`, muestra MT5 Real como `PENDING` y no contiene controles ni rutas de trading real.
+
+## Entrega R
+
+- Estado: completa tras auditoría local offline.
+- Deuda explícita: `IDEMPOTENCY-RETENTION` queda ilimitada dentro de simulaciones finitas; importes internos siguen siendo `number` normalizados a centavos (`MONEY-INTEGER-INTERNAL` pendiente); SSE sigue pendiente y el panel usa polling; MT5 real sigue `PENDIENTE`.
