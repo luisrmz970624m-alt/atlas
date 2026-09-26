@@ -100,3 +100,13 @@
 - Alcance: `node:http` sin dependencias nuevas, bind exclusivo `127.0.0.1`, puerto efímero en pruebas, JSON con límite de 64 KiB, respuestas sin stack y errores con correlation ID.
 - Seguridad: rechaza bind público, origen externo en POST, JSON inválido, medios no JSON y claves de prototype pollution. No existen rutas de shell, archivos, secretos, banca ni órdenes de trading/MT5.
 - Estado: API de consulta y control simulado; MT5 real sigue `PENDIENTE`. Q y R continúan pendientes.
+
+## Entrega Q
+
+- Estado: completa y probada localmente. Panel El Vórtice servido por la API en `/panel-vortice/`, con HTML/CSS/JS locales y polling de 4 segundos.
+- Límites: consume solo `/api/dashboard`, etiqueta `SIMULATED`, muestra MT5 Real como `PENDING` y no contiene controles ni rutas de trading real.
+
+## Entrega R
+
+- Estado: completa tras auditoría local offline.
+- Deuda explícita: `IDEMPOTENCY-RETENTION` queda ilimitada dentro de simulaciones finitas; importes internos siguen siendo `number` normalizados a centavos (`MONEY-INTEGER-INTERNAL` pendiente); SSE sigue pendiente y el panel usa polling; MT5 real sigue `PENDIENTE`.

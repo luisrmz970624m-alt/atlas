@@ -20,7 +20,8 @@ ATLAS
 ├── Memoria
 │   ├── trading, programacion y sistema            IMPLEMENTADO / PROBADO
 │   └── empresa                                    IMPLEMENTADO / PROBADO / SIMULADO
-└── Dashboard Contracts                            IMPLEMENTADO / PROBADO
+├── Dashboard Contracts                            IMPLEMENTADO / PROBADO
+└── Panel El Vórtice local                         IMPLEMENTADO / PROBADO
 ```
 
 ## Límites de seguridad
@@ -31,3 +32,4 @@ ATLAS
 - Los importes empresariales se normalizan a centavos en la frontera de cada operación; la API pública conserva `number` por compatibilidad.
 - La suite usa `ATLAS_SIN_RED=true`; precios, proveedores y el futuro bridge real requieren inyección o activación explícita.
 - El panel etiqueta métricas de empresa como `simulated`; no fabrica métricas de recursos reales.
+- El panel se sirve exclusivamente desde la API local en `/panel-vortice/`; no carga CDN, analítica ni telemetría y realiza polling cada cuatro segundos mientras la página está visible.
