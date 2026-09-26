@@ -51,3 +51,7 @@ test('Q usa DOM seguro sin innerHTML ni eval',()=>{assert.equal(panelJs.includes
 test('Q panel usa API local y polling de cuatro segundos',()=>{assert.ok(panelJs.includes("/api/dashboard")&&panelJs.includes('setInterval(load,4000)'))});
 test('Q panel representa LOADING ERROR y UNAVAILABLE',()=>{for(const state of ['LOADING','ERROR','UNAVAILABLE'])assert.ok((panelHtml+panelJs).includes(state))});
 test('Q assets se sirven con headers locales seguros',async()=>{await apiCase(async base=>{const r=await fetch(base+'/panel-vortice/app.js');assert.equal(r.headers.get('access-control-allow-origin'),null);assert.equal(r.headers.get('x-content-type-options'),'nosniff')})});
+test('Q render inicial no añade una clase CSS vacía al primer módulo',()=>assert.ok(panelJs.includes("if(kind)node.classList.add(kind)")));
+test('Q renderer interpreta el envoltorio API ok/data antes de leer dashboard',()=>assert.ok(panelJs.includes('return(await r.json()).data')&&panelJs.includes('render(await json')));
+test('Q modo SIMPLE conserva tarjetas básicas de Vórtice y Trading',()=>{assert.equal(panelJs.includes("card('VÓRTICE'"),true);assert.equal(panelJs.includes("card('TRADING · SOLO ESTADO'"),true);assert.equal(panelCss.includes('[data-mode=simple] .card'),false)});
+test('Q datos vacíos de alertas muestran EMPTY',()=>assert.ok(panelJs.includes("[['Estado','EMPTY']]")));
