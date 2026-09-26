@@ -9,3 +9,9 @@ La actualización es polling cada cuatro segundos. SSE queda pendiente. Todo val
 ## Apariencia local
 
 La barra de configuración permite elegir tema Oscuro, Claro o Automático. Automático sigue `prefers-color-scheme` del sistema. También ofrece acentos Carmesí, Azul, Violeta, Verde y Naranja. Tema, acento y modo de vista se guardan únicamente en `localStorage` bajo `vortice.theme`, `vortice.accent` y `vortice.modeView`; Restablecer apariencia vuelve a Automático, Carmesí y SIMPLE.
+
+## Núcleo premium y rendimiento
+
+El núcleo SVG local de El Vórtice usa animaciones CSS suaves (pulso, órbitas, líneas y ondas), sin CDN, WebGL, vídeo ni bucles JavaScript de animación. Refleja únicamente el dashboard local: IDLE, ACTIVE, PROCESSING, WARNING, ERROR, PAUSED u OFFLINE; los campos que la API no entrega se mantienen como `UNAVAILABLE`.
+
+Los presets Atlas Crimson, Neon Blue, Cyber Violet, Emerald Grid e Industrial Dark se persisten en `vortice.visualStyle`. La intensidad OFF, LOW, NORMAL (predeterminada) y HIGH se persiste en `vortice.effects`. `prefers-reduced-motion` desactiva la decoración animada y una pestaña oculta pausa esas animaciones; el polling local sigue siendo uno cada cuatro segundos.
