@@ -8,7 +8,8 @@
     "atlas": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts",
     "prueba": "ATLAS_SIN_RED=true node --experimental-strip-types --disable-warning=ExperimentalWarning --test pruebas/*.ts",
     "auditar": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts auditar",
-    "memoria": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts memoria"
+    "memoria": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts memoria",
+    "panel": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/api-local/panel.ts"
   },
   "engines": {
     "node": ">=22"
