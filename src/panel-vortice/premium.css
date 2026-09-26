@@ -9,6 +9,21 @@
 .grid-rings circle{fill:none;stroke:color-mix(in srgb,var(--core-color) 26%,transparent);stroke-width:1;stroke-dasharray:2 6}
 .ring-ticks{fill:none;stroke:var(--core-color);stroke-width:6;stroke-dasharray:1 9;opacity:.45;transform-origin:320px 220px;animation:orbit calc(40s/var(--vortex-speed)) linear infinite}
 .ring-arc{fill:none;stroke:var(--core-bright);stroke-width:2;stroke-dasharray:90 170 30 180;stroke-linecap:round;opacity:.7;transform-origin:320px 220px;animation:orbit calc(18s/var(--vortex-speed)) linear infinite reverse;filter:drop-shadow(0 0 6px var(--core-color))}
+/* Cerebro — filamentos orgánicos (plano medio), nodos y planos de partículas */
+.brain-filaments{fill:none;stroke:url(#filament-gradient);stroke-width:1.5;stroke-linecap:round;opacity:.72;filter:url(#soft-glow);animation:fil-breathe calc(6.5s/var(--vortex-speed)) ease-in-out infinite}
+.fil{opacity:.9}
+.fil:nth-child(2n){opacity:.62}
+.fil:nth-child(3n){opacity:.78}
+.fil-mesh{stroke-width:1.1;stroke-dasharray:2 10;opacity:.85;animation:fil-flow calc(3.4s/var(--vortex-speed)) linear infinite}
+.fil-mesh:nth-child(2n){animation-duration:calc(4.4s/var(--vortex-speed))}
+.brain-nodes circle{fill:#fff;opacity:.85;filter:drop-shadow(0 0 4px var(--core-bright));animation:twinkle calc(4s/var(--vortex-speed)) ease-in-out infinite}
+.brain-nodes circle:nth-child(2n){fill:var(--accent-secondary-bright);animation-delay:-1.3s}
+.brain-nodes circle:nth-child(3n){animation-delay:-2.2s}
+.particles-far{fill:var(--accent-secondary-bright);opacity:.42;transform-origin:320px 220px;animation:orbit calc(90s/var(--vortex-speed)) linear infinite}
+.particles-near{fill:var(--core-bright);transform-origin:320px 220px;animation:orbit calc(30s/var(--vortex-speed)) linear infinite reverse;filter:drop-shadow(0 0 4px var(--core-color))}
+.highlights circle{fill:#fff;opacity:.85;filter:drop-shadow(0 0 6px var(--core-bright));animation:flare calc(3.2s/var(--vortex-speed)) ease-in-out infinite}
+.highlights circle:nth-child(2){animation-delay:-1.6s}
+html[data-effects=low] .brain-filaments,html[data-effects=off] .brain-filaments{filter:none}
 .neural-lines{fill:none;stroke:var(--core-color);stroke-width:1.4}
 .link{opacity:.7;transition:opacity 240ms}
 .link[data-link-state=off]{opacity:.22;stroke-dasharray:3 6}
@@ -85,6 +100,9 @@ html[data-effects=high] .panel{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 
 @keyframes activity{50%{transform:scale(1.35);stroke-width:5}}
 @keyframes sweep{0%{top:-42%}100%{top:114%}}
 @keyframes twinkle{0%,100%{opacity:.35}50%{opacity:.7}}
+@keyframes fil-flow{to{stroke-dashoffset:-26}}
+@keyframes fil-breathe{0%,100%{opacity:.58}50%{opacity:.82}}
+@keyframes flare{0%,100%{opacity:.2}50%{opacity:1}}
 html[data-effects=off] .hero-stage::after,html[data-reduced-motion=reduce] .hero-stage::after,html[data-motion=paused] .hero-stage::after{animation:none;display:none}
 html[data-effects=off] .hero-stage::before,html[data-reduced-motion=reduce] .hero-stage::before,html[data-motion=paused] .hero-stage::before{animation:none}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:150ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}

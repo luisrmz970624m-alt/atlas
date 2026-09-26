@@ -83,13 +83,43 @@
         <div class="hero-stage">
           <svg class="vortex-art" viewBox="0 0 640 440" role="img" aria-label="Núcleo visual El Vórtice y sus canales">
             <defs>
-              <radialGradient id="core-gradient"><stop stop-color="var(--core-bright)"/><stop offset="1" stop-color="var(--core-color)" stop-opacity=".1"/></radialGradient>
-              <radialGradient id="halo-gradient"><stop stop-color="var(--core-color)" stop-opacity=".28"/><stop offset="1" stop-color="var(--core-color)" stop-opacity="0"/></radialGradient>
+              <radialGradient id="core-gradient"><stop stop-color="#ffffff"/><stop offset=".35" stop-color="var(--core-bright)"/><stop offset="1" stop-color="var(--core-color)" stop-opacity=".08"/></radialGradient>
+              <radialGradient id="halo-gradient"><stop stop-color="var(--core-color)" stop-opacity=".3"/><stop offset=".6" stop-color="var(--accent-secondary)" stop-opacity=".12"/><stop offset="1" stop-color="var(--core-color)" stop-opacity="0"/></radialGradient>
+              <linearGradient id="filament-gradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="var(--accent-secondary-bright)"/><stop offset=".5" stop-color="var(--core-bright)"/><stop offset="1" stop-color="var(--core-color)"/></linearGradient>
+              <filter id="soft-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <filter id="core-bloom" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
             </defs>
             <circle class="halo" cx="320" cy="220" r="210"/>
             <g class="grid-rings"><circle cx="320" cy="220" r="96"/><circle cx="320" cy="220" r="140"/><circle cx="320" cy="220" r="186"/></g>
             <circle class="ring-ticks" cx="320" cy="220" r="118"/>
             <circle class="ring-arc" cx="320" cy="220" r="132"/>
+            <g class="brain-filaments" aria-hidden="true">
+              <path class="fil" d="M362.0 220.0C394.2 244.1 410.1 272.0 404.9 302.0"/>
+              <path class="fil" d="M361.4 240.0C376.4 273.9 378.6 305.9 362.6 335.4"/>
+              <path class="fil" d="M351.2 259.1C347.4 293.0 335.5 322.8 307.9 347.4"/>
+              <path class="fil" d="M329.3 260.9C313.0 297.7 289.3 319.4 251.2 333.8"/>
+              <path class="fil" d="M309.8 264.8C280.0 287.0 249.3 296.2 221.2 284.5"/>
+              <path class="fil" d="M288.8 259.1C254.9 263.0 223.2 258.0 198.0 235.9"/>
+              <path class="fil" d="M282.2 238.2C242.7 230.5 216.3 212.2 198.5 179.8"/>
+              <path class="fil" d="M274.0 220.0C245.8 195.9 229.9 168.0 224.3 127.6"/>
+              <path class="fil" d="M275.0 198.3C263.6 166.1 261.4 134.1 279.1 109.3"/>
+              <path class="fil" d="M293.8 187.2C292.6 147.0 304.5 117.2 331.6 97.6"/>
+              <path class="fil" d="M309.8 175.2C327.0 142.3 350.7 120.6 386.2 110.4"/>
+              <path class="fil" d="M331.1 171.3C360.0 153.0 390.7 143.8 431.4 147.3"/>
+              <path class="fil" d="M346.2 187.2C385.1 177.0 416.8 182.0 437.0 204.7"/>
+              <path class="fil" d="M361.4 200.0C397.3 209.5 423.7 227.8 436.8 258.6"/>
+              <path class="fil fil-mesh" d="M364.5 238.0Q389.6 227.3 411.1 207.2"/>
+              <path class="fil fil-mesh" d="M338.8 264.2Q364.1 274.4 393.5 275.4"/>
+              <path class="fil fil-mesh" d="M302.0 264.5Q312.7 289.6 332.8 311.1"/>
+              <path class="fil fil-mesh" d="M275.8 238.8Q265.6 264.1 264.6 293.5"/>
+              <path class="fil fil-mesh" d="M275.5 202.0Q250.4 212.7 228.9 232.8"/>
+              <path class="fil fil-mesh" d="M301.2 175.8Q275.9 165.6 246.5 164.6"/>
+              <path class="fil fil-mesh" d="M338.0 175.5Q327.3 150.4 307.2 128.9"/>
+              <path class="fil fil-mesh" d="M364.2 201.2Q374.4 175.9 375.4 146.5"/>
+            </g>
+            <g class="brain-nodes" aria-hidden="true">
+              <circle cx="404.9" cy="302.0" r="2.6"/><circle cx="307.9" cy="347.4" r="2.2"/><circle cx="221.2" cy="284.5" r="2.6"/><circle cx="198.5" cy="179.8" r="2.2"/><circle cx="279.1" cy="109.3" r="2.6"/><circle cx="386.2" cy="110.4" r="2.2"/><circle cx="437.0" cy="204.7" r="2.6"/>
+            </g>
             <g class="neural-lines">
               <path class="link" data-link="texto" d="M145 154L273 202"/>
               <path class="link" data-link="voz" d="M320 96V170"/>
@@ -123,6 +153,9 @@
             <g class="orbit orbit-d"><circle cx="200" cy="220" r="3"/></g>
             <g class="orbit orbit-e"><circle cx="320" cy="94" r="2.6"/></g>
             <g class="orbit orbit-f"><circle cx="386" cy="286" r="2.4"/></g>
+            <g class="particles-far" aria-hidden="true"><circle cx="320" cy="58" r="1.6"/><circle cx="470" cy="120" r="1.4"/><circle cx="512" cy="260" r="1.6"/><circle cx="410" cy="360" r="1.3"/><circle cx="230" cy="372" r="1.5"/><circle cx="128" cy="300" r="1.4"/><circle cx="120" cy="150" r="1.5"/><circle cx="220" cy="70" r="1.3"/></g>
+            <g class="particles-near" aria-hidden="true"><circle cx="320" cy="128" r="1.9"/><circle cx="412" cy="220" r="1.7"/><circle cx="320" cy="312" r="1.9"/><circle cx="228" cy="220" r="1.7"/><circle cx="388" cy="152" r="1.6"/><circle cx="252" cy="288" r="1.6"/></g>
+            <g class="highlights" aria-hidden="true"><circle cx="300" cy="200" r="2.4"/><circle cx="344" cy="238" r="1.8"/></g>
             <g class="channel" data-channel="texto" data-link-state="off"><circle cx="121" cy="145" r="30"/><text class="ch-name" x="121" y="195">TEXTO</text><text class="ch-state" id="ch-texto" x="121" y="212">UNAVAILABLE</text></g>
             <g class="channel" data-channel="voz" data-link-state="off"><circle cx="320" cy="70" r="30"/><text class="ch-name" x="278" y="66">VOZ</text><text class="ch-state" id="ch-voz" x="278" y="83">UNAVAILABLE</text></g>
             <g class="channel" data-channel="imagenes" data-link-state="off"><circle cx="519" cy="145" r="30"/><text class="ch-name" x="519" y="195">IMÁGENES</text><text class="ch-state" id="ch-imagenes" x="519" y="212">UNAVAILABLE</text></g>
