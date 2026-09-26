@@ -1,110 +1,169 @@
-/* El Vórtice — núcleo animado dominante, canales y estados. Solo CSS local, sin JS de animación. */
-#vortex-core{--vortex-speed:1;display:grid;grid-template-columns:minmax(0,2.3fr) minmax(220px,.9fr);gap:8px 20px;align-items:center;padding:20px 24px;background:radial-gradient(circle at 34% 50%,color-mix(in srgb,var(--core-color) 18%,transparent),transparent 58%),linear-gradient(135deg,color-mix(in srgb,var(--panel) 94%,transparent),color-mix(in srgb,var(--core-color) 8%,var(--panel-2)));transition:background 240ms,border-color 240ms,filter 240ms}
-#vortex-core::before{background:linear-gradient(90deg,transparent,var(--core-bright),transparent)}
-.hero-stage{position:relative;min-width:0;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 50% 48%,color-mix(in srgb,var(--core-color) 12%,transparent),transparent 66%),radial-gradient(circle at 16% 82%,color-mix(in srgb,var(--accent-secondary) 12%,transparent),transparent 52%),repeating-linear-gradient(0deg,color-mix(in srgb,var(--core-color) 5%,transparent) 0 1px,transparent 1px 36px),repeating-linear-gradient(90deg,color-mix(in srgb,var(--core-color) 5%,transparent) 0 1px,transparent 1px 36px)}
-.hero-stage::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1.4px 1.4px at 12% 22%,color-mix(in srgb,var(--core-bright) 70%,transparent),transparent),radial-gradient(1.2px 1.2px at 78% 14%,color-mix(in srgb,var(--accent-secondary-bright) 70%,transparent),transparent),radial-gradient(1px 1px at 62% 74%,color-mix(in srgb,var(--core-bright) 60%,transparent),transparent),radial-gradient(1.3px 1.3px at 30% 86%,color-mix(in srgb,var(--accent-secondary-bright) 60%,transparent),transparent),radial-gradient(1px 1px at 88% 60%,color-mix(in srgb,var(--core-bright) 55%,transparent),transparent),radial-gradient(1.1px 1.1px at 46% 12%,color-mix(in srgb,var(--core-bright) 55%,transparent),transparent),radial-gradient(1px 1px at 8% 54%,color-mix(in srgb,var(--accent-secondary-bright) 50%,transparent),transparent);opacity:.55;animation:twinkle 5.5s ease-in-out infinite}
-.hero-stage::after{content:'';position:absolute;left:0;right:0;height:40%;top:-42%;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--core-bright) 12%,transparent) 45%,transparent);animation:sweep 7s linear infinite;pointer-events:none}
-.vortex-art{position:relative;display:block;width:100%;height:auto;max-height:620px;margin:auto;overflow:visible}
-.halo{fill:url(#halo-gradient)}
-.grid-rings circle{fill:none;stroke:color-mix(in srgb,var(--core-color) 26%,transparent);stroke-width:1;stroke-dasharray:2 6}
-.ring-ticks{fill:none;stroke:var(--core-color);stroke-width:6;stroke-dasharray:1 9;opacity:.45;transform-origin:320px 220px;animation:orbit calc(40s/var(--vortex-speed)) linear infinite}
-.ring-arc{fill:none;stroke:var(--core-bright);stroke-width:2;stroke-dasharray:90 170 30 180;stroke-linecap:round;opacity:.7;transform-origin:320px 220px;animation:orbit calc(18s/var(--vortex-speed)) linear infinite reverse;filter:drop-shadow(0 0 6px var(--core-color))}
-/* Cerebro — filamentos orgánicos (plano medio), nodos y planos de partículas */
-.brain-filaments{fill:none;stroke:url(#filament-gradient);stroke-width:1.5;stroke-linecap:round;opacity:.72;filter:url(#soft-glow);animation:fil-breathe calc(6.5s/var(--vortex-speed)) ease-in-out infinite}
-.fil{opacity:.9}
-.fil:nth-child(2n){opacity:.62}
-.fil:nth-child(3n){opacity:.78}
-.fil-mesh{stroke-width:1.1;stroke-dasharray:2 10;opacity:.85;animation:fil-flow calc(3.4s/var(--vortex-speed)) linear infinite}
-.fil-mesh:nth-child(2n){animation-duration:calc(4.4s/var(--vortex-speed))}
-.brain-nodes circle{fill:#fff;opacity:.85;filter:drop-shadow(0 0 4px var(--core-bright));animation:twinkle calc(4s/var(--vortex-speed)) ease-in-out infinite}
-.brain-nodes circle:nth-child(2n){fill:var(--accent-secondary-bright);animation-delay:-1.3s}
-.brain-nodes circle:nth-child(3n){animation-delay:-2.2s}
-.particles-far{fill:var(--accent-secondary-bright);opacity:.42;transform-origin:320px 220px;animation:orbit calc(90s/var(--vortex-speed)) linear infinite}
-.particles-near{fill:var(--core-bright);transform-origin:320px 220px;animation:orbit calc(30s/var(--vortex-speed)) linear infinite reverse;filter:drop-shadow(0 0 4px var(--core-color))}
-.highlights circle{fill:#fff;opacity:.85;filter:drop-shadow(0 0 6px var(--core-bright));animation:flare calc(3.2s/var(--vortex-speed)) ease-in-out infinite}
-.highlights circle:nth-child(2){animation-delay:-1.6s}
-html[data-effects=low] .brain-filaments,html[data-effects=off] .brain-filaments{filter:none}
-.neural-lines{fill:none;stroke:var(--core-color);stroke-width:1.4}
-.link{opacity:.7;transition:opacity 240ms}
-.link[data-link-state=off]{opacity:.22;stroke-dasharray:3 6}
-.link[data-link-state=idle]{opacity:.45}
-.energy-flow{stroke:var(--core-bright);stroke-width:2.4;stroke-dasharray:9 18;stroke-linecap:round;filter:drop-shadow(0 0 5px var(--core-color));animation:flow calc(2.6s/var(--vortex-speed)) linear infinite}
-.energy-flow:not([data-link-state=live]){display:none}
-.energy-return{fill:none;stroke:var(--accent-secondary-bright);stroke-width:1.8;stroke-dasharray:4 24;stroke-linecap:round;opacity:.85;filter:drop-shadow(0 0 4px var(--accent-secondary));animation:flow-back calc(3.4s/var(--vortex-speed)) linear infinite}
-.energy-return:not([data-link-state=live]){display:none}
-.core-ring-inner{fill:none;stroke:var(--core-bright);stroke-width:1.4;stroke-dasharray:3 7;opacity:.7;transform-origin:320px 220px;animation:orbit calc(22s/var(--vortex-speed)) linear infinite reverse}
-.core-ring-mid{fill:none;stroke:var(--core-color);stroke-width:2;stroke-dasharray:34 10 8 10;stroke-linecap:round;opacity:.55;transform-origin:320px 220px;animation:orbit calc(13s/var(--vortex-speed)) linear infinite}
-.core-glow{fill:url(#core-gradient);filter:drop-shadow(0 0 30px var(--core-color)) drop-shadow(0 0 60px color-mix(in srgb,var(--accent-secondary) 60%,transparent));transform-origin:320px 220px;animation:pulse calc(3.6s/var(--vortex-speed)) ease-in-out infinite}
-.core-shell{fill:color-mix(in srgb,var(--core-color) 15%,transparent);stroke:var(--core-bright);stroke-width:2;transform-origin:320px 220px}
-.core-dot{fill:var(--core-bright);filter:drop-shadow(0 0 10px var(--core-bright));transform-origin:320px 220px;animation:breathe calc(2.7s/var(--vortex-speed)) ease-in-out infinite}
-.energy-wave{fill:none;stroke:var(--core-color);stroke-width:1.5;opacity:0;transform-origin:320px 220px;animation:wave calc(3.4s/var(--vortex-speed)) ease-out infinite}
-.wave-two{animation-delay:1.7s}
-.orbit{fill:var(--core-bright);transform-origin:320px 220px;animation:orbit calc(9s/var(--vortex-speed)) linear infinite;filter:drop-shadow(0 0 6px var(--core-bright))}
-.orbit-b{animation-direction:reverse;animation-duration:calc(12s/var(--vortex-speed))}
-.orbit-c{fill:var(--accent-secondary-bright);animation-duration:calc(16s/var(--vortex-speed));filter:drop-shadow(0 0 6px var(--accent-secondary))}
-.orbit-d{fill:var(--accent-secondary-bright);animation-duration:calc(14s/var(--vortex-speed));animation-direction:reverse;filter:drop-shadow(0 0 5px var(--accent-secondary))}
-.orbit-e{animation-duration:calc(7s/var(--vortex-speed))}
-.orbit-f{animation-duration:calc(20s/var(--vortex-speed));animation-direction:reverse}
-.channel circle{fill:color-mix(in srgb,var(--panel) 88%,var(--core-color));stroke:var(--core-color);stroke-width:1.6;transition:stroke 240ms,opacity 240ms}
-.channel[data-link-state=live] circle{stroke:var(--core-bright);stroke-width:2.2;filter:drop-shadow(0 0 10px var(--core-color));animation:node-react calc(2.8s/var(--vortex-speed)) ease-in-out infinite}
-.channel[data-link-state=off]{opacity:.55}
-.channel[data-link-state=off] circle{stroke-dasharray:4 4}
-.channel text{text-anchor:middle}
-.channel[data-channel=voz] text{text-anchor:end}
-.channel[data-channel=datos] text{text-anchor:start}
-.ch-name{font:700 15px var(--mono);letter-spacing:.14em;fill:var(--ink)}
-.ch-state{font:600 12px var(--mono);letter-spacing:.1em;fill:var(--muted)}
-.channel[data-link-state=live] .ch-state{fill:var(--core-bright)}
-.glyphs{fill:none;stroke:var(--core-bright);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.core-details{min-width:0}
-.core-details h2{margin:6px 0 2px;font:800 clamp(24px,2.7vw,40px)/1.05 var(--sans);letter-spacing:.06em;color:var(--core-bright);text-shadow:0 0 24px color-mix(in srgb,var(--core-color) 60%,transparent)}
-.core-state{display:inline-block;margin:6px 0 14px;padding:5px 10px;border:1px solid var(--core-color);border-radius:999px;color:var(--core-bright);font:800 12px var(--mono);letter-spacing:.22em;box-shadow:0 0 16px color-mix(in srgb,var(--core-color) 35%,transparent)}
-.core-details dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}
-.core-details dl div{padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel-2) 82%,transparent)}
-.core-details dl div:last-child:nth-child(odd){grid-column:1/-1}
-.core-details dt{font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.core-details dd{margin:3px 0 0;font-weight:650;overflow-wrap:anywhere}
-.core-details dd[data-status=off],.core-details dd[data-status=empty],.core-details dd[data-status=pending]{font:600 11px/1.8 var(--mono);letter-spacing:.08em;color:var(--faint);overflow-wrap:normal}
+/* El Vórtice — esfera neuronal energética. Composición por capas (SVG) + CSS local, sin JS de animación.
+   Paleta plasma en variables (--v-*, app.css). Solo transform/opacity/stroke-dashoffset se animan. */
 
-/* Estados del núcleo */
-#vortex-core[data-vortex-state=active]{--vortex-speed:1.25}
-#vortex-core[data-vortex-state=processing]{--vortex-speed:1.8}
-#vortex-core[data-vortex-state=warning]{--core-color:var(--warning);--core-bright:#ffc85e}
-#vortex-core[data-vortex-state=error]{--core-color:var(--danger);--core-bright:#ff7d94;--vortex-speed:.55;border-color:var(--danger)}
-#vortex-core[data-vortex-state=paused]{--vortex-speed:.2;filter:saturate(.65)}
-#vortex-core[data-vortex-state=offline]{--vortex-speed:.1;filter:saturate(.35);opacity:.82}
-#vortex-core[data-activity=new] .core-shell{animation:activity 380ms ease-out}
+/* ---- Hero: 3 columnas (módulos · esfera · módulos) ---- */
+#vortex-core{--vortex-speed:1;padding:18px 22px 12px;overflow:hidden;background:radial-gradient(120% 120% at 50% 40%,color-mix(in srgb,var(--v-magenta) 8%,transparent),transparent 55%),linear-gradient(180deg,#050a1a,#04060f);transition:filter 240ms,border-color 240ms}
+#vortex-core::before{background:linear-gradient(90deg,transparent,var(--v-magenta),var(--v-cyan),transparent)}
+.neural-hero{position:relative;display:grid;grid-template-columns:minmax(0,23%) minmax(0,1fr) minmax(0,23%);gap:clamp(8px,1.4vw,22px);align-items:center;min-height:clamp(340px,33vw,440px)}
+.vortice-neural{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible;pointer-events:none}
+.hero-stage{position:static;min-width:0;height:100%}
+.modules-col{position:relative;z-index:2;display:grid;gap:clamp(10px,1.5vw,20px);align-content:center}
 
-/* Modo Visual y núcleo grande personalizado */
-#app[data-mode=visual] #vortex-core,#app[data-core=large] #vortex-core{grid-column:1/-1;grid-template-columns:minmax(0,2.1fr) minmax(250px,1fr);padding:26px 30px}
-#app[data-mode=visual] .vortex-art,#app[data-core=large] .vortex-art{max-height:740px}
-#app[data-mode=visual] .panel{background:linear-gradient(160deg,color-mix(in srgb,var(--core-color) 6%,var(--panel)),var(--panel-2))}
-#app[data-mode=visual] .kpi[data-status=value] .kpi-value,#app[data-mode=visual] .kpi[data-status=danger] .kpi-value{font-size:clamp(22px,2.3vw,32px)}
-#app[data-mode=visual] .spark{height:44px}
+/* ---- Tarjetas de módulo ---- */
+.module-card{--hue:var(--v-cyan);display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;padding:12px 14px;border:1px solid color-mix(in srgb,var(--hue) 42%,var(--line));border-radius:14px;background:linear-gradient(160deg,color-mix(in srgb,var(--hue) 12%,rgba(8,12,26,.9)),rgba(6,9,20,.92));box-shadow:0 0 0 1px color-mix(in srgb,var(--hue) 12%,transparent),0 18px 34px -26px #000,inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:blur(6px);transition:border-color 220ms,box-shadow 220ms,transform 220ms}
+.module-card[data-hue=cyan]{--hue:var(--v-cyan)}
+.module-card[data-hue=amber]{--hue:var(--v-amber)}
+.module-card[data-hue=magenta]{--hue:var(--v-magenta)}
+.module-card[data-hue=crimson]{--hue:var(--v-crimson)}
+.module-card[data-hue=violet]{--hue:var(--v-violet)}
+.module-card:hover{transform:translateY(-2px);box-shadow:0 0 22px -6px var(--hue),0 20px 38px -24px #000,inset 0 1px 0 rgba(255,255,255,.06)}
+.module-card[data-link-state=live]{border-color:color-mix(in srgb,var(--hue) 75%,var(--line));box-shadow:0 0 24px -6px var(--hue),inset 0 1px 0 rgba(255,255,255,.06)}
+.module-card[data-link-state=off]{opacity:.9}
+.mc-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:11px;border:1px solid color-mix(in srgb,var(--hue) 55%,var(--line));background:radial-gradient(circle at 40% 30%,color-mix(in srgb,var(--hue) 34%,transparent),color-mix(in srgb,var(--hue) 8%,rgba(6,9,20,.9)));box-shadow:0 0 16px -4px var(--hue),inset 0 0 10px -4px var(--hue)}
+.mc-icon svg{width:22px;height:22px;fill:none;stroke:color-mix(in srgb,var(--hue) 70%,#fff);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px var(--hue))}
+.mc-body{min-width:0;display:grid;gap:1px}
+.mc-name{font:700 13.5px var(--sans);letter-spacing:.06em;color:#fff}
+.mc-sub{font:500 10.5px/1.35 var(--mono);letter-spacing:.02em;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mc-state{margin-top:3px;justify-self:start;font:700 9.5px var(--mono);letter-spacing:.12em;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--faint);background:color-mix(in srgb,#000 20%,transparent)}
+.module-card[data-link-state=live] .mc-state{color:color-mix(in srgb,var(--hue) 60%,#fff);border-color:color-mix(in srgb,var(--hue) 55%,var(--line))}
 
+/* ---- Rótulo central sobre el núcleo ---- */
+.core-caption{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;text-align:center;pointer-events:none;width:max-content}
+.v-eyebrow{margin:0 0 2px;font:600 9px var(--mono);letter-spacing:.24em;text-transform:uppercase;color:color-mix(in srgb,var(--v-cyan) 70%,var(--muted))}
+.core-caption h2{margin:0;font:800 clamp(20px,2.3vw,34px)/1 var(--sans);letter-spacing:.08em;color:#fff;text-shadow:0 0 26px var(--v-magenta),0 0 48px color-mix(in srgb,var(--v-magenta) 60%,transparent)}
+.core-state{display:inline-block;margin-top:8px;padding:3px 12px;border:1px solid color-mix(in srgb,var(--v-magenta) 70%,transparent);border-radius:999px;font:800 10px var(--mono);letter-spacing:.24em;color:#fff;background:color-mix(in srgb,var(--v-magenta) 22%,rgba(6,9,20,.6));box-shadow:0 0 18px -4px var(--v-magenta)}
 
-/* Efectos y movimiento */
-html[data-effects=off] .vortex-art *,html[data-reduced-motion=reduce] .vortex-art *,html[data-motion=paused] .vortex-art *{animation:none!important}
-html[data-effects=off] .energy-flow[data-link-state=live]{display:inline}
-html[data-effects=low] .vortex-art{opacity:.6}
-html[data-effects=low] .panel::after{display:none}
-html[data-effects=high] .vortex-art{filter:drop-shadow(0 0 9px var(--core-color))}
-html[data-effects=high] .panel{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 0 32px -12px color-mix(in srgb,var(--accent) 55%,transparent)}
-@keyframes pulse{50%{transform:scale(1.12);opacity:.72}}
-@keyframes breathe{50%{transform:scale(1.32)}}
-@keyframes orbit{to{transform:rotate(360deg)}}
-@keyframes flow{to{stroke-dashoffset:-54}}
-@keyframes flow-back{to{stroke-dashoffset:56}}
-@keyframes node-react{0%,100%{stroke-width:2.2}50%{stroke-width:3.2}}
-@keyframes wave{0%{transform:scale(.6);opacity:.8}100%{transform:scale(2.4);opacity:0}}
-@keyframes activity{50%{transform:scale(1.35);stroke-width:5}}
-@keyframes sweep{0%{top:-42%}100%{top:114%}}
-@keyframes twinkle{0%,100%{opacity:.35}50%{opacity:.7}}
+/* ---- Capas SVG: halo, campo y órbitas ---- */
+.halo{transform-box:fill-box;transform-origin:center;animation:halo-breathe calc(9s/var(--vortex-speed)) ease-in-out infinite}
+.ambient-field ellipse{fill:none;stroke:color-mix(in srgb,var(--v-blue) 16%,transparent);stroke-width:1;stroke-dasharray:1 10;opacity:.28}
+.far-particles circle{fill:color-mix(in srgb,var(--v-blue) 80%,#fff);opacity:.5}
+.far-particles{transform-origin:500px 255px;animation:spin calc(120s/var(--vortex-speed)) linear infinite}
+.far-particles circle:nth-child(3n){fill:color-mix(in srgb,var(--v-cyan) 80%,#fff);animation:twinkle calc(5s/var(--vortex-speed)) ease-in-out infinite;--i:0}
+.near-particles circle{fill:color-mix(in srgb,var(--v-magenta) 60%,#fff);filter:drop-shadow(0 0 3px var(--v-magenta))}
+.near-particles{transform-origin:500px 255px;animation:spin calc(34s/var(--vortex-speed)) linear infinite reverse}
+.near-particles circle:nth-child(2n){fill:color-mix(in srgb,var(--v-cyan) 60%,#fff);filter:drop-shadow(0 0 3px var(--v-cyan))}
+.outer-orbits ellipse{fill:none;stroke-width:1;transform-origin:500px 255px}
+.orb-a{stroke:color-mix(in srgb,var(--v-cyan) 40%,transparent);stroke-dasharray:30 200;opacity:.24;animation:orbit calc(16s/var(--vortex-speed)) linear infinite}
+.orb-b{stroke:color-mix(in srgb,var(--v-violet) 38%,transparent);stroke-dasharray:44 260;opacity:.2;animation:spin calc(24s/var(--vortex-speed)) linear infinite reverse}
+.orb-c{stroke:color-mix(in srgb,var(--v-magenta) 34%,transparent);stroke-dasharray:60 320;opacity:.16;animation:spin calc(38s/var(--vortex-speed)) linear infinite}
+
+/* ---- Filamentos (masa neuronal) ---- */
+.filaments-back path,.filaments-front path{fill:none;stroke-linecap:round}
+.filaments-back{transform-origin:500px 255px;filter:url(#soft-glow);opacity:.9;animation:spin calc(150s/var(--vortex-speed)) linear infinite}
+.filaments-front{transform-origin:500px 255px;filter:url(#soft-glow);animation:spin calc(120s/var(--vortex-speed)) linear infinite reverse}
+.fil-b{stroke:url(#fil-cool)}
+.fil-b:nth-child(3n+1){stroke:url(#fil-violet)}
+.fil-f{stroke:url(#fil-warm)}
+.fil-f:nth-child(3n){stroke:url(#fil-violet)}
+/* grosor / opacidad variables por posición (determinista) */
+.fil{stroke-width:1.8;opacity:.78;animation:fil-flicker calc(6s/var(--vortex-speed)) ease-in-out infinite;animation-delay:calc(var(--i,0)*-0.4s)}
+.fil-f{opacity:.9}
+.fil:nth-child(2n){stroke-width:2.6;opacity:.92}
+.fil:nth-child(3n){stroke-width:1.3;opacity:.6}
+.fil:nth-child(4n){stroke-width:3.4;opacity:.95;stroke-dasharray:4 9;animation:fil-flow calc(4s/var(--vortex-speed)) linear infinite}
+.fil:nth-child(5n){stroke-width:1.5;opacity:.66;animation:none}
+.fil:nth-child(7n){stroke-dasharray:3 8;animation:fil-flow calc(5.5s/var(--vortex-speed)) linear infinite}
+
+/* ---- Núcleo (multicapa) ---- */
+.core circle{transform-origin:500px 255px}
+.core-halo{fill:url(#halo-gradient);opacity:.9;animation:core-breathe calc(3.6s/var(--vortex-speed)) ease-in-out infinite}
+.core-glow{fill:url(#core-gradient);filter:url(#core-bloom);animation:core-breathe calc(3.2s/var(--vortex-speed)) ease-in-out infinite}
+.core-ring-outer{fill:none;stroke:color-mix(in srgb,var(--v-cyan) 65%,#fff);stroke-width:1.6;stroke-dasharray:6 8;opacity:.7;animation:spin calc(15s/var(--vortex-speed)) linear infinite}
+.core-ring-inner{fill:none;stroke:#fff;stroke-width:2.4;opacity:.92;filter:drop-shadow(0 0 8px var(--v-magenta));animation:core-breathe calc(3.2s/var(--vortex-speed)) ease-in-out infinite}
+.core-center{fill:url(#core-center-gradient);stroke:color-mix(in srgb,var(--v-magenta) 40%,transparent);stroke-width:1}
+.core-hot{fill:var(--v-magenta);opacity:.35;filter:blur(3px);animation:pulse calc(2.7s/var(--vortex-speed)) ease-in-out infinite}
+.core-spark{fill:#fff;opacity:.9;filter:drop-shadow(0 0 6px #fff);animation:twinkle calc(2.4s/var(--vortex-speed)) ease-in-out infinite}
+
+/* ---- Nodos de energía ---- */
+.enode{opacity:.85}
+.n-hot{fill:#fff;filter:drop-shadow(0 0 4px #fff)}
+.n-cyan{fill:var(--v-cyan);filter:drop-shadow(0 0 4px var(--v-cyan))}
+.n-magenta{fill:var(--v-magenta);filter:drop-shadow(0 0 4px var(--v-magenta))}
+.enode:nth-child(3n){animation:twinkle calc(3.4s/var(--vortex-speed)) ease-in-out infinite;animation-delay:calc(var(--i,0)*-0.3s)}
+.enode:nth-child(4n+1){animation:twinkle calc(5s/var(--vortex-speed)) ease-in-out infinite;animation-delay:calc(var(--i,0)*-0.5s)}
+
+/* ---- Conexiones a los seis módulos ---- */
+.conn-base{fill:none;stroke:color-mix(in srgb,var(--v-cyan) 62%,transparent);stroke-width:1.6;opacity:.6;filter:drop-shadow(0 0 3px color-mix(in srgb,var(--v-cyan) 50%,transparent))}
+.conn-base[data-link=video],.conn-base[data-link=imagenes]{stroke:color-mix(in srgb,var(--v-magenta) 45%,transparent)}
+.conn-base[data-link=simulacion]{stroke:color-mix(in srgb,var(--v-violet) 45%,transparent)}
+.conn-base[data-link=voz]{stroke:color-mix(in srgb,var(--v-amber) 45%,transparent)}
+.conn-pulse{fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-dasharray:3 97;filter:drop-shadow(0 0 5px var(--v-cyan));animation:pulse-in calc(3s/var(--vortex-speed)) linear infinite}
+.conn-pulse[data-flow=video]{filter:drop-shadow(0 0 5px var(--v-magenta));animation-delay:calc(-0.6s/var(--vortex-speed))}
+.conn-pulse[data-flow=datos]{animation-delay:calc(-1.1s/var(--vortex-speed))}
+.conn-pulse[data-flow=voz]{filter:drop-shadow(0 0 5px var(--v-amber));animation-delay:calc(-1.7s/var(--vortex-speed))}
+.conn-pulse[data-flow=simulacion]{filter:drop-shadow(0 0 5px var(--v-violet));animation-delay:calc(-2.2s/var(--vortex-speed))}
+.conn-pulse[data-flow=imagenes]{filter:drop-shadow(0 0 5px var(--v-magenta));animation-delay:calc(-2.8s/var(--vortex-speed))}
+.conn-out{stroke:color-mix(in srgb,var(--v-magenta) 80%,#fff);stroke-width:2.2;stroke-dasharray:2 98;animation:pulse-out calc(3.6s/var(--vortex-speed)) linear infinite}
+.conn-out[data-flow=texto]{animation-delay:calc(-0.9s/var(--vortex-speed))}
+.conn-out[data-flow=datos]{animation-delay:calc(-2s/var(--vortex-speed))}
+.conn-out[data-flow=simulacion]{animation-delay:calc(-1.3s/var(--vortex-speed))}
+.conn-term{fill:var(--v-cyan);opacity:.75;filter:drop-shadow(0 0 5px var(--v-cyan))}
+.conn-term[data-flow=video],.conn-term[data-flow=imagenes]{fill:var(--v-magenta);filter:drop-shadow(0 0 5px var(--v-magenta))}
+.conn-term[data-flow=simulacion]{fill:var(--v-violet);filter:drop-shadow(0 0 5px var(--v-violet))}
+.conn-term[data-flow=voz]{fill:var(--v-amber);filter:drop-shadow(0 0 5px var(--v-amber))}
+.conn-term[data-link-state=live]{animation:twinkle calc(2.6s/var(--vortex-speed)) ease-in-out infinite}
+/* solo canales vivos muestran el pulso; el resto queda con la línea base tenue */
+.conn-pulse:not([data-link-state=live]){opacity:0}
+
+/* ---- Terreno de datos (decorativo, inferior) ---- */
+.data-terrain polyline{fill:none;stroke:color-mix(in srgb,var(--v-cyan) 45%,transparent);stroke-width:1.2;opacity:.35}
+.data-terrain polyline:last-child{stroke:color-mix(in srgb,var(--v-magenta) 40%,transparent);opacity:.28}
+
+/* ---- Fila HUD del núcleo ---- */
+.core-hud-row{margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.core-hud{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:0}
+.core-hud div{padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel-2) 82%,transparent)}
+.core-hud dt{font:600 9.5px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.core-hud dd{margin:3px 0 0;font:650 13px var(--sans);color:var(--ink);overflow-wrap:anywhere}
+.core-hud dd[data-status=off],.core-hud dd[data-status=empty],.core-hud dd[data-status=pending]{font:600 11px/1.7 var(--mono);letter-spacing:.06em;color:var(--faint)}
+.core-hud-row .panel-note{margin:10px 0 0}
+
+/* ---- Estados del núcleo ---- */
+#vortex-core[data-vortex-state=idle]{--vortex-speed:.7}
+#vortex-core[data-vortex-state=active]{--vortex-speed:1}
+#vortex-core[data-vortex-state=processing]{--vortex-speed:1.35}
+#vortex-core[data-vortex-state=warning]{--v-magenta:var(--v-amber);--v-crimson:#ff6a3d}
+#vortex-core[data-vortex-state=error]{--v-magenta:var(--v-crimson);--vortex-speed:.9;border-color:color-mix(in srgb,var(--v-crimson) 55%,var(--line))}
+#vortex-core[data-vortex-state=paused]{--vortex-speed:.18;filter:saturate(.7)}
+#vortex-core[data-vortex-state=offline]{--vortex-speed:.08;filter:saturate(.35) brightness(.8)}
+#vortex-core[data-vortex-state=paused] .conn-pulse,#vortex-core[data-vortex-state=offline] .conn-pulse{opacity:0}
+
+/* ---- Modo Visual / núcleo grande ---- */
+#app[data-mode=visual] .neural-hero,#app[data-core=large] .neural-hero{min-height:clamp(420px,42vw,560px)}
+#app[data-mode=visual] #vortex-core{padding:26px 30px 16px}
+#app[data-mode=visual] .vortex-art{filter:saturate(1.08) contrast(1.03)}
+
+/* ---- Efectos / movimiento ---- */
+html[data-effects=low] .filaments-back,html[data-effects=off] .filaments-back,html[data-effects=low] .filaments-front,html[data-effects=off] .filaments-front,html[data-effects=low] .core-glow,html[data-effects=off] .core-glow{filter:none}
+html[data-effects=high] .vortice-neural{filter:saturate(1.12)}
+html[data-effects=off] .vortice-neural *,html[data-reduced-motion=reduce] .vortice-neural *,html[data-motion=paused] .vortice-neural *{animation:none!important}
+html[data-effects=off] .conn-pulse[data-link-state=live],html[data-reduced-motion=reduce] .conn-pulse[data-link-state=live]{opacity:1;stroke-dasharray:none;stroke-width:1.6}
+
+@keyframes spin{to{rotate:360deg}}
+@keyframes orbit{to{rotate:360deg}}
+@keyframes pulse{0%,100%{scale:1;opacity:.3}50%{scale:1.12;opacity:.58}}
+@keyframes core-breathe{0%,100%{scale:1}50%{scale:1.06}}
+@keyframes halo-breathe{0%,100%{scale:1;opacity:.8}50%{scale:1.08;opacity:1}}
+@keyframes fil-flicker{0%,100%{opacity:var(--o,.6)}50%{opacity:calc(var(--o,.6)*1.5)}}
 @keyframes fil-flow{to{stroke-dashoffset:-26}}
-@keyframes fil-breathe{0%,100%{opacity:.58}50%{opacity:.82}}
-@keyframes flare{0%,100%{opacity:.2}50%{opacity:1}}
-html[data-effects=off] .hero-stage::after,html[data-reduced-motion=reduce] .hero-stage::after,html[data-motion=paused] .hero-stage::after{animation:none;display:none}
-html[data-effects=off] .hero-stage::before,html[data-reduced-motion=reduce] .hero-stage::before,html[data-motion=paused] .hero-stage::before{animation:none}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:150ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
-@media(max-width:1180px){#vortex-core,#app[data-mode=visual] #vortex-core,#app[data-core=large] #vortex-core{grid-template-columns:minmax(0,1.4fr) minmax(220px,1fr)}}
-@media(max-width:760px){#vortex-core,#app[data-mode=visual] #vortex-core,#app[data-core=large] #vortex-core,#app[data-view=inicio][data-mode=simple] #vortex-core{grid-template-columns:1fr;padding:14px}.core-details dl{grid-template-columns:1fr 1fr}.vortex-art{max-width:520px}}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes pulse-in{from{stroke-dashoffset:100}to{stroke-dashoffset:0}}
+@keyframes pulse-out{from{stroke-dashoffset:0}to{stroke-dashoffset:100}}
+@media(prefers-reduced-motion:reduce){.vortice-neural *{animation:none!important}.conn-pulse[data-link-state=live]{opacity:1;stroke-dasharray:none;stroke-width:1.6}}
+
+/* ---- Responsive ---- */
+@media(max-width:1180px){
+  .neural-hero{grid-template-columns:minmax(0,26%) minmax(0,1fr) minmax(0,26%);min-height:clamp(300px,40vw,420px)}
+  .mc-sub:nth-of-type(2){display:none}
+}
+@media(max-width:900px){
+  .neural-hero{grid-template-columns:1fr;grid-template-areas:"stage" "left" "right";gap:14px;min-height:0}
+  .vortice-neural{position:relative;height:auto;aspect-ratio:1000/450}
+  .hero-stage{position:relative;grid-area:stage;min-height:clamp(220px,58vw,320px)}
+  .modules-left{grid-area:left}.modules-right{grid-area:right}
+  .modules-col{grid-template-columns:1fr 1fr;gap:10px}
+  .core-caption{position:absolute}
+  .mc-sub:nth-of-type(2){display:block}
+}
+@media(max-width:760px){.modules-col{grid-template-columns:1fr 1fr;gap:10px}}
+@media(max-width:420px){.modules-col{grid-template-columns:1fr}}
