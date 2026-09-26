@@ -229,9 +229,24 @@
         <div data-slot="memory" class="bars"></div>
       </section>
 
-      <section class="panel span-4 executive" data-views="inicio video" data-group="video">
-        <header class="panel-head"><h2>Análisis de video</h2><span class="tag" id="video-tag">UNAVAILABLE</span></header>
-        <div data-slot="video"></div>
+      <section class="panel span-12 executive video-station" data-views="inicio video" data-group="video">
+        <header class="panel-head video-station-head"><div><p class="video-kicker">ESTACIÓN LOCAL · SIN INGESTA</p><h2>Análisis de video</h2></div><span class="tag" id="video-tag">UNAVAILABLE</span></header>
+        <div class="video-station-grid">
+          <section class="video-viewport" aria-label="Viewport de análisis de video sin fuente">
+            <div class="video-reticle" aria-hidden="true"></div>
+            <svg class="video-hud-mark" viewBox="0 0 80 80" aria-hidden="true"><path d="M12 28h38v28H12zM50 36l18-10v32L50 48zM20 20h16M20 60h16M60 20v16M60 44v16"/></svg>
+            <div class="video-viewport-copy"><span>NO SOURCE</span><strong>VIDEO UNAVAILABLE</strong><small>Sin entrada ni cámara expuesta por la API local.</small></div>
+            <span class="video-scanline" aria-hidden="true"></span>
+          </section>
+          <div class="video-readouts">
+            <section class="video-readout video-status-readout"><h3>ESTADO</h3><div data-slot="video-status"></div></section>
+            <section class="video-readout"><h3>OBJETOS</h3><div data-slot="video-objects"></div></section>
+            <section class="video-readout"><h3>MOVIMIENTO</h3><div data-slot="video-motion"></div></section>
+            <section class="video-readout"><h3>EVENTOS</h3><div data-slot="video-events"></div></section>
+            <section class="video-readout"><h3>RESUMEN</h3><div data-slot="video-summary"></div></section>
+          </div>
+        </div>
+        <section class="video-timeline"><header><h3>TIMELINE / ESTADO</h3><span>NO DATA</span></header><div class="timeline-rail" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><p>No hay eventos ni timestamps de video expuestos por Atlas.</p></section>
       </section>
 
       <section class="panel span-8" data-views="vortice" data-group="vortice">
