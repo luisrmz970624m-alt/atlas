@@ -5,3 +5,7 @@ Disponible en `http://127.0.0.1:<puerto>/panel-vortice/` cuando la API local est
 Incluye modos SIMPLE, EXECUTIVE y ADVANCED; guarda el modo de forma local en el navegador. Presenta Vórtice, empresa simulada, trading de solo estado, workers, memoria y alertas. Los valores que no existen se muestran como `UNAVAILABLE`; la UI no inventa ceros.
 
 La actualización es polling cada cuatro segundos. SSE queda pendiente. Todo valor dinámico se construye con nodos DOM y `textContent`, sin `innerHTML` ni ejecución de código recibido.
+
+## Apariencia local
+
+La barra de configuración permite elegir tema Oscuro, Claro o Automático. Automático sigue `prefers-color-scheme` del sistema. También ofrece acentos Carmesí, Azul, Violeta, Verde y Naranja. Tema, acento y modo de vista se guardan únicamente en `localStorage` bajo `vortice.theme`, `vortice.accent` y `vortice.modeView`; Restablecer apariencia vuelve a Automático, Carmesí y SIMPLE.

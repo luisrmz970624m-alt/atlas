@@ -55,3 +55,12 @@ test('Q render inicial no añade una clase CSS vacía al primer módulo',()=>ass
 test('Q renderer interpreta el envoltorio API ok/data antes de leer dashboard',()=>assert.ok(panelJs.includes('return(await r.json()).data')&&panelJs.includes('render(await json')));
 test('Q modo SIMPLE conserva tarjetas básicas de Vórtice y Trading',()=>{assert.equal(panelJs.includes("card('VÓRTICE'"),true);assert.equal(panelJs.includes("card('TRADING · SOLO ESTADO'"),true);assert.equal(panelCss.includes('[data-mode=simple] .card'),false)});
 test('Q datos vacíos de alertas muestran EMPTY',()=>assert.ok(panelJs.includes("[['Estado','EMPTY']]")));
+test('Q configuración visual ofrece dark light y auto',()=>{for(const name of ['dark','light','auto'])assert.ok(panelHtml.includes(`data-theme-choice=\"${name}\"`))});
+test('Q configuración visual ofrece todos los acentos',()=>{for(const name of ['crimson','blue','violet','green','orange'])assert.ok(panelHtml.includes(`data-accent-choice=\"${name}\"`)&&panelCss.includes(`data-accent=${name}`)||name==='crimson')});
+test('Q dark y light aplican data-theme',()=>{assert.ok(panelJs.includes('root.dataset.theme=actual'));assert.ok(panelCss.includes('html[data-theme=light]'))});
+test('Q auto usa preferencia del sistema con fallback',()=>assert.ok(panelJs.includes("matchMedia('(prefers-color-scheme: dark)')")&&panelJs.includes("preference.matches?'dark':'light'")));
+test('Q persiste tema acento y modo localmente',()=>{for(const key of ['vortice.theme','vortice.accent','vortice.modeView'])assert.ok(panelJs.includes(key))});
+test('Q cada acento define variables de color',()=>{for(const name of ['blue','violet','green','orange'])assert.ok(panelCss.includes(`html[data-accent=${name}]{--accent:`))});
+test('Q restablecer apariencia vuelve a auto crimson y simple',()=>assert.ok(panelJs.includes("applyTheme('auto');applyAccent('crimson');setMode('simple')")));
+test('Q tema no sustituye colores semánticos críticos',()=>{for(const variable of ['--success','--warning','--danger'])assert.ok(panelCss.includes(variable))});
+test('Q controles de apariencia son visibles y locales',()=>assert.ok(panelHtml.includes('id="appearance"')&&panelHtml.includes('appearance-reset')));
