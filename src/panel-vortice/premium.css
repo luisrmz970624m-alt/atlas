@@ -15,6 +15,10 @@
 .link[data-link-state=idle]{opacity:.45}
 .energy-flow{stroke:var(--core-bright);stroke-width:2.4;stroke-dasharray:9 18;stroke-linecap:round;filter:drop-shadow(0 0 5px var(--core-color));animation:flow calc(2.6s/var(--vortex-speed)) linear infinite}
 .energy-flow:not([data-link-state=live]){display:none}
+.energy-return{fill:none;stroke:var(--accent-secondary-bright);stroke-width:1.8;stroke-dasharray:4 24;stroke-linecap:round;opacity:.85;filter:drop-shadow(0 0 4px var(--accent-secondary));animation:flow-back calc(3.4s/var(--vortex-speed)) linear infinite}
+.energy-return:not([data-link-state=live]){display:none}
+.core-ring-inner{fill:none;stroke:var(--core-bright);stroke-width:1.4;stroke-dasharray:3 7;opacity:.7;transform-origin:320px 220px;animation:orbit calc(22s/var(--vortex-speed)) linear infinite reverse}
+.core-ring-mid{fill:none;stroke:var(--core-color);stroke-width:2;stroke-dasharray:34 10 8 10;stroke-linecap:round;opacity:.55;transform-origin:320px 220px;animation:orbit calc(13s/var(--vortex-speed)) linear infinite}
 .core-glow{fill:url(#core-gradient);filter:drop-shadow(0 0 30px var(--core-color)) drop-shadow(0 0 60px color-mix(in srgb,var(--accent-secondary) 60%,transparent));transform-origin:320px 220px;animation:pulse calc(3.6s/var(--vortex-speed)) ease-in-out infinite}
 .core-shell{fill:color-mix(in srgb,var(--core-color) 15%,transparent);stroke:var(--core-bright);stroke-width:2;transform-origin:320px 220px}
 .core-dot{fill:var(--core-bright);filter:drop-shadow(0 0 10px var(--core-bright));transform-origin:320px 220px;animation:breathe calc(2.7s/var(--vortex-speed)) ease-in-out infinite}
@@ -27,7 +31,7 @@
 .orbit-e{animation-duration:calc(7s/var(--vortex-speed))}
 .orbit-f{animation-duration:calc(20s/var(--vortex-speed));animation-direction:reverse}
 .channel circle{fill:color-mix(in srgb,var(--panel) 88%,var(--core-color));stroke:var(--core-color);stroke-width:1.6;transition:stroke 240ms,opacity 240ms}
-.channel[data-link-state=live] circle{stroke:var(--core-bright);stroke-width:2.2;filter:drop-shadow(0 0 10px var(--core-color))}
+.channel[data-link-state=live] circle{stroke:var(--core-bright);stroke-width:2.2;filter:drop-shadow(0 0 10px var(--core-color));animation:node-react calc(2.8s/var(--vortex-speed)) ease-in-out infinite}
 .channel[data-link-state=off]{opacity:.55}
 .channel[data-link-state=off] circle{stroke-dasharray:4 4}
 .channel text{text-anchor:middle}
@@ -75,6 +79,8 @@ html[data-effects=high] .panel{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 
 @keyframes breathe{50%{transform:scale(1.32)}}
 @keyframes orbit{to{transform:rotate(360deg)}}
 @keyframes flow{to{stroke-dashoffset:-54}}
+@keyframes flow-back{to{stroke-dashoffset:56}}
+@keyframes node-react{0%,100%{stroke-width:2.2}50%{stroke-width:3.2}}
 @keyframes wave{0%{transform:scale(.6);opacity:.8}100%{transform:scale(2.4);opacity:0}}
 @keyframes activity{50%{transform:scale(1.35);stroke-width:5}}
 @keyframes sweep{0%{top:-42%}100%{top:114%}}
