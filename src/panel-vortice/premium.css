@@ -1,8 +1,9 @@
 /* El Vórtice — núcleo animado dominante, canales y estados. Solo CSS local, sin JS de animación. */
-#vortex-core{--vortex-speed:1;display:grid;grid-template-columns:minmax(0,2.1fr) minmax(210px,.9fr);gap:8px 20px;align-items:center;padding:18px 22px;background:radial-gradient(circle at 34% 50%,color-mix(in srgb,var(--core-color) 16%,transparent),transparent 58%),linear-gradient(135deg,color-mix(in srgb,var(--panel) 94%,transparent),color-mix(in srgb,var(--core-color) 7%,var(--panel-2)));transition:background 240ms,border-color 240ms,filter 240ms}
+#vortex-core{--vortex-speed:1;display:grid;grid-template-columns:minmax(0,2.3fr) minmax(220px,.9fr);gap:8px 20px;align-items:center;padding:20px 24px;background:radial-gradient(circle at 34% 50%,color-mix(in srgb,var(--core-color) 18%,transparent),transparent 58%),linear-gradient(135deg,color-mix(in srgb,var(--panel) 94%,transparent),color-mix(in srgb,var(--core-color) 8%,var(--panel-2)));transition:background 240ms,border-color 240ms,filter 240ms}
 #vortex-core::before{background:linear-gradient(90deg,transparent,var(--core-bright),transparent)}
-.hero-stage{position:relative;min-width:0}
-.vortex-art{display:block;width:100%;height:auto;max-height:520px;margin:auto;overflow:visible}
+.hero-stage{position:relative;min-width:0;border-radius:12px;overflow:hidden;background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--core-color) 9%,transparent),transparent 70%),repeating-linear-gradient(0deg,color-mix(in srgb,var(--core-color) 5%,transparent) 0 1px,transparent 1px 34px),repeating-linear-gradient(90deg,color-mix(in srgb,var(--core-color) 5%,transparent) 0 1px,transparent 1px 34px)}
+.hero-stage::after{content:'';position:absolute;left:0;right:0;height:38%;top:-40%;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--core-bright) 10%,transparent) 45%,transparent);animation:sweep 7s linear infinite;pointer-events:none}
+.vortex-art{position:relative;display:block;width:100%;height:auto;max-height:560px;margin:auto;overflow:visible}
 .halo{fill:url(#halo-gradient)}
 .grid-rings circle{fill:none;stroke:color-mix(in srgb,var(--core-color) 26%,transparent);stroke-width:1;stroke-dasharray:2 6}
 .ring-ticks{fill:none;stroke:var(--core-color);stroke-width:6;stroke-dasharray:1 9;opacity:.45;transform-origin:320px 220px;animation:orbit calc(40s/var(--vortex-speed)) linear infinite}
@@ -13,7 +14,7 @@
 .link[data-link-state=idle]{opacity:.45}
 .energy-flow{stroke:var(--core-bright);stroke-width:2.4;stroke-dasharray:9 18;stroke-linecap:round;filter:drop-shadow(0 0 5px var(--core-color));animation:flow calc(2.6s/var(--vortex-speed)) linear infinite}
 .energy-flow:not([data-link-state=live]){display:none}
-.core-glow{fill:url(#core-gradient);filter:drop-shadow(0 0 22px var(--core-color));transform-origin:320px 220px;animation:pulse calc(3.6s/var(--vortex-speed)) ease-in-out infinite}
+.core-glow{fill:url(#core-gradient);filter:drop-shadow(0 0 30px var(--core-color));transform-origin:320px 220px;animation:pulse calc(3.6s/var(--vortex-speed)) ease-in-out infinite}
 .core-shell{fill:color-mix(in srgb,var(--core-color) 15%,transparent);stroke:var(--core-bright);stroke-width:2;transform-origin:320px 220px}
 .core-dot{fill:var(--core-bright);filter:drop-shadow(0 0 10px var(--core-bright));transform-origin:320px 220px;animation:breathe calc(2.7s/var(--vortex-speed)) ease-in-out infinite}
 .energy-wave{fill:none;stroke:var(--core-color);stroke-width:1.5;opacity:0;transform-origin:320px 220px;animation:wave calc(3.4s/var(--vortex-speed)) ease-out infinite}
@@ -71,6 +72,8 @@ html[data-effects=high] .panel{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 
 @keyframes flow{to{stroke-dashoffset:-54}}
 @keyframes wave{0%{transform:scale(.6);opacity:.8}100%{transform:scale(2.4);opacity:0}}
 @keyframes activity{50%{transform:scale(1.35);stroke-width:5}}
+@keyframes sweep{0%{top:-40%}100%{top:112%}}
+html[data-effects=off] .hero-stage::after,html[data-reduced-motion=reduce] .hero-stage::after,html[data-motion=paused] .hero-stage::after{animation:none;display:none}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition-duration:150ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 @media(max-width:1180px){#vortex-core,#app[data-mode=visual] #vortex-core,#app[data-core=large] #vortex-core{grid-template-columns:minmax(0,1.4fr) minmax(220px,1fr)}}
 @media(max-width:760px){#vortex-core,#app[data-mode=visual] #vortex-core,#app[data-core=large] #vortex-core,#app[data-view=inicio][data-mode=simple] #vortex-core{grid-template-columns:1fr;padding:14px}.core-details dl{grid-template-columns:1fr 1fr}.vortex-art{max-width:520px}}
