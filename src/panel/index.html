@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATLAS - Sistema Orbital de Mercado</title>
+    <style>
+        :root {
+            --bg-deep: #0a0b10; /* El azul oscuro asfalto del mapa espacial */
+            --grid-line: #181b28;
+            --text-space: #8fa0b5;
+            --cyan-orbit: #3b909c;
+            --magenta-orbit: #a65275;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', Courier, monospace; }
+        body { background-color: var(--bg-deep); color: #ffffff; overflow: hidden; height: 100vh; padding: 20px; }
+        
+        .space-layout { display: flex; height: 100%; width: 100%; position: relative; gap: 20px; }
+        
+        /* Telemetría Fina en los Bordes */
+        .telemetry-overlay { position: absolute; top: 10px; left: 10px; z-index: 10; font-size: 0.75rem; color: var(--text-space); line-height: 1.6; pointer-events: none; }
+        .system-title { font-size: 1.1rem; letter-spacing: 2px; color: #ffffff; margin-bottom: 8px; font-weight: bold; }
+        
+        .right-telemetry { position: absolute; top: 10px; right: 10px; text-align: right; z-index: 10; font-size: 0.75rem; color: var(--text-space); pointer-events: none; }
+        .metric-bold { color: #ffffff; font-weight: bold; }
+
+        /* Contenedor del Mapa Astronómico */
+        .map-viewport { flex: 1; border: 1px solid var(--grid-line); border-radius: 4px; position: relative; overflow: hidden; background-image: radial-gradient(var(--grid-line) 1px, transparent 1px); background-size: 24px 24px; }
+        #orbitalCanvas { width: 100%; height: 100%; display: block; }
+    </style>
+</head>
+<body>
+    <div class="space-layout">
+        <!-- Bloque Izquierdo: Datos de Auditoría -->
+        <div class="telemetry-overlay">
+            <div class="system-title">ATLAS CORE</div>
+            <div>CONFIG_MANIFEST: <span class="metric-bold">7863E7B6573AC96B</span></div>
+            <div>VERIFIED_LOGS: <span class="metric-bold">234 EVENTS (INTEGRITY_OK)</span></div>
+            <div>DATASET_SOURCE: <span class="metric-bold">35,651 BARS (EURUSD_H1)</span></div>
+        </div>
+
+        <!-- Bloque Derecho: Estado de Minería del Ciclo -->
+        <div class="right-telemetry">
+            <div>ATLAS_LEVEL: <span class="metric-bold">04</span></div>
+            <div>SYSTEM_ENERGY: <span class="metric-bold">70%</span></div>
+            <div>GENERATED_VALUE: <span class="metric-bold">0.000793 ETH</span></div>
+            <div>ACTIVE_BOT: <span class="metric-bold">ALPHABOT_H1 (MA_CROSS)</span></div>
+        </div>
+
+        <!-- El Visor del Vórtice Celestial -->
+        <div class="map-viewport">
+            <canvas id="orbitalCanvas"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('orbitalCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let centerX, centerY;
+        let rotationSpeed = 0.0004;
+        let globalAngle = 0;
+
+        function resize() {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Clase para dibujar cada órbita vectorial elíptica (Estilo Eleanor Lutz)
+        class CelestialOrbit {
+            constructor(semiMajor, semiMinor, angleOffset, colorType) {
+                this.semiMajor = semiMajor;
+                this.semiMinor = semiMinor;
+                this.angleOffset = angleOffset;
+                this.colorType = colorType;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(this.angleOffset + globalAngle);
+                
+                ctx.beginPath();
+                // Renderizado elíptico fino de precisión matemática
+                ctx.ellipse(0, 0, this.semiMajor, this.semiMinor, 0, 0, Math.PI * 2);
+                
+                // Distribución exacta de colores del mapa espacial
+                if (this.colorType === 0) ctx.strokeStyle = 'rgba(59, 144, 156, 0.12)';       // Cian orbital
+                else if (this.colorType === 1) ctx.strokeStyle = 'rgba(166, 82, 117, 0.09)';   // Magenta de trayectoria
+                else ctx.strokeStyle = 'rgba(143, 160, 181, 0.04)';                            // Línea base gris
+                
+                ctx.lineWidth = 0.8;
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        // Generar la densidad masiva de anillos (Representando tus miles de barras de mercado)
+        const orbits = [];
+        function initOrbits() {
+            const totalOrbits = 320; // Densidad para simular el mapa astronómico
+            for (let i = 0; i < totalOrbits; i++) {
+                const baseRadius = 80 + (i * 0.9);
+                // Excentricidad aleatoria sutil para deformar los círculos en elipses orgánicas
+                const eccentricity = 0.85 + Math.random() * 0.15; 
+                const semiMajor = baseRadius;
+                const semiMinor = baseRadius * eccentricity;
+                const angleOffset = Math.random() * Math.PI * 2;
+                const colorType = i % 3;
+
+                orbits.push(new CelestialOrbit(semiMajor, semiMinor, angleOffset, colorType));
+            }
+        }
+        initOrbits();
+
+        // Loop de Renderizado Astronómico Continuo
+        function renderSpaceMap() {
+            ctx.fillStyle = '#0a0b10';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar rejillas radiales técnicas de fondo (Coordenadas de radar)
+            ctx.strokeStyle = '#131520';
+            ctx.lineWidth = 0.5;
+            for(let r = 50; r < canvas.width; r += 100) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Renderizar la masa total de trayectorias celestes
+            orbits.forEach(orbit => orbit.draw());
+
+            // Velocidad constante del ciclo celeste
+            globalAngle += rotationSpeed;
+            requestAnimationFrame(renderSpaceMap);
+        }
+        renderSpaceMap();
+    </script>
+</body>
+</html>

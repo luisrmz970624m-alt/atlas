@@ -285,14 +285,16 @@ Los motores simulados (ej. minería en `src/mineria.ts`) deben poder aceptar una
 **Lo que Atlas garantiza:**
 - Registro íntegro (detectable si alguien lo altera)
 - Supervisor bloquea lo rojo
-- Código no sale de `laboratorio/`
+- Las herramientas de archivos rechazan rutas y enlaces simbólicos que resuelvan fuera de `laboratorio/`
+- En Linux, la evaluación de ejercicios usa Bubblewrap, aísla la red y deja escribible solo el laboratorio; si el sandbox no está disponible, bloquea la ejecución
 - Hecho duro (ejecución) gana sobre opinión
 
 **Lo que NO garantiza:**
-- Red aislada (tu código puede acceder a Internet)
-- Memoria/CPU limitada (sin cgroups del sistema)
-- Symlinks bloqueados (alguien podría crear symlink a fuera)
-- Código no es sandbox (fork bombs, etc.)
+- Cuotas de memoria, CPU o cantidad de procesos para ejercicios ejecutados
+- Resistencia ante vulnerabilidades del kernel o de Bubblewrap
+- Disponibilidad de Bubblewrap fuera de Linux
+- Protección contra cambios concurrentes de enlaces entre la validación y la operación de archivo
+- Aislamiento adecuado para ejecutar código hostil como servicio multiusuario
 
 **Es tu máquina. Es tu responsabilidad.**
 

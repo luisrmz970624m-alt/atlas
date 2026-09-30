@@ -1,0 +1,79 @@
+{
+  "version": "0.2",
+  "description": "Configuración de Claude Code para Atlas - FASES 1-7",
+
+  "phases": {
+    "phase_1": {"name": "TypeScript LSP", "enabled": true, "status": "COMPLETE"},
+    "phase_2": {"name": "Seguridad", "enabled": true, "status": "ACTIVE"},
+    "phase_3": {"name": "Desarrollo", "enabled": true, "status": "ACTIVE"},
+    "phase_4": {"name": "Frontend", "enabled": true, "status": "ACTIVE"},
+    "phase_5": {"name": "Profesor", "enabled": true, "status": "ACTIVE"},
+    "phase_6": {"name": "Git", "enabled": true, "status": "ACTIVE"},
+    "phase_7": {"name": "Code Review", "enabled": true, "status": "ACTIVE"}
+  },
+
+  "typescript": {
+    "enabled": true,
+    "languageServer": "typescript-language-server",
+    "checkOnSave": true,
+    "strictMode": true
+  },
+
+  "linting": {
+    "typescript": true,
+    "security": true,
+    "accessibility": true,
+    "performance": true
+  },
+
+  "testing": {
+    "framework": "node-test",
+    "pattern": "pruebas/*.ts",
+    "runOnSave": false,
+    "coverage": true
+  },
+
+  "git": {
+    "requireCommitMessage": true,
+    "allowForcePush": false,
+    "confirmDestructive": true,
+    "protectedBranches": ["main", "master"]
+  },
+
+  "security": {
+    "scanForSecrets": true,
+    "apiKeyDetection": true,
+    "dependencyCheck": true,
+    "owasp_top_10": true
+  },
+
+  "design": {
+    "accessibilityChecks": true,
+    "responsiveDesign": true,
+    "darkModeSupport": true
+  },
+
+  "education": {
+    "explanatoryMode": true,
+    "teachConcepts": true,
+    "verboseOutput": true,
+    "exampleCode": true
+  },
+
+  "frontendTools": {
+    "enabled": true,
+    "browser": "available",
+    "playwright": "available"
+  },
+
+  "permissionMode": "ask",
+
+  "allowedCommands": [
+    "node", "npm", "git status", "git log", "git diff",
+    "git add", "git commit", "tsc", "typescript-language-server"
+  ],
+
+  "blockedCommands": [
+    "git reset --hard", "git push --force", "git clean -fd", "rm -rf"
+  ]
+}

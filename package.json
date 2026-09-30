@@ -9,7 +9,9 @@
     "prueba": "ATLAS_SIN_RED=true node --experimental-strip-types --disable-warning=ExperimentalWarning --test pruebas/*.ts",
     "auditar": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts auditar",
     "memoria": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/atlas.ts memoria",
-    "panel": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/api-local/panel.ts"
+    "panel": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/api-local/panel.ts",
+    "forex:lab": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/trading-lab/cli-forex-worker.ts lab",
+    "forex:status": "node --experimental-strip-types --disable-warning=ExperimentalWarning src/trading-lab/cli-forex-worker.ts status"
   },
   "engines": {
     "node": ">=22"
@@ -17,6 +19,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
     "better-sqlite3": "^13.0.3",
+    "express": "^5.2.1",
     "openai": "^7.23.0"
   }
 }

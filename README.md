@@ -161,14 +161,21 @@ opinión — **ejecutarlo**.
 Por eso la evaluación tiene dos capas, y no valen lo mismo:
 
 1. **Ejecución** — hecho comprobable. Tu código corre o no corre, con tope de
-   diez segundos para que un bucle sin fin no cuelgue nada. Si revienta, no hay
-   discusión: el ejercicio no cuenta.
+   diez segundos para que un bucle sin fin no cuelgue nada. En Linux se ejecuta
+   con Bubblewrap: red aislada, entorno limpio y solo el laboratorio del host
+   disponible para escritura; `/tmp` es efímero. Bubblewrap debe estar instalado
+   y poder crear los espacios de nombres requeridos; si no, Atlas bloquea la
+   ejecución. En otros sistemas también queda bloqueada.
 2. **Revisión del modelo** — opinión. Dice si tu respuesta hace lo que pedía el
    enunciado. Se guarda en la memoria como **deducción**, nunca como hecho, con
    su nivel de confianza.
 
 Un código que corre pero no resuelve el ejercicio no aprueba. Un código que
 resuelve el ejercicio pero no compila, tampoco. Hacen falta las dos.
+
+El aislamiento reduce el acceso al host, pero no impone cuotas de memoria, CPU
+ni procesos. No ejecutes código deliberadamente hostil ni consideres esta
+función un sandbox de producción.
 
 Cuando apruebas, la práctica se registra sola. Si crees que Atlas se equivocó,
 `practique <tema>` la registra a mano: la última palabra es tuya, y queda en el

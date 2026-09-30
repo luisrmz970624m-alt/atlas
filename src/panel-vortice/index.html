@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="/panel-vortice/app.css">
 <link rel="stylesheet" href="/panel-vortice/premium.css">
 </head>
-<body>
+<body class="vortex-entry-intro" data-activation-state="closed">
 <div class="shell">
 
 <aside id="sidebar" class="sidebar" aria-label="Navegación principal">
@@ -34,6 +34,9 @@
     <p class="nav-group">Inteligencia</p>
     <a href="#agentes" data-nav="agentes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2M6 5h12v14H6zM10 9h4v6h-4z"/></svg><span>Agentes IA</span></a>
     <a href="#vortice" data-nav="vortice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2a10 10 0 1 0 10 10M12 6a6 6 0 1 0 6 6"/></svg><span>El Vórtice</span></a>
+    <a href="#comunicaciones" data-nav="comunicaciones"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Comunicaciones</span></a>
+    <a href="#orquestacion" data-nav="orquestacion"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l4 4-4 4-4-4 4-4zM4 14l4 4-4 4-4-4 4-4zM20 14l4 4-4 4-4-4 4-4zM12 10v4M8 18h8"/></svg><span>Orquestación</span></a>
+    <a href="#cognitivo" data-nav="cognitivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg><span>Memoria cognitiva</span></a>
     <p class="nav-group">Sistema</p>
     <a href="#reportes" data-nav="reportes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M8 17v-7M13 17V6M18 17v-4"/></svg><span>Reportes</span></a>
     <button type="button" class="nav-button" data-open-settings><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><span>Configuración</span></button>
@@ -66,10 +69,40 @@
       <div id="system" class="status-pill" role="status">LOADING</div>
       <b class="simulated">SIMULATED</b>
       <button class="icon-button" type="button" data-open-settings aria-label="Configuración visual"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
+      <div class="user-area"><span class="user-avatar">U</span><div class="user-info"><span class="user-name">Usuario</span><span class="user-role">Local</span></div></div>
     </div>
   </header>
 
-  <main id="app" data-mode="simple" data-view="inicio">
+  <aside class="system-status-strip" aria-label="Estado operativo del sistema">
+    <div class="strip-item" id="strip-api" data-status="ok">
+      <span class="strip-dot" aria-hidden="true"></span>
+      <span class="strip-label">API LOCAL</span>
+      <b class="strip-value" id="strip-api-val">CONECTADA</b>
+    </div>
+    <div class="strip-item" id="strip-daemon" data-status="ok">
+      <span class="strip-dot" aria-hidden="true"></span>
+      <span class="strip-label">ATLAS DAEMON</span>
+      <b class="strip-value" id="strip-daemon-val">ACTIVO</b>
+    </div>
+    <div class="strip-item" id="strip-sim" data-status="simulated">
+      <span class="strip-badge strip-sim-badge">SIMULATION ONLY</span>
+    </div>
+    <div class="strip-item" id="strip-lock" data-status="safe">
+      <span class="strip-dot strip-dot-safe" aria-hidden="true"></span>
+      <span class="strip-label">EJECUCIÓN</span>
+      <b class="strip-value strip-value-safe">BLOQUEADA</b>
+    </div>
+    <div class="strip-item" id="strip-net" data-status="local">
+      <span class="strip-label">RED</span>
+      <b class="strip-value">OFFLINE · LOOPBACK</b>
+    </div>
+    <div class="strip-item" id="strip-cognitive" data-status="safe">
+      <span class="strip-label">COGNITIVO</span>
+      <b class="strip-value" id="strip-cognitive-val">READ-ONLY</b>
+    </div>
+  </aside>
+
+  <main id="app" data-mode="simple" data-view="inicio" data-activation-state="closed">
     <div class="view-head">
       <p class="eyebrow">ATLAS OS / <span id="view-crumb">Inicio</span></p>
       <h1 id="view-title">Centro de mando</h1>
@@ -79,8 +112,29 @@
 
     <div class="board">
 
-      <section id="vortex-core" class="panel hero span-12" data-views="inicio vortice" data-group="vortice" data-vortex-state="idle" aria-labelledby="vortex-title">
+      <section id="vortex-core" class="panel span-8" data-views="inicio vortice" data-group="vortice" data-vortex-state="idle" data-activation-state="closed" aria-labelledby="vortex-title">
+      <header class="panel-head vortex-head"><div><h2 id="vortex-heading">EL VÓRTICE</h2><p class="vortex-subtitle">Núcleo, módulos y estado del sistema en una sola vista.</p></div><div class="vortex-badges"><span class="tag tag-ok" id="vortex-ok-tag">OK</span><span class="tag" id="vortex-version-tag">v0.1.0</span><span class="tag">LOCAL</span><span class="tag">OFFLINE</span><span class="tag tag-sim">SIMULATED</span></div></header>
       <div class="neural-hero">
+        <header class="vortex-entry-chrome">
+          <div class="vortex-entry-identity">
+            <svg class="vortex-entry-mark" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21"/><path d="M24 8 39 35H9L24 8Z"/><circle cx="24" cy="24" r="7"/></svg>
+            <div class="vortex-entry-brand" aria-label="ATLAS dormant mode">
+              <span class="vortex-entry-wordmark">ATLAS</span>
+              <span class="vortex-entry-status">CORE · DORMANT</span>
+            </div>
+          </div>
+          <div class="vortex-entry-nav" aria-label="Knowledge, signals and opportunities">
+            <span>KNOWLEDGE</span><i aria-hidden="true">·</i><span>SIGNALS</span><i aria-hidden="true">·</i><span>OPPORTUNITIES</span>
+          </div>
+          <div class="vortex-entry-meta">
+            <span class="vortex-entry-local"><i aria-hidden="true"></i> LOCAL</span>
+            <span class="vortex-entry-divider" aria-hidden="true"></span>
+            <span class="vortex-entry-network">OFFLINE · SIMULATED</span>
+            <button class="vortex-entry-geometry" id="geometry-cycle" type="button" aria-label="Cambiar geometría del núcleo; actual: estándar" title="Cambiar tamaño del núcleo">
+              <span>GEOMETRY</span><b id="geometry-label">STANDARD</b>
+            </button>
+          </div>
+        </header>
         <div class="modules-col modules-left">
         <div class="module-card" data-channel="texto" data-link-state="off" data-hue="cyan">
           <span class="mc-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h10M4 18h7"/></svg></span>
@@ -96,63 +150,1160 @@
         </div>
         </div>
         <div class="hero-stage">
-          <svg class="vortice-neural vortex-art" viewBox="0 0 1000 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Esfera neuronal El Vortice y sus conexiones a los seis modulos">
+          <svg class="vortice-neural vortice-canonical vortex-art" id="canonical-vortex" data-activation-state="closed" data-geometry-mode="standard" data-operational-state="DORMANT" viewBox="0 0 600 900" preserveAspectRatio="xMidYMid meet" role="button" tabindex="0" aria-label="ATLAS Canonical Vortex Core" aria-expanded="false">
             <defs>
-              <radialGradient id="halo-gradient" cx="50%" cy="50%" r="55%"><stop offset="0" stop-color="var(--v-magenta)" stop-opacity=".42"/><stop offset=".4" stop-color="var(--v-violet)" stop-opacity=".26"/><stop offset=".75" stop-color="var(--v-blue)" stop-opacity=".12"/><stop offset="1" stop-color="var(--v-blue)" stop-opacity="0"/></radialGradient>
-              <radialGradient id="core-gradient" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset=".4" stop-color="#ffffff" stop-opacity="0"/><stop offset=".56" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".68" stop-color="var(--v-magenta)"/><stop offset=".84" stop-color="var(--v-violet)" stop-opacity=".5"/><stop offset="1" stop-color="var(--v-blue)" stop-opacity="0"/></radialGradient>
-              <radialGradient id="core-center-gradient" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#1a0b2e" stop-opacity=".9"/><stop offset=".7" stop-color="#0a0618" stop-opacity=".82"/><stop offset="1" stop-color="#0a0618" stop-opacity=".2"/></radialGradient>
-              <linearGradient id="fil-warm" x1="0" y1="0" x2="1" y2="1"><stop stop-color="var(--v-magenta)"/><stop offset="1" stop-color="var(--v-crimson)"/></linearGradient>
-              <linearGradient id="fil-cool" x1="0" y1="0" x2="1" y2="1"><stop stop-color="var(--v-cyan)"/><stop offset="1" stop-color="var(--v-blue)"/></linearGradient>
-              <linearGradient id="fil-violet" x1="0" y1="1" x2="1" y2="0"><stop stop-color="var(--v-violet)"/><stop offset="1" stop-color="var(--v-cyan)"/></linearGradient>
-              <filter id="soft-glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-              <filter id="core-bloom" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <!-- GLOW FILTERS -->
+              <filter id="v-glow-soft" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="5" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="v-glow-white-hot" x="-70%" y="-70%" width="240%" height="240%">
+                <feGaussianBlur stdDeviation="3" result="b1" />
+                <feGaussianBlur stdDeviation="12" result="b2" />
+                <feMerge><feMergeNode in="b2" /><feMergeNode in="b1" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="v-glow-bloom" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="26" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="v-glow-intense" x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur stdDeviation="5" result="blur1" />
+                <feGaussianBlur stdDeviation="18" result="blur2" />
+                <feMerge><feMergeNode in="blur2" /><feMergeNode in="blur1" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="v-glow-extreme" x="-120%" y="-120%" width="340%" height="340%">
+                <feGaussianBlur stdDeviation="6" result="b1" />
+                <feGaussianBlur stdDeviation="28" result="b2" />
+                <feGaussianBlur stdDeviation="60" result="b3" />
+                <feMerge><feMergeNode in="b3" /><feMergeNode in="b2" /><feMergeNode in="b1" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <filter id="v-glow-orb" x="-150%" y="-150%" width="400%" height="400%">
+                <feGaussianBlur stdDeviation="8" result="b1" />
+                <feGaussianBlur stdDeviation="35" result="b2" />
+                <feGaussianBlur stdDeviation="75" result="b3" />
+                <feMerge><feMergeNode in="b3" /><feMergeNode in="b2" /><feMergeNode in="b1" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+
+              <!-- BACKGROUND VIOLET FIELD -->
+              <radialGradient id="v-grad-bg-field" cx="50%" cy="50%" r="55%">
+                <stop offset="0%"   stop-color="#2A1060" stop-opacity="0.55" />
+                <stop offset="35%"  stop-color="#160840" stop-opacity="0.45" />
+                <stop offset="65%"  stop-color="#0A0320" stop-opacity="0.3" />
+                <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+              </radialGradient>
+
+              <!-- CORE GRADIENTS -->
+              <radialGradient id="v-grad-core-white" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="1" />
+                <stop offset="35%"  stop-color="#FFFFFF" stop-opacity="0.98" />
+                <stop offset="65%"  stop-color="#FF52F8" stop-opacity="0.85" />
+                <stop offset="100%" stop-color="#7655FF" stop-opacity="0" />
+              </radialGradient>
+              <radialGradient id="v-grad-core-bloom" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="1" />
+                <stop offset="12%"  stop-color="#FF3BD8" stop-opacity="0.98" />
+                <stop offset="32%"  stop-color="#E22BFF" stop-opacity="0.9" />
+                <stop offset="58%"  stop-color="#6245FF" stop-opacity="0.6" />
+                <stop offset="80%"  stop-color="#25D9FF" stop-opacity="0.3" />
+                <stop offset="100%" stop-color="#020818" stop-opacity="0" />
+              </radialGradient>
+              <radialGradient id="v-grad-core-ambient" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stop-color="#F22BFF" stop-opacity="0.85" />
+                <stop offset="30%"  stop-color="#7655FF" stop-opacity="0.65" />
+                <stop offset="60%"  stop-color="#25D9FF" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="#01030A" stop-opacity="0" />
+              </radialGradient>
+
+              <!-- AXIS BEAM -->
+              <linearGradient id="v-grad-axis-beam" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="0" />
+                <stop offset="5%"   stop-color="#FFFFFF" stop-opacity="1" />
+                <stop offset="25%"  stop-color="#25D9FF" stop-opacity="0.95" />
+                <stop offset="50%"  stop-color="#FFFFFF" stop-opacity="1" />
+                <stop offset="75%"  stop-color="#F22BFF" stop-opacity="0.95" />
+                <stop offset="95%"  stop-color="#FFFFFF" stop-opacity="1" />
+                <stop offset="100%" stop-color="#F22BFF" stop-opacity="0" />
+              </linearGradient>
+
+              <!-- SATELLITE GRADIENTS -->
+              <radialGradient id="v-grad-sat-magenta" cx="35%" cy="35%" r="65%">
+                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="1" />
+                <stop offset="25%"  stop-color="#FF6BF8" stop-opacity="1" />
+                <stop offset="60%"  stop-color="#E010FF" stop-opacity="0.9" />
+                <stop offset="85%"  stop-color="#7610CC" stop-opacity="0.5" />
+                <stop offset="100%" stop-color="#200540" stop-opacity="0" />
+              </radialGradient>
+              <radialGradient id="v-grad-sat-cyan" cx="35%" cy="35%" r="65%">
+                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="1" />
+                <stop offset="25%"  stop-color="#6BFFFF" stop-opacity="1" />
+                <stop offset="60%"  stop-color="#10B0FF" stop-opacity="0.9" />
+                <stop offset="85%"  stop-color="#1045CC" stop-opacity="0.5" />
+                <stop offset="100%" stop-color="#051040" stop-opacity="0" />
+              </radialGradient>
+              <radialGradient id="v-grad-sat-violet" cx="35%" cy="35%" r="65%">
+                <stop offset="0%"   stop-color="#FFFFFF" stop-opacity="1" />
+                <stop offset="25%"  stop-color="#B88FFF" stop-opacity="1" />
+                <stop offset="60%"  stop-color="#6B30FF" stop-opacity="0.9" />
+                <stop offset="85%"  stop-color="#3010B0" stop-opacity="0.5" />
+                <stop offset="100%" stop-color="#100530" stop-opacity="0" />
+              </radialGradient>
+
+              <!-- HORIZONTAL LENS FLARE FILTER -->
+              <filter id="v-glow-hflare" x="-300%" y="-200%" width="700%" height="500%">
+                <feGaussianBlur stdDeviation="4 1" result="b1" />
+                <feGaussianBlur stdDeviation="20 3" result="b2" />
+                <feGaussianBlur stdDeviation="60 8" result="b3" />
+                <feMerge><feMergeNode in="b3" /><feMergeNode in="b2" /><feMergeNode in="b1" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+              <!-- FLOOR GRADIENT -->
+              <linearGradient id="v-grad-floor" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%"   stop-color="#F22BFF" stop-opacity="0.75" />
+                <stop offset="50%"  stop-color="#7655FF" stop-opacity="0.35" />
+                <stop offset="100%" stop-color="#25D9FF" stop-opacity="0" />
+              </linearGradient>
             </defs>
-            <ellipse class="halo halo-outer" cx="500" cy="255" rx="332" ry="202" fill="url(#halo-gradient)"/>
-            <ellipse class="halo halo-middle" cx="500" cy="255" rx="278" ry="186" fill="url(#halo-gradient)"/>
-            <ellipse class="halo halo-inner" cx="500" cy="255" rx="218" ry="154" fill="url(#halo-gradient)"/>
-            <g class="ambient-field" aria-hidden="true"><ellipse cx="500" cy="255" rx="210" ry="155"/><ellipse cx="500" cy="255" rx="150" ry="112"/></g>
-            <g class="far-particles" aria-hidden="true"><circle style="--i:0" cx="694.4" cy="288.1" r="1.4"/><circle style="--i:1" cx="605.9" cy="430.6" r="1.4"/><circle style="--i:2" cx="385.0" cy="408.2" r="1.4"/><circle style="--i:3" cx="287.9" cy="277.0" r="1.4"/><circle style="--i:4" cx="305.5" cy="111.4" r="1.4"/><circle style="--i:5" cx="535.1" cy="70.8" r="1.4"/><circle style="--i:6" cx="700.2" cy="173.1" r="1.4"/><circle style="--i:7" cx="688.0" cy="316.8" r="1.4"/><circle style="--i:8" cx="560.0" cy="446.8" r="1.4"/><circle style="--i:9" cx="343.4" cy="392.7" r="1.4"/><circle style="--i:10" cx="279.8" cy="246.5" r="1.4"/><circle style="--i:11" cx="342.6" cy="82.8" r="1.4"/><circle style="--i:12" cx="584.1" cy="74.7" r="1.4"/><circle style="--i:13" cx="723.7" cy="201.4" r="1.4"/></g>
-            <g class="outer-orbits" aria-hidden="true">
-              <ellipse class="orb orb-c" cx="500" cy="255" rx="205" ry="165" transform="rotate(58 500 255)"/>
-              <ellipse class="orb orb-b" cx="500" cy="255" rx="170" ry="140" transform="rotate(24 500 255)"/>
-              <ellipse class="orb orb-a" cx="500" cy="255" rx="130" ry="115" transform="rotate(-18 500 255)"/>
+            <g class="vortex-core-geometry">
+            <!-- BACKGROUND AMBIENT VIOLET FIELD -->
+            <ellipse cx="300" cy="450" rx="420" ry="480" fill="url(#v-grad-bg-field)" />
+            <!-- LAYER 0: HOLOGRAPHIC PLATFORM (EXPANDED GROUND & REFLECTIONS) -->
+            <g class="vortex-layer-platform" aria-hidden="true">
+              <line x1="300" y1="780" x2="-40" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="-5" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="30" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="65" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="100" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="135" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="170" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="205" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="240" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="275" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="310" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="345" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="380" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="415" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="450" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="485" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="520" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="555" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="590" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="300" y1="780" x2="625" y2="900" stroke="#25D9FF" stroke-width="0.9" opacity="0.45" />
+              <line x1="273" y1="790" x2="327" y2="790" stroke="#F22BFF" stroke-width="1.5" opacity="0.55" />
+              <line x1="225" y1="808" x2="375" y2="808" stroke="#F22BFF" stroke-width="1.5" opacity="0.62" />
+              <line x1="172" y1="828" x2="428" y2="828" stroke="#F22BFF" stroke-width="1.5" opacity="0.68" />
+              <line x1="108" y1="852" x2="492" y2="852" stroke="#F22BFF" stroke-width="1.5" opacity="0.72" />
+              <line x1="33" y1="880" x2="567" y2="880" stroke="#F22BFF" stroke-width="1.5" opacity="0.75" />
+              <line x1="-47" y1="910" x2="647" y2="910" stroke="#F22BFF" stroke-width="1.5" opacity="0.78" />
+              <ellipse cx="300" cy="794" rx="145" ry="20" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.80" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="820" rx="220" ry="30" fill="none" stroke="#F22BFF" stroke-width="2.2" opacity="0.72" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="852" rx="290" ry="40" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.58" stroke-dasharray="18 10" />
+              <ellipse cx="300" cy="885" rx="350" ry="50" fill="none" stroke="#7655FF" stroke-width="1.4" opacity="0.45" stroke-dasharray="28 14" />
+              <line x1="300" y1="780" x2="300" y2="900" stroke="#FFFFFF" stroke-width="5" opacity="0.98" filter="url(#v-glow-white-hot)" />
+              <line x1="300" y1="780" x2="300" y2="900" stroke="#F22BFF" stroke-width="16" opacity="0.75" filter="url(#v-glow-bloom)" />
+              <line x1="274" y1="800" x2="274" y2="885" stroke="#25D9FF" stroke-width="2.2" opacity="0.7" filter="url(#v-glow-soft)" />
+              <line x1="326" y1="800" x2="326" y2="885" stroke="#F22BFF" stroke-width="2.2" opacity="0.7" filter="url(#v-glow-soft)" />
+              <line x1="150" y1="820" x2="150" y2="875" stroke="#25D9FF" stroke-width="1.6" opacity="0.55" filter="url(#v-glow-soft)" />
+              <line x1="450" y1="820" x2="450" y2="875" stroke="#F22BFF" stroke-width="1.6" opacity="0.55" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="840" rx="280" ry="65" fill="url(#v-grad-floor)" opacity="0.55" filter="url(#v-glow-bloom)" />
             </g>
-            <g class="filaments-back" aria-hidden="true"><path class="fil fil-b" style="--i:0" d="M533.5 253.3Q537.4 250.9 559.6 237.7Q561.7 233.7 573.4 211.1Q572.8 206.2 569.0 178.1Q565.0 173.1 542.8 144.7"/><path class="fil fil-b" style="--i:1" d="M543.4 266.7Q549.1 263.8 581.3 247.6Q583.7 241.5 597.5 206.5Q594.0 198.9 574.3 156.0Q564.2 150.0 506.6 115.6"/><path class="fil fil-b" style="--i:2" d="M542.3 285.1Q550.8 282.1 598.9 264.6Q602.5 255.6 623.1 204.7Q615.9 193.9 575.3 133.0Q557.1 127.2 453.7 94.3"/><path class="fil fil-b" style="--i:3" d="M526.7 303.9Q533.4 303.6 571.0 302.2Q577.6 298.8 615.1 279.4Q619.1 272.9 641.7 236.6Q640.8 228.4 635.9 182.1"/><path class="fil fil-b" style="--i:4" d="M498.5 286.0Q505.5 288.9 545.2 305.4Q555.5 302.7 613.7 287.2Q620.1 277.9 656.5 225.1Q652.5 212.5 629.6 141.0"/><path class="fil fil-b" style="--i:5" d="M476.1 291.2Q479.4 296.8 498.3 328.6Q507.4 332.2 558.9 352.7Q571.6 351.9 643.4 347.0Q655.8 340.4 726.1 302.9"/><path class="fil fil-b" style="--i:6" d="M448.5 286.9Q452.4 292.3 474.5 323.0Q484.3 325.7 540.3 341.5Q552.6 338.5 622.4 321.8Q631.1 312.5 680.5 259.7"/><path class="fil fil-b" style="--i:7" d="M463.7 262.7Q459.7 267.4 437.3 293.9Q438.4 300.6 444.8 338.6Q452.2 344.9 494.1 380.5Q507.0 383.6 580.2 401.6"/><path class="fil fil-b" style="--i:8" d="M450.1 249.8Q447.1 254.3 429.9 279.7Q432.3 286.0 445.9 321.4Q454.9 326.1 505.8 352.6Q519.0 352.2 593.8 350.3"/><path class="fil fil-b" style="--i:9" d="M446.6 230.4Q440.4 232.4 405.6 244.0Q401.1 249.1 375.7 277.9Q375.1 285.1 371.7 326.4Q376.5 334.2 403.4 378.5"/><path class="fil fil-b" style="--i:10" d="M481.2 234.4Q472.8 233.9 424.9 230.9Q416.9 236.8 371.4 270.0Q370.6 280.9 366.3 342.3Q377.0 353.3 437.5 415.9"/><path class="fil fil-b" style="--i:11" d="M492.0 221.4Q487.0 219.2 458.8 206.4Q451.7 206.6 411.7 207.6Q404.4 211.0 363.5 229.9Q358.4 236.3 329.5 272.7"/><path class="fil fil-b" style="--i:12" d="M514.2 212.9Q507.8 209.1 471.3 187.7Q460.6 188.2 400.2 190.9Q390.1 197.5 333.3 234.4Q329.7 246.0 309.2 311.9"/><path class="fil fil-b" style="--i:13" d="M544.0 213.5Q542.3 207.7 533.2 175.0Q526.6 169.8 489.2 140.6Q478.3 137.9 416.6 123.0Q403.3 124.3 327.8 132.3"/><path class="fil fil-b" style="--i:14" d="M537.1 240.4Q537.6 235.3 540.6 206.1Q534.8 200.9 502.0 171.3Q490.7 169.5 426.6 159.2Q413.6 163.4 340.0 186.8"/></g>
-            <g class="module-connections"><path class="conn-base" data-link="texto" d="M430.0 236.3Q340.0 153.1 250.0 130.0"/><path class="conn-base" data-link="voz" d="M430.0 250.5Q340.0 207.8 250.0 225.0"/><path class="conn-base" data-link="imagenes" d="M430.0 264.8Q340.0 262.4 250.0 320.0"/><path class="conn-base" data-link="video" d="M570.0 236.3Q660.0 213.1 750.0 130.0"/><path class="conn-base" data-link="datos" d="M570.0 250.5Q660.0 267.8 750.0 225.0"/><path class="conn-base" data-link="simulacion" d="M570.0 264.8Q660.0 322.4 750.0 320.0"/><path class="conn-pulse" data-flow="texto" data-dir="in" pathLength="100" d="M430.0 236.3Q340.0 153.1 250.0 130.0"/><path class="conn-pulse" data-flow="voz" data-dir="in" pathLength="100" d="M430.0 250.5Q340.0 207.8 250.0 225.0"/><path class="conn-pulse" data-flow="imagenes" data-dir="in" pathLength="100" d="M430.0 264.8Q340.0 262.4 250.0 320.0"/><path class="conn-pulse" data-flow="video" data-dir="in" pathLength="100" d="M570.0 236.3Q660.0 213.1 750.0 130.0"/><path class="conn-pulse" data-flow="datos" data-dir="in" pathLength="100" d="M570.0 250.5Q660.0 267.8 750.0 225.0"/><path class="conn-pulse" data-flow="simulacion" data-dir="in" pathLength="100" d="M570.0 264.8Q660.0 322.4 750.0 320.0"/><path class="conn-pulse conn-out" data-flow="texto" data-dir="out" pathLength="100" d="M430.0 236.3Q340.0 153.1 250.0 130.0"/><path class="conn-pulse conn-out" data-flow="voz" data-dir="out" pathLength="100" d="M430.0 250.5Q340.0 207.8 250.0 225.0"/><path class="conn-pulse conn-out" data-flow="imagenes" data-dir="out" pathLength="100" d="M430.0 264.8Q340.0 262.4 250.0 320.0"/><path class="conn-pulse conn-out" data-flow="video" data-dir="out" pathLength="100" d="M570.0 236.3Q660.0 213.1 750.0 130.0"/><path class="conn-pulse conn-out" data-flow="datos" data-dir="out" pathLength="100" d="M570.0 250.5Q660.0 267.8 750.0 225.0"/><path class="conn-pulse conn-out" data-flow="simulacion" data-dir="out" pathLength="100" d="M570.0 264.8Q660.0 322.4 750.0 320.0"/><circle class="conn-term" data-flow="texto" cx="250" cy="130" r="3.2"/><circle class="conn-term" data-flow="voz" cx="250" cy="225" r="3.2"/><circle class="conn-term" data-flow="imagenes" cx="250" cy="320" r="3.2"/><circle class="conn-term" data-flow="video" cx="750" cy="130" r="3.2"/><circle class="conn-term" data-flow="datos" cx="750" cy="225" r="3.2"/><circle class="conn-term" data-flow="simulacion" cx="750" cy="320" r="3.2"/></g>
-            <g class="module-anchors" aria-hidden="true"><circle class="anchor anchor-texto" cx="250" cy="130" r="5"/><circle class="anchor anchor-voz" cx="250" cy="225" r="5"/><circle class="anchor anchor-imagenes" cx="250" cy="320" r="5"/><circle class="anchor anchor-video" cx="750" cy="130" r="5"/><circle class="anchor anchor-datos" cx="750" cy="225" r="5"/><circle class="anchor anchor-simulacion" cx="750" cy="320" r="5"/><circle class="anchor anchor-core" cx="430" cy="236" r="3.4"/><circle class="anchor anchor-core" cx="430" cy="251" r="3.4"/><circle class="anchor anchor-core" cx="430" cy="265" r="3.4"/><circle class="anchor anchor-core" cx="570" cy="236" r="3.4"/><circle class="anchor anchor-core" cx="570" cy="251" r="3.4"/><circle class="anchor anchor-core" cx="570" cy="265" r="3.4"/></g>
-            <g class="filaments-mid" aria-hidden="true">
-              <path class="fil fil-m" style="--i:0" d="M327 232 C370 172 409 156 452 181 C489 203 506 230 549 196 C587 166 639 174 690 225"/>
-              <path class="fil fil-m" style="--i:1" d="M342 290 C384 332 431 350 464 318 C494 289 514 276 554 308 C592 339 639 326 685 278"/>
-              <path class="fil fil-m" style="--i:2" d="M377 166 C424 117 475 116 504 157 C530 194 564 205 608 171 C637 148 663 155 683 183"/>
-              <path class="fil fil-m" style="--i:3" d="M365 327 C406 290 437 277 468 300 C501 325 534 338 565 304 C600 266 640 270 675 312"/>
-              <path class="fil fil-m" style="--i:4" d="M405 137 C433 192 457 211 489 188 C525 161 548 143 583 182 C613 216 642 214 664 191"/>
-              <path class="fil fil-m" style="--i:5" d="M394 371 C423 327 449 318 476 343 C503 367 535 371 556 337 C580 298 616 298 651 349"/>
-              <path class="fil fil-m fil-branch" style="--i:6" d="M430 208 C450 225 459 242 452 266 C447 284 429 293 410 304 M452 266 C478 254 495 257 515 277"/>
-              <path class="fil fil-m fil-branch" style="--i:7" d="M555 218 C537 239 535 260 554 280 C569 296 591 298 610 306 M554 280 C530 275 512 288 500 310"/>
-              <path class="fil fil-m fil-web" style="--i:8" d="M372 248 C406 219 427 220 452 242 C471 259 492 263 515 247 C542 229 571 231 595 255 C616 276 642 274 674 249"/>
-              <path class="fil fil-m fil-web" style="--i:9" d="M402 187 C423 203 437 222 452 242 C470 266 488 285 515 300 C537 312 553 304 572 284 C590 264 610 250 641 258"/>
-              <path class="fil fil-m fil-web" style="--i:10" d="M394 319 C419 306 436 288 452 266 C469 242 490 232 515 247 C538 261 554 280 572 284 C595 291 614 304 638 326"/>
-              <path class="fil fil-m fil-web" style="--i:11" d="M452 242 C457 216 470 198 493 190 C519 181 541 190 558 211 C571 227 581 242 595 255"/>
-              <path class="fil fil-m fil-web" style="--i:12" d="M452 266 C471 286 488 299 515 300 C537 300 554 292 572 284 C592 275 607 274 628 283"/>
+            <!-- GROUP: VORTEX-BACK (DEPTH OCCLUSION) -->
+            <g class="vortex-back">
+              <path class="v-orbit-back" d="M 20,450 A 280,85 0 0,1 580,450" fill="none" stroke="#253570" stroke-width="2.2" opacity="0.55" />
+              <path class="v-orbit-back" d="M 30,450 A 275,80 28 0,1 570,450" fill="none" stroke="#451870" stroke-width="2.0" opacity="0.5" stroke-dasharray="20 12" />
+              <path class="v-orbit-back" d="M 30,450 A 275,80 -26 0,1 570,450" fill="none" stroke="#184570" stroke-width="2.0" opacity="0.5" stroke-dasharray="24 14" />
+              <g class="v-sat-node v-sat-rear" transform="translate(235, 210)">
+                <circle cx="0" cy="0" r="14" fill="none" stroke="#7655FF" stroke-width="1.2" opacity="0.5" stroke-dasharray="6 4" />
+                <circle cx="0" cy="0" r="6" fill="#7655FF" opacity="0.6" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="2" fill="#FFFFFF" opacity="0.8" />
+              </g>
+              <g class="v-sat-node v-sat-rear" transform="translate(365, 640)">
+                <circle cx="0" cy="0" r="14" fill="none" stroke="#FF52F8" stroke-width="1.2" opacity="0.5" stroke-dasharray="6 4" />
+                <circle cx="0" cy="0" r="6" fill="#F22BFF" opacity="0.6" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="2" fill="#FFFFFF" opacity="0.8" />
+              </g>
             </g>
-            <g class="core" aria-hidden="true">
-              <circle class="core-halo" cx="500" cy="255" r="112"/>
-              <circle class="core-glow" cx="500" cy="255" r="86"/>
-              <circle class="core-ring-outer" cx="500" cy="255" r="70"/>
-              <circle class="core-ring-inner" cx="500" cy="255" r="52"/>
-              <circle class="core-center" cx="500" cy="255" r="40"/>
-              <circle class="core-hot" cx="500" cy="255" r="20"/>
-              <circle class="core-spark" cx="486" cy="240" r="5"/>
+            <!-- LAYER 1: CENTRAL VERTICAL PLASMA AXIS -->
+            <g class="vortex-layer-axis" aria-label="Eje Central de Energía">
+              <line x1="300" y1="60" x2="300" y2="790" stroke="#25D9FF" stroke-width="45" opacity="0.20" filter="url(#v-glow-extreme)" />
+              <line x1="300" y1="58" x2="300" y2="792" stroke="#F22BFF" stroke-width="24" opacity="0.55" filter="url(#v-glow-bloom)" />
+              <line x1="300" y1="55" x2="300" y2="795" stroke="#B06BFF" stroke-width="11" opacity="0.85" filter="url(#v-glow-intense)" />
+              <line x1="300" y1="50" x2="300" y2="800" stroke="url(#v-grad-axis-beam)" stroke-width="5" opacity="1" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="90" r="4.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="125" r="3.0" fill="#FF52F8" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="165" r="4.5" fill="#25D9FF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="200" r="3.0" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="240" r="4.5" fill="#25D9FF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="278" r="3.0" fill="#FF52F8" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="315" r="4.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="355" r="3.0" fill="#FF52F8" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="390" r="4.5" fill="#25D9FF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="425" r="3.0" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="460" r="4.5" fill="#25D9FF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="495" r="3.0" fill="#FF52F8" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="530" r="4.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="565" r="3.0" fill="#FF52F8" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="600" r="4.5" fill="#25D9FF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="635" r="3.0" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="670" r="4.5" fill="#25D9FF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="705" r="3.0" fill="#FF52F8" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="740" r="4.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <circle class="v-axis-node" cx="300" cy="775" r="3.0" fill="#FF52F8" filter="url(#v-glow-white-hot)" />
+              <ellipse cx="300" cy="120" rx="22" ry="6" fill="#FFFFFF" opacity="0.92" filter="url(#v-glow-intense)" />
+              <ellipse cx="300" cy="120" rx="50" ry="11" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.82" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="230" rx="22" ry="6" fill="#FFFFFF" opacity="0.92" filter="url(#v-glow-intense)" />
+              <ellipse cx="300" cy="230" rx="50" ry="11" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.82" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="340" rx="22" ry="6" fill="#FFFFFF" opacity="0.92" filter="url(#v-glow-intense)" />
+              <ellipse cx="300" cy="340" rx="50" ry="11" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.82" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="450" rx="22" ry="6" fill="#FFFFFF" opacity="0.92" filter="url(#v-glow-intense)" />
+              <ellipse cx="300" cy="450" rx="50" ry="11" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.82" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="560" rx="22" ry="6" fill="#FFFFFF" opacity="0.92" filter="url(#v-glow-intense)" />
+              <ellipse cx="300" cy="560" rx="50" ry="11" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.82" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="670" rx="22" ry="6" fill="#FFFFFF" opacity="0.92" filter="url(#v-glow-intense)" />
+              <ellipse cx="300" cy="670" rx="50" ry="11" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.82" filter="url(#v-glow-soft)" />
+              <ellipse cx="300" cy="775" rx="22" ry="6" fill="#FFFFFF" opacity="0.92" filter="url(#v-glow-intense)" />
+              <ellipse cx="300" cy="775" rx="50" ry="11" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.82" filter="url(#v-glow-soft)" />
+              <polygon points="300,35 294,88 300,78 306,88" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <polygon points="300,820 294,767 300,777 306,767" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
             </g>
-            <g class="filaments-front" aria-hidden="true"><path class="fil fil-f" style="--i:0" d="M557.9 268.9Q560.7 273.9 576.1 302.6Q574.3 309.0 564.0 345.7Q556.8 351.7 516.2 385.4Q504.3 388.8 436.8 407.7"/><path class="fil fil-f" style="--i:1" d="M554.6 291.3Q550.4 296.0 526.7 322.7Q518.0 325.1 468.6 338.6Q457.9 336.6 397.5 325.0Q389.0 317.9 341.3 277.8"/><path class="fil fil-f" style="--i:2" d="M517.9 284.7Q515.8 289.3 503.9 315.4Q497.6 318.9 462.0 338.8Q452.6 339.6 399.3 344.4Q388.8 341.5 329.2 324.9"/><path class="fil fil-f" style="--i:3" d="M500.0 296.9Q492.3 300.1 449.0 318.3Q437.8 316.3 374.5 305.3Q365.5 296.9 314.3 249.6Q313.4 236.6 308.0 163.0"/><path class="fil fil-f" style="--i:4" d="M471.8 301.7Q466.0 302.3 433.3 305.5Q426.8 303.7 390.1 293.7Q384.4 289.4 352.6 265.0Q349.4 258.5 331.6 221.7"/><path class="fil fil-f" style="--i:5" d="M470.3 274.7Q462.8 273.7 420.0 267.8Q414.2 261.8 381.8 227.5Q382.7 218.1 387.4 165.1Q397.3 156.1 453.2 105.5"/><path class="fil fil-f" style="--i:6" d="M450.1 267.0Q442.6 264.9 400.3 253.4Q394.6 247.9 362.3 217.0Q360.6 209.0 350.7 163.3Q354.4 154.2 375.6 102.2"/><path class="fil fil-f" style="--i:7" d="M435.3 250.0Q433.2 244.7 421.5 214.8Q424.8 208.3 443.8 171.8Q453.1 166.9 506.1 139.6Q519.7 139.2 596.3 136.8"/><path class="fil fil-f" style="--i:8" d="M469.1 241.8Q465.5 237.0 445.5 209.9Q446.0 203.7 448.9 168.3Q454.2 162.1 484.1 126.9Q493.9 122.3 549.6 96.4"/><path class="fil fil-f" style="--i:9" d="M471.6 226.2Q474.2 222.0 488.9 198.2Q495.9 195.6 535.8 180.5Q545.4 181.4 600.2 186.6Q609.2 192.1 660.2 223.3"/><path class="fil fil-f" style="--i:10" d="M487.3 211.0Q495.4 208.1 540.8 191.2Q552.0 194.1 615.5 210.6Q622.5 220.4 662.5 275.6Q658.5 288.7 636.1 362.7"/><path class="fil fil-f" style="--i:11" d="M515.3 201.9Q523.6 200.1 571.0 189.7Q581.3 192.5 639.5 208.1Q647.5 216.0 693.1 260.6Q694.7 272.3 703.9 338.4"/><path class="fil fil-f" style="--i:12" d="M525.9 228.7Q533.1 230.0 574.0 237.5Q578.7 244.0 605.5 281.1Q602.3 290.3 583.6 342.3Q570.6 349.0 496.9 386.7"/><path class="fil fil-f" style="--i:13" d="M549.1 234.1Q556.0 236.4 595.3 249.8Q599.8 256.0 625.0 291.4Q623.9 300.0 617.6 348.9Q609.3 357.3 562.0 404.7"/><path class="fil fil-f" style="--i:14" d="M568.9 249.7Q570.5 255.4 579.7 287.9Q575.1 294.3 548.8 330.5Q538.1 334.0 477.1 353.5Q463.8 351.1 388.6 337.2"/></g>
-            <g class="filaments-front-cross" aria-hidden="true"><path d="M408 226 C445 210 468 219 490 245 C510 269 537 282 572 267 C600 255 621 259 650 282"/><path d="M420 294 C449 279 468 268 492 279 C520 293 544 299 570 281 C594 264 620 270 646 296"/><path d="M448 190 C469 211 486 223 510 220 C538 216 554 205 580 219 C601 230 615 245 627 264"/></g>
-            <g class="energy-nodes" aria-hidden="true"><circle class="enode n-hot" style="--i:0" cx="546.2" cy="255.0" r="2"/><circle class="enode n-cyan" style="--i:1" cx="589.1" cy="318.5" r="3"/><circle class="enode n-magenta" style="--i:2" cx="507.0" cy="403.7" r="4"/><circle class="enode n-hot" style="--i:3" cx="425.5" cy="316.0" r="6"/><circle class="enode n-cyan" style="--i:4" cx="311.5" cy="264.7" r="2"/><circle class="enode n-magenta" style="--i:5" cx="424.4" cy="208.2" r="3"/><circle class="enode n-hot" style="--i:6" cx="481.6" cy="125.5" r="4"/><circle class="enode n-cyan" style="--i:7" cx="553.0" cy="204.9" r="6"/><circle class="enode n-magenta" style="--i:8" cx="662.2" cy="238.2" r="2"/><circle class="enode n-hot" style="--i:9" cx="559.5" cy="286.9" r="3"/><circle class="enode n-cyan" style="--i:10" cx="526.3" cy="364.9" r="4"/><circle class="enode n-magenta" style="--i:11" cx="465.9" cy="292.3" r="6"/><circle class="enode n-hot" style="--i:12" cx="364.4" cy="276.3" r="2"/><circle class="enode n-cyan" style="--i:13" cx="459.0" cy="236.1" r="3"/><circle class="enode n-magenta" style="--i:14" cx="469.5" cy="164.8" r="4"/><circle class="enode n-hot" style="--i:15" cx="601.8" cy="124.8" r="6"/><circle class="enode n-cyan" style="--i:16" cx="609.0" cy="231.9" r="2"/><circle class="enode n-magenta" style="--i:17" cx="668.7" cy="321.2" r="3"/><circle class="enode n-hot" style="--i:18" cx="531.1" cy="325.8" r="4"/><circle class="enode n-cyan" style="--i:19" cx="421.8" cy="373.4" r="6"/><circle class="enode n-magenta" style="--i:20" cx="417.1" cy="277.3" r="2"/><circle class="enode n-hot" style="--i:21" cx="348.4" cy="205.2" r="3"/><circle class="enode n-cyan" style="--i:22" cx="471.7" cy="203.3" r="4"/><circle class="enode n-magenta" style="--i:23" cx="557.4" cy="150.1" r="6"/></g>
-            <g class="intersection-flares" aria-hidden="true"><circle class="flare flare-cyan" cx="452" cy="266" r="4"/><circle class="flare flare-hot" cx="554" cy="280" r="4"/><circle class="flare flare-magenta" cx="489" cy="188" r="3.4"/><circle class="flare flare-cyan" cx="468" cy="300" r="3.4"/><circle class="flare flare-hot" cx="583" cy="182" r="3.6"/><circle class="flare flare-magenta" cx="515" cy="277" r="3"/></g>
-            <g class="network-nodes" aria-hidden="true"><circle class="small-node" cx="452" cy="242" r="2.1"/><circle class="junction-node" cx="452" cy="266" r="3"/><circle class="small-node" cx="515" cy="247" r="2.1"/><circle class="junction-node" cx="572" cy="284" r="3"/><circle class="hot-junction" cx="515" cy="300" r="3.8"/><circle class="small-node" cx="595" cy="255" r="2.1"/><circle class="junction-node" cx="489" cy="188" r="3"/><circle class="small-node" cx="638" cy="326" r="2.1"/></g>
-            <g class="near-particles" aria-hidden="true"><circle style="--i:0" cx="563.0" cy="282.9" r="2"/><circle style="--i:1" cx="474.7" cy="342.9" r="2"/><circle style="--i:2" cx="425.0" cy="261.8" r="2"/><circle style="--i:3" cx="445.7" cy="172.8" r="2"/><circle style="--i:4" cx="554.9" cy="214.4" r="2"/><circle style="--i:5" cx="613.2" cy="295.8" r="2"/><circle style="--i:6" cx="490.3" cy="313.5" r="2"/><circle style="--i:7" cx="374.7" cy="274.7" r="2"/><circle style="--i:8" cx="457.8" cy="203.2" r="2"/><circle style="--i:9" cx="583.7" cy="181.4" r="2"/></g>
-            <g class="data-terrain" aria-hidden="true"><polyline points="300.0,408.0 310.0,404.7 320.0,402.1 330.0,400.5 340.0,400.0 350.0,400.6 360.0,401.9 370.0,403.3 380.0,404.4 390.0,405.1 400.0,405.2 410.0,405.2 420.0,405.4 430.0,406.2 440.0,407.7 450.0,410.0 460.0,412.7 470.0,415.2 480.0,417.1 490.0,417.8 500.0,417.2 510.0,415.3 520.0,412.7 530.0,409.8 540.0,407.3 550.0,405.5 560.0,404.6 570.0,404.3 580.0,404.5 590.0,404.5 600.0,404.2 610.0,403.4 620.0,402.3 630.0,401.2 640.0,400.6 650.0,400.9 660.0,402.4 670.0,404.9 680.0,408.1 690.0,411.4 700.0,414.2"/><polyline points="300.0,413.0 310.0,413.5 320.0,414.9 330.0,416.8 340.0,418.8 350.0,420.5 360.0,421.7 370.0,422.3 380.0,422.4 390.0,422.3 400.0,422.3 410.0,422.7 420.0,423.4 430.0,424.3 440.0,425.1 450.0,425.5 460.0,425.1 470.0,424.0 480.0,422.1 490.0,419.7 500.0,417.4 510.0,415.5 520.0,414.4 530.0,414.1 540.0,414.6 550.0,415.5 560.0,416.6 570.0,417.6 580.0,418.2 590.0,418.4 600.0,418.4 610.0,418.5 620.0,419.0 630.0,420.1 640.0,421.6 650.0,423.5 660.0,425.2 670.0,426.5 680.0,427.0 690.0,426.5 700.0,425.1"/></g>
+            <!-- LAYER 2 & 3: STACKED TOROIDAL RINGS & MULTI-CAGE HELICES -->
+            <g class="vortex-layer-helices" aria-label="Estructura Helicoidal y Bobinas">
+              <!-- TOP RESONATOR CROWN -->
+              <ellipse class="v-coil v-crown-top" cx="300" cy="100" rx="44" ry="8" fill="none" stroke="#FFFFFF" stroke-width="2.0" opacity="0.98" filter="url(#v-glow-soft)" />
+              <circle cx="256" cy="100" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="344" cy="100" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-top" cx="300" cy="110" rx="58" ry="10" fill="none" stroke="#25D9FF" stroke-width="2.2" opacity="0.94" filter="url(#v-glow-soft)" />
+              <circle cx="242" cy="110" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="358" cy="110" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-top" cx="300" cy="120" rx="74" ry="12" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.97" stroke-dasharray="14 8" filter="url(#v-glow-soft)" />
+              <circle cx="226" cy="120" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="374" cy="120" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-top" cx="300" cy="132" rx="92" ry="14" fill="none" stroke="#FFFFFF" stroke-width="2.4" opacity="1.0" filter="url(#v-glow-soft)" />
+              <circle cx="208" cy="132" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="392" cy="132" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-top" cx="300" cy="144" rx="110" ry="16" fill="none" stroke="#25D9FF" stroke-width="2.6" opacity="0.96" filter="url(#v-glow-soft)" />
+              <circle cx="190" cy="144" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="410" cy="144" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-top" cx="300" cy="156" rx="128" ry="18" fill="none" stroke="#9A6BFF" stroke-width="2.2" opacity="0.9" stroke-dasharray="14 8" filter="url(#v-glow-soft)" />
+              <circle cx="172" cy="156" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="428" cy="156" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-top" cx="300" cy="168" rx="146" ry="20" fill="none" stroke="#F22BFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+              <circle cx="154" cy="168" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="446" cy="168" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-top" cx="300" cy="180" rx="163" ry="22" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.93" filter="url(#v-glow-soft)" />
+              <circle cx="137" cy="180" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="463" cy="180" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <!-- UPPER SPHERICAL RINGS -->
+              <ellipse class="v-coil" cx="300" cy="195" rx="74.6" ry="21.6" fill="none" stroke="#25D9FF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="225.4" cy="195" r="2.8" fill="#FFFFFF" />
+              <circle cx="374.6" cy="195" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="207" rx="109.4" ry="31.7" fill="none" stroke="#F22BFF" stroke-width="2.0" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="190.6" cy="207" r="2.8" fill="#FFFFFF" />
+              <circle cx="409.4" cy="207" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="219" rx="134.4" ry="39.0" fill="none" stroke="#FFFFFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="165.6" cy="219" r="2.8" fill="#FFFFFF" />
+              <circle cx="434.4" cy="219" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="231" rx="154.4" ry="44.8" fill="none" stroke="#9A6BFF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="145.6" cy="231" r="2.8" fill="#FFFFFF" />
+              <circle cx="454.4" cy="231" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="243" rx="171.2" ry="49.7" fill="none" stroke="#25D9FF" stroke-width="2.6" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="128.8" cy="243" r="2.8" fill="#FFFFFF" />
+              <circle cx="471.2" cy="243" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="255" rx="185.7" ry="53.9" fill="none" stroke="#F22BFF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="114.3" cy="255" r="2.8" fill="#FFFFFF" />
+              <circle cx="485.7" cy="255" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="267" rx="198.4" ry="57.5" fill="none" stroke="#FFFFFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="101.6" cy="267" r="2.8" fill="#FFFFFF" />
+              <circle cx="498.4" cy="267" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="279" rx="209.5" ry="60.8" fill="none" stroke="#9A6BFF" stroke-width="2.0" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="90.5" cy="279" r="2.8" fill="#FFFFFF" />
+              <circle cx="509.5" cy="279" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="291" rx="219.4" ry="63.6" fill="none" stroke="#25D9FF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="80.6" cy="291" r="2.8" fill="#FFFFFF" />
+              <circle cx="519.4" cy="291" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="303" rx="228.2" ry="66.2" fill="none" stroke="#F22BFF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="71.8" cy="303" r="2.8" fill="#FFFFFF" />
+              <circle cx="528.2" cy="303" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="315" rx="236.0" ry="68.4" fill="none" stroke="#FFFFFF" stroke-width="2.6" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="64.0" cy="315" r="2.8" fill="#FFFFFF" />
+              <circle cx="536.0" cy="315" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="327" rx="242.9" ry="70.5" fill="none" stroke="#9A6BFF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="57.1" cy="327" r="2.8" fill="#FFFFFF" />
+              <circle cx="542.9" cy="327" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="339" rx="249.1" ry="72.2" fill="none" stroke="#25D9FF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="50.9" cy="339" r="2.8" fill="#FFFFFF" />
+              <circle cx="549.1" cy="339" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="351" rx="254.4" ry="73.8" fill="none" stroke="#F22BFF" stroke-width="2.0" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="45.6" cy="351" r="2.8" fill="#FFFFFF" />
+              <circle cx="554.4" cy="351" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="363" rx="259.1" ry="75.1" fill="none" stroke="#FFFFFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="40.9" cy="363" r="2.8" fill="#FFFFFF" />
+              <circle cx="559.1" cy="363" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="375" rx="263.1" ry="76.3" fill="none" stroke="#9A6BFF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="36.9" cy="375" r="2.8" fill="#FFFFFF" />
+              <circle cx="563.1" cy="375" r="2.8" fill="#FFFFFF" />
+              <!-- CENTRAL EQUATORIAL RESONATOR CAGE -->
+              <g class="v-coils">
+                <ellipse class="v-coil" cx="300" cy="392" rx="275.4" ry="85.4" fill="none" stroke="#25D9FF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="24.6" cy="392" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="575.4" cy="392" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="398" rx="276.7" ry="85.8" fill="none" stroke="#FF3BD8" stroke-width="2.7" opacity="0.97" stroke-dasharray="26 10" filter="url(#v-glow-soft)" />
+                <circle cx="23.3" cy="398" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="576.7" cy="398" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="404" rx="277.9" ry="86.2" fill="none" stroke="#FFFFFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="22.1" cy="404" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="577.9" cy="404" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="410" rx="279.0" ry="86.5" fill="none" stroke="#9A6BFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="21.0" cy="410" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="579.0" cy="410" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="416" rx="279.9" ry="86.8" fill="none" stroke="#25D9FF" stroke-width="2.7" opacity="0.97" stroke-dasharray="26 10" filter="url(#v-glow-soft)" />
+                <circle cx="20.1" cy="416" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="579.9" cy="416" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="422" rx="280.6" ry="87.0" fill="none" stroke="#FF3BD8" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="19.4" cy="422" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="580.6" cy="422" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="428" rx="281.3" ry="87.2" fill="none" stroke="#FFFFFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="18.7" cy="428" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="581.3" cy="428" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="434" rx="281.7" ry="87.3" fill="none" stroke="#9A6BFF" stroke-width="2.7" opacity="0.97" stroke-dasharray="26 10" filter="url(#v-glow-soft)" />
+                <circle cx="18.3" cy="434" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="581.7" cy="434" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="440" rx="282.0" ry="87.4" fill="none" stroke="#25D9FF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="18.0" cy="440" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="582.0" cy="440" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="446" rx="282.2" ry="87.5" fill="none" stroke="#FFFFFF" stroke-width="3.6" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="17.8" cy="446" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="582.2" cy="446" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="452" rx="282.2" ry="87.5" fill="none" stroke="#FFFFFF" stroke-width="3.6" opacity="0.97" stroke-dasharray="26 10" filter="url(#v-glow-soft)" />
+                <circle cx="17.8" cy="452" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="582.2" cy="452" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="458" rx="282.1" ry="87.4" fill="none" stroke="#9A6BFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="17.9" cy="458" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="582.1" cy="458" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="464" rx="281.8" ry="87.4" fill="none" stroke="#25D9FF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="18.2" cy="464" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="581.8" cy="464" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="470" rx="281.4" ry="87.2" fill="none" stroke="#FF3BD8" stroke-width="2.7" opacity="0.97" stroke-dasharray="26 10" filter="url(#v-glow-soft)" />
+                <circle cx="18.6" cy="470" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="581.4" cy="470" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="476" rx="280.9" ry="87.1" fill="none" stroke="#FFFFFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="19.1" cy="476" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="580.9" cy="476" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="482" rx="280.2" ry="86.8" fill="none" stroke="#9A6BFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="19.8" cy="482" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="580.2" cy="482" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="488" rx="279.3" ry="86.6" fill="none" stroke="#25D9FF" stroke-width="2.7" opacity="0.97" stroke-dasharray="26 10" filter="url(#v-glow-soft)" />
+                <circle cx="20.7" cy="488" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="579.3" cy="488" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="494" rx="278.3" ry="86.3" fill="none" stroke="#FF3BD8" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="21.7" cy="494" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="578.3" cy="494" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="500" rx="277.2" ry="85.9" fill="none" stroke="#FFFFFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+                <circle cx="22.8" cy="500" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="577.2" cy="500" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <ellipse class="v-coil" cx="300" cy="506" rx="275.9" ry="85.5" fill="none" stroke="#9A6BFF" stroke-width="2.7" opacity="0.97" stroke-dasharray="26 10" filter="url(#v-glow-soft)" />
+                <circle cx="24.1" cy="506" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="575.9" cy="506" r="3.0" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              </g>
+              <!-- LOWER SPHERICAL RINGS -->
+              <ellipse class="v-coil" cx="300" cy="518" rx="265.1" ry="76.9" fill="none" stroke="#F22BFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="34.9" cy="518" r="2.8" fill="#FFFFFF" />
+              <circle cx="565.1" cy="518" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="530" rx="261.5" ry="75.8" fill="none" stroke="#25D9FF" stroke-width="2.0" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="38.5" cy="530" r="2.8" fill="#FFFFFF" />
+              <circle cx="561.5" cy="530" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="542" rx="257.2" ry="74.6" fill="none" stroke="#FFFFFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="42.8" cy="542" r="2.8" fill="#FFFFFF" />
+              <circle cx="557.2" cy="542" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="554" rx="252.3" ry="73.2" fill="none" stroke="#9A6BFF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="47.7" cy="554" r="2.8" fill="#FFFFFF" />
+              <circle cx="552.3" cy="554" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="566" rx="246.6" ry="71.5" fill="none" stroke="#F22BFF" stroke-width="2.6" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="53.4" cy="566" r="2.8" fill="#FFFFFF" />
+              <circle cx="546.6" cy="566" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="578" rx="240.2" ry="69.6" fill="none" stroke="#25D9FF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="59.8" cy="578" r="2.8" fill="#FFFFFF" />
+              <circle cx="540.2" cy="578" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="590" rx="232.9" ry="67.5" fill="none" stroke="#FFFFFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="67.1" cy="590" r="2.8" fill="#FFFFFF" />
+              <circle cx="532.9" cy="590" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="602" rx="224.7" ry="65.2" fill="none" stroke="#9A6BFF" stroke-width="2.0" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="75.3" cy="602" r="2.8" fill="#FFFFFF" />
+              <circle cx="524.7" cy="602" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="614" rx="215.4" ry="62.5" fill="none" stroke="#F22BFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="84.6" cy="614" r="2.8" fill="#FFFFFF" />
+              <circle cx="515.4" cy="614" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="626" rx="205.0" ry="59.5" fill="none" stroke="#25D9FF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="95.0" cy="626" r="2.8" fill="#FFFFFF" />
+              <circle cx="505.0" cy="626" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="638" rx="193.3" ry="56.1" fill="none" stroke="#FFFFFF" stroke-width="2.6" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="106.7" cy="638" r="2.8" fill="#FFFFFF" />
+              <circle cx="493.3" cy="638" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="650" rx="179.9" ry="52.2" fill="none" stroke="#9A6BFF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="120.1" cy="650" r="2.8" fill="#FFFFFF" />
+              <circle cx="479.9" cy="650" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="662" rx="164.6" ry="47.7" fill="none" stroke="#F22BFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="135.4" cy="662" r="2.8" fill="#FFFFFF" />
+              <circle cx="464.6" cy="662" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="674" rx="146.6" ry="42.5" fill="none" stroke="#25D9FF" stroke-width="2.0" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="153.4" cy="674" r="2.8" fill="#FFFFFF" />
+              <circle cx="446.6" cy="674" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="686" rx="124.8" ry="36.2" fill="none" stroke="#FFFFFF" stroke-width="2.6" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="175.2" cy="686" r="2.8" fill="#FFFFFF" />
+              <circle cx="424.8" cy="686" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="698" rx="96.7" ry="28.0" fill="none" stroke="#9A6BFF" stroke-width="2.0" opacity="0.92" filter="url(#v-glow-soft)" />
+              <circle cx="203.3" cy="698" r="2.8" fill="#FFFFFF" />
+              <circle cx="396.7" cy="698" r="2.8" fill="#FFFFFF" />
+              <ellipse class="v-coil" cx="300" cy="710" rx="53.0" ry="15.4" fill="none" stroke="#F22BFF" stroke-width="2.6" opacity="0.92" stroke-dasharray="18 10" filter="url(#v-glow-soft)" />
+              <circle cx="247.0" cy="710" r="2.8" fill="#FFFFFF" />
+              <circle cx="353.0" cy="710" r="2.8" fill="#FFFFFF" />
+              <!-- BOTTOM RESONATOR CROWN -->
+              <ellipse class="v-coil v-crown-bottom" cx="300" cy="722" rx="155" ry="22" fill="none" stroke="#F22BFF" stroke-width="2.7" opacity="0.97" filter="url(#v-glow-soft)" />
+              <circle cx="145" cy="722" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="455" cy="722" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-bottom" cx="300" cy="734" rx="138" ry="20" fill="none" stroke="#9A6BFF" stroke-width="2.2" opacity="0.9" stroke-dasharray="14 8" filter="url(#v-glow-soft)" />
+              <circle cx="162" cy="734" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="438" cy="734" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-bottom" cx="300" cy="746" rx="118" ry="18" fill="none" stroke="#25D9FF" stroke-width="2.6" opacity="0.96" filter="url(#v-glow-soft)" />
+              <circle cx="182" cy="746" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="418" cy="746" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-bottom" cx="300" cy="758" rx="100" ry="16" fill="none" stroke="#FFFFFF" stroke-width="2.4" opacity="1.0" filter="url(#v-glow-soft)" />
+              <circle cx="200" cy="758" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="400" cy="758" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-bottom" cx="300" cy="770" rx="82" ry="14" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.97" stroke-dasharray="14 8" filter="url(#v-glow-soft)" />
+              <circle cx="218" cy="770" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="382" cy="770" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-bottom" cx="300" cy="782" rx="64" ry="12" fill="none" stroke="#25D9FF" stroke-width="2.2" opacity="0.94" filter="url(#v-glow-soft)" />
+              <circle cx="236" cy="782" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="364" cy="782" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <ellipse class="v-coil v-crown-bottom" cx="300" cy="792" rx="48" ry="9" fill="none" stroke="#FFFFFF" stroke-width="2.0" opacity="0.98" filter="url(#v-glow-soft)" />
+              <circle cx="252" cy="792" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <circle cx="348" cy="792" r="2.8" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+              <!-- DUAL INTERTWINING MULTI-STRAND HELICES -->
+              <path class="v-helix-cyan" d="M 300,100 C 535,165 535,255 300,310 C 65,365 65,445 300,510 C 535,575 535,655 300,710 C 65,765 65,795 300,800"  fill="none" stroke="#25D9FF" stroke-width="4.8" opacity="0.96" filter="url(#v-glow-soft)" />
+              <path class="v-helix-cyan" d="M 300,100 C 520,165 520,255 300,310 C 80,365 80,445 300,510 C 520,575 520,655 300,710 C 80,765 80,795 300,800" fill="none" stroke="#FFFFFF"  stroke-width="2.2" opacity="0.92" />
+              <path class="v-helix-magenta" d="M 300,100 C 65,165 65,255 300,310 C 535,365 535,445 300,510 C 65,575 65,655 300,710 C 535,765 535,795 300,800"  fill="none" stroke="#F22BFF" stroke-width="4.8" opacity="0.96" filter="url(#v-glow-soft)" />
+              <path class="v-helix-magenta" d="M 300,100 C 80,165 80,255 300,310 C 520,365 520,445 300,510 C 80,575 80,655 300,710 C 520,765 520,795 300,800" fill="none" stroke="#FFFFFF"  stroke-width="2.2" opacity="0.92" />
+              <path class="v-helix-cyan" d="M 300,100 C 480,200 480,300 300,400 C 120,500 120,600 300,700 C 480,760 480,800 300,800" fill="none" stroke="#9A6BFF" stroke-width="2.8" opacity="0.70" stroke-dasharray="30 12" />
+              <circle class="v-cross-spark" cx="300" cy="205" r="5.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <ellipse cx="300" cy="205" rx="24" ry="7" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.92" />
+              <circle class="v-cross-spark" cx="300" cy="310" r="5.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <ellipse cx="300" cy="310" rx="24" ry="7" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.92" />
+              <circle class="v-cross-spark" cx="300" cy="415" r="5.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <ellipse cx="300" cy="415" rx="24" ry="7" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.92" />
+              <circle class="v-cross-spark" cx="300" cy="510" r="5.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <ellipse cx="300" cy="510" rx="24" ry="7" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.92" />
+              <circle class="v-cross-spark" cx="300" cy="615" r="5.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <ellipse cx="300" cy="615" rx="24" ry="7" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.92" />
+              <circle class="v-cross-spark" cx="300" cy="710" r="5.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <ellipse cx="300" cy="710" rx="24" ry="7" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.92" />
+              <!-- CURVED PLASMA ENERGY STREAKS -->
+              <path d="M 175,260 Q 210,228 255,248" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 425,260 Q 390,228 345,248" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 125,375 Q 178,342 212,380" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 475,375 Q 422,342 388,380" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 100,448 Q 158,415 195,455" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 500,448 Q 442,415 405,455" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 128,522 Q 185,552 220,510" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 472,522 Q 415,552 380,510" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 160,640 Q 218,668 262,628" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 440,640 Q 382,668 338,628" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 215,172 Q 252,150 288,168" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 385,172 Q 348,150 312,168" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 215,735 Q 252,756 288,740" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 385,735 Q 348,756 312,740" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 152,310 Q 196,280 232,305" fill="none" stroke="#25D9FF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+              <path d="M 448,310 Q 404,280 368,305" fill="none" stroke="#F22BFF" stroke-width="2.4" opacity="0.90" stroke-dasharray="14 6" filter="url(#v-glow-soft)" />
+            </g>
+            <!-- LAYER 4: CELESTIAL WIREFRAME CONTAINMENT LATTICE -->
+            <g class="vortex-layer-containment" aria-label="Lattice de Contención">
+              <circle class="v-sphere-rim"      cx="300" cy="450" r="268" fill="none" stroke="#25D9FF" stroke-width="2.2" opacity="0.60" stroke-dasharray="10 14" filter="url(#v-glow-soft)" />
+              <circle class="v-sphere-rim-glow" cx="300" cy="450" r="268" fill="none" stroke="#F22BFF" stroke-width="1.2" opacity="0.50" />
+              <ellipse class="v-globe-arc" cx="300" cy="450" rx="200" ry="268" fill="none" stroke="#7655FF" stroke-width="1.5" opacity="0.50" stroke-dasharray="18 10" />
+              <ellipse class="v-globe-arc" cx="300" cy="450" rx="134" ry="268" fill="none" stroke="#25D9FF" stroke-width="1.5" opacity="0.55" stroke-dasharray="14 8" />
+              <ellipse class="v-globe-arc" cx="300" cy="450" rx="68"  ry="268" fill="none" stroke="#F22BFF" stroke-width="1.5" opacity="0.60" stroke-dasharray="16 9" />
+            </g>
+            <!-- LAYER 5: WIDE MULTI-PLANAR ORBITAL SYSTEM -->
+            <g class="vortex-layer-orbits" aria-label="Sistemas Orbitales Multiplanares">
+              <ellipse class="v-orbit v-orbit-outer" cx="300" cy="450" rx="292" ry="56" fill="none" stroke="#25D9FF" stroke-width="2.6" opacity="0.88" stroke-dasharray="50 18 14 18" filter="url(#v-glow-soft)" />
+              <ellipse class="v-orbit v-orbit-inner" cx="300" cy="450" rx="282" ry="52" fill="none" stroke="#FFFFFF"  stroke-width="1.2" opacity="0.70" stroke-dasharray="26 14" />
+              <g transform="rotate(28 300 450)">
+                <ellipse class="v-orbit v-orbit-magenta" cx="300" cy="450" rx="286" ry="84" fill="none" stroke="#F22BFF" stroke-width="3.0" opacity="0.96" stroke-dasharray="70 22 18 22" filter="url(#v-glow-intense)" />
+                <ellipse cx="300" cy="450" rx="284" ry="82" fill="none" stroke="#FFFFFF" stroke-width="1.0" opacity="0.80" stroke-dasharray="30 15" />
+              </g>
+              <g transform="rotate(-26 300 450)">
+                <ellipse class="v-orbit v-orbit-cyan" cx="300" cy="450" rx="286" ry="84" fill="none" stroke="#25D9FF" stroke-width="3.0" opacity="0.96" stroke-dasharray="75 24 20 24" filter="url(#v-glow-intense)" />
+                <ellipse cx="300" cy="450" rx="284" ry="82" fill="none" stroke="#FFFFFF" stroke-width="1.0" opacity="0.80" stroke-dasharray="30 15" />
+              </g>
+              <g transform="rotate(48 300 450)">
+                <ellipse class="v-orbit v-orbit-steep-a" cx="300" cy="450" rx="262" ry="96" fill="none" stroke="#7655FF" stroke-width="2.2" opacity="0.82" stroke-dasharray="52 18" filter="url(#v-glow-soft)" />
+              </g>
+              <g transform="rotate(-48 300 450)">
+                <ellipse class="v-orbit v-orbit-steep-b" cx="300" cy="450" rx="262" ry="96" fill="none" stroke="#FF52F8" stroke-width="2.2" opacity="0.82" stroke-dasharray="52 18" filter="url(#v-glow-soft)" />
+              </g>
+              <g transform="rotate(14 300 450)">
+                <ellipse class="v-orbit v-orbit-shallow-a" cx="300" cy="450" rx="276" ry="68" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.76" stroke-dasharray="38 16" />
+              </g>
+              <g transform="rotate(-15 300 450)">
+                <ellipse class="v-orbit v-orbit-shallow-b" cx="300" cy="450" rx="276" ry="68" fill="none" stroke="#F22BFF" stroke-width="1.8" opacity="0.76" stroke-dasharray="38 16" />
+              </g>
+            </g>
+            <!-- LAYER 8: VOLUMETRIC PARTICLE FIELD (200+ PARTICLES) -->
+            <g class="vortex-layer-particles" aria-label="Campo Estelar y Destellos">
+              <circle class="v-star" cx="289.5" cy="206.9" r="1.3" fill="#25D9FF" />
+              <circle class="v-star" cx="305.2" cy="227.0" r="2.1" fill="#FFFFFF" />
+              <circle class="v-star" cx="324.7" cy="230.2" r="0.9" fill="#25D9FF" />
+              <circle class="v-star" cx="342.4" cy="226.3" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="354.3" cy="220.6" r="1.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="365.5" cy="208.7" r="1.5" fill="#FF52F8" />
+              <circle class="v-star" cx="387.3" cy="240.0" r="1.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="392.0" cy="231.8" r="1.4" fill="#FF52F8" />
+              <circle class="v-star" cx="420.3" cy="223.5" r="1.7" fill="#FFFFFF" />
+              <circle class="v-star" cx="410.1" cy="251.9" r="1.9" fill="#FF52F8" />
+              <circle class="v-star" cx="440.6" cy="243.5" r="0.9" fill="#25D9FF" />
+              <circle class="v-star" cx="463.0" cy="246.9" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="454.7" cy="261.2" r="2.2" fill="#25D9FF" />
+              <circle class="v-star" cx="461.3" cy="266.1" r="1.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="478.6" cy="265.9" r="2.0" fill="#25D9FF" />
+              <circle class="v-star" cx="486.2" cy="280.0" r="2.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="488.6" cy="296.3" r="2.1" fill="#FFFFFF" />
+              <circle class="v-star" cx="493.9" cy="300.9" r="1.3" fill="#FF52F8" />
+              <circle class="v-star" cx="507.0" cy="326.6" r="1.8" fill="#FF52F8" />
+              <circle class="v-star" cx="515.3" cy="326.9" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="515.9" cy="332.9" r="2.1" fill="#FFFFFF" />
+              <circle class="v-star" cx="531.6" cy="347.9" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="544.9" cy="364.1" r="1.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="531.1" cy="363.4" r="1.0" fill="#25D9FF" />
+              <circle class="v-star" cx="569.0" cy="371.4" r="0.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="564.9" cy="386.9" r="1.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="577.8" cy="388.0" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="579.0" cy="416.5" r="1.4" fill="#FF52F8" />
+              <circle class="v-star" cx="565.4" cy="424.6" r="2.4" fill="#FF52F8" />
+              <circle class="v-star" cx="591.6" cy="441.9" r="1.7" fill="#FFFFFF" />
+              <circle class="v-star" cx="587.0" cy="445.9" r="1.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="555.9" cy="459.5" r="1.1" fill="#FFFFFF" />
+              <circle class="v-star" cx="587.4" cy="478.6" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="584.7" cy="497.5" r="2.2" fill="#FF52F8" />
+              <circle class="v-star" cx="553.4" cy="492.6" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="542.5" cy="506.9" r="0.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="570.9" cy="519.7" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="537.5" cy="530.8" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="562.2" cy="558.4" r="2.0" fill="#FF52F8" />
+              <circle class="v-star" cx="534.8" cy="558.9" r="1.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="534.5" cy="563.7" r="0.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="533.0" cy="577.0" r="1.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="531.8" cy="587.5" r="0.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="528.7" cy="601.9" r="1.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="495.9" cy="596.2" r="2.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="497.3" cy="616.7" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="477.2" cy="612.3" r="1.5" fill="#FFFFFF" />
+              <circle class="v-star" cx="461.3" cy="636.1" r="0.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="443.1" cy="630.2" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="446.1" cy="637.6" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="428.4" cy="644.3" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="414.5" cy="662.7" r="1.7" fill="#FFFFFF" />
+              <circle class="v-star" cx="411.8" cy="673.0" r="0.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="396.2" cy="690.4" r="1.1" fill="#FFFFFF" />
+              <circle class="v-star" cx="375.7" cy="677.3" r="2.3" fill="#25D9FF" />
+              <circle class="v-star" cx="358.5" cy="676.9" r="1.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="350.1" cy="674.6" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="343.7" cy="691.1" r="1.1" fill="#25D9FF" />
+              <circle class="v-star" cx="328.6" cy="705.3" r="1.7" fill="#FF52F8" />
+              <circle class="v-star" cx="311.4" cy="669.4" r="1.7" fill="#FFFFFF" />
+              <circle class="v-star" cx="290.6" cy="673.6" r="0.9" fill="#25D9FF" />
+              <circle class="v-star" cx="295.5" cy="670.1" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="265.8" cy="670.2" r="1.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="269.3" cy="667.3" r="1.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="234.5" cy="681.4" r="1.1" fill="#FF52F8" />
+              <circle class="v-star" cx="235.3" cy="669.8" r="1.9" fill="#FF52F8" />
+              <circle class="v-star" cx="208.5" cy="671.7" r="2.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="194.0" cy="666.7" r="2.5" fill="#FFFFFF" />
+              <circle class="v-star" cx="189.4" cy="668.4" r="1.0" fill="#FF52F8" />
+              <circle class="v-star" cx="161.8" cy="671.9" r="1.4" fill="#25D9FF" />
+              <circle class="v-star" cx="165.6" cy="653.2" r="1.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="160.1" cy="629.5" r="1.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="136.4" cy="660.9" r="1.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="129.2" cy="646.5" r="1.3" fill="#25D9FF" />
+              <circle class="v-star" cx="117.6" cy="637.0" r="1.9" fill="#FF52F8" />
+              <circle class="v-star" cx="112.7" cy="621.5" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="114.3" cy="598.9" r="1.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="101.1" cy="600.5" r="2.5" fill="#25D9FF" />
+              <circle class="v-star" cx="71.9" cy="594.6" r="1.5" fill="#FFFFFF" />
+              <circle class="v-star" cx="83.8" cy="564.1" r="2.0" fill="#25D9FF" />
+              <circle class="v-star" cx="60.8" cy="564.1" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="66.9" cy="564.2" r="1.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="39.4" cy="558.6" r="1.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="53.8" cy="532.0" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="29.5" cy="518.5" r="1.2" fill="#25D9FF" />
+              <circle class="v-star" cx="16.2" cy="510.3" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="48.7" cy="489.2" r="2.1" fill="#FFFFFF" />
+              <circle class="v-star" cx="18.4" cy="481.9" r="2.2" fill="#FF52F8" />
+              <circle class="v-star" cx="46.7" cy="469.8" r="1.5" fill="#FFFFFF" />
+              <circle class="v-star" cx="14.3" cy="468.8" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="37.0" cy="444.1" r="2.3" fill="#25D9FF" />
+              <circle class="v-star" cx="52.0" cy="443.9" r="1.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="9.6" cy="427.7" r="1.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="26.5" cy="405.1" r="1.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="55.4" cy="395.7" r="1.1" fill="#FF52F8" />
+              <circle class="v-star" cx="60.2" cy="391.7" r="1.4" fill="#FF52F8" />
+              <circle class="v-star" cx="49.4" cy="368.8" r="1.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="58.1" cy="377.1" r="1.5" fill="#FFFFFF" />
+              <circle class="v-star" cx="35.8" cy="345.6" r="2.0" fill="#25D9FF" />
+              <circle class="v-star" cx="61.0" cy="351.8" r="1.9" fill="#FF52F8" />
+              <circle class="v-star" cx="63.1" cy="326.0" r="1.0" fill="#FF52F8" />
+              <circle class="v-star" cx="75.3" cy="317.8" r="1.4" fill="#FF52F8" />
+              <circle class="v-star" cx="75.7" cy="313.9" r="1.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="89.6" cy="289.9" r="1.8" fill="#FF52F8" />
+              <circle class="v-star" cx="107.4" cy="289.0" r="1.3" fill="#25D9FF" />
+              <circle class="v-star" cx="112.6" cy="282.9" r="1.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="123.9" cy="273.0" r="1.7" fill="#25D9FF" />
+              <circle class="v-star" cx="121.8" cy="263.0" r="1.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="151.2" cy="259.8" r="2.1" fill="#FF52F8" />
+              <circle class="v-star" cx="154.7" cy="263.1" r="0.8" fill="#25D9FF" />
+              <circle class="v-star" cx="156.1" cy="226.1" r="2.1" fill="#FFFFFF" />
+              <circle class="v-star" cx="181.7" cy="240.3" r="1.1" fill="#FFFFFF" />
+              <circle class="v-star" cx="185.3" cy="235.2" r="1.9" fill="#FFFFFF" />
+              <circle class="v-star" cx="204.6" cy="210.8" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="226.5" cy="233.2" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="230.7" cy="239.3" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="246.7" cy="232.2" r="1.7" fill="#FFFFFF" />
+              <circle class="v-star" cx="266.9" cy="210.3" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="279.1" cy="200.3" r="1.5" fill="#FFFFFF" />
+              <circle class="v-star" cx="278.7" cy="215.3" r="2.3" fill="#FFFFFF" />
+              <circle class="v-star" cx="248" cy="418" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="352" cy="418" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="258" cy="478" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="342" cy="478" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="228" cy="440" r="2.2" fill="#25D9FF" />
+              <circle class="v-star" cx="372" cy="440" r="2.2" fill="#FF52F8" />
+              <circle class="v-star" cx="238" cy="465" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="362" cy="465" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="272" cy="434" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="328" cy="434" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="278" cy="466" r="1.6" fill="#25D9FF" />
+              <circle class="v-star" cx="322" cy="466" r="1.6" fill="#F22BFF" />
+              <circle class="v-star" cx="208" cy="450" r="2.2" fill="#25D9FF" />
+              <circle class="v-star" cx="392" cy="450" r="2.2" fill="#FF52F8" />
+              <circle class="v-star" cx="198" cy="428" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="402" cy="428" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="208" cy="474" r="1.8" fill="#FF52F8" />
+              <circle class="v-star" cx="392" cy="474" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="178" cy="450" r="2.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="422" cy="450" r="2.4" fill="#FFFFFF" />
+              <circle class="v-star" cx="158" cy="448" r="2.0" fill="#25D9FF" />
+              <circle class="v-star" cx="442" cy="448" r="2.0" fill="#F22BFF" />
+              <circle class="v-star" cx="145" cy="430" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="455" cy="430" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="188" cy="290" r="2.0" fill="#25D9FF" />
+              <circle class="v-star" cx="412" cy="290" r="2.0" fill="#F22BFF" />
+              <circle class="v-star" cx="232" cy="258" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="368" cy="258" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="268" cy="198" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="332" cy="198" r="1.8" fill="#FF52F8" />
+              <circle class="v-star" cx="162" cy="232" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="438" cy="232" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="248" cy="148" r="1.6" fill="#25D9FF" />
+              <circle class="v-star" cx="352" cy="148" r="1.6" fill="#F22BFF" />
+              <circle class="v-star" cx="282" cy="118" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="318" cy="118" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="300" cy="88" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="210" cy="172" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="390" cy="172" r="1.8" fill="#F22BFF" />
+              <circle class="v-star" cx="175" cy="310" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="425" cy="310" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="142" cy="355" r="1.6" fill="#25D9FF" />
+              <circle class="v-star" cx="458" cy="355" r="1.6" fill="#F22BFF" />
+              <circle class="v-star" cx="135" cy="390" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="465" cy="390" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="188" cy="610" r="2.0" fill="#F22BFF" />
+              <circle class="v-star" cx="412" cy="610" r="2.0" fill="#25D9FF" />
+              <circle class="v-star" cx="232" cy="642" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="368" cy="642" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="268" cy="702" r="1.8" fill="#F22BFF" />
+              <circle class="v-star" cx="332" cy="702" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="162" cy="668" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="438" cy="668" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="248" cy="752" r="1.6" fill="#F22BFF" />
+              <circle class="v-star" cx="352" cy="752" r="1.6" fill="#25D9FF" />
+              <circle class="v-star" cx="282" cy="778" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="318" cy="778" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="300" cy="798" r="2.2" fill="#FFFFFF" />
+              <circle class="v-star" cx="210" cy="728" r="1.8" fill="#F22BFF" />
+              <circle class="v-star" cx="390" cy="728" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="175" cy="510" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="425" cy="510" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="142" cy="545" r="1.6" fill="#F22BFF" />
+              <circle class="v-star" cx="458" cy="545" r="1.6" fill="#25D9FF" />
+              <circle class="v-star" cx="135" cy="580" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="465" cy="580" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="38" cy="365" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="562" cy="365" r="1.8" fill="#F22BFF" />
+              <circle class="v-star" cx="28" cy="448" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="572" cy="448" r="2.0" fill="#FFFFFF" />
+              <circle class="v-star" cx="55" cy="510" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="545" cy="510" r="1.8" fill="#F22BFF" />
+              <circle class="v-star" cx="95" cy="315" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="505" cy="315" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="95" cy="585" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="505" cy="585" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="62" cy="420" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="538" cy="420" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="300" cy="108" r="1.8" fill="#25D9FF" />
+              <circle class="v-star" cx="300" cy="792" r="1.8" fill="#F22BFF" />
+              <circle class="v-star" cx="195" cy="185" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="405" cy="185" r="1.8" fill="#FFFFFF" />
+              <circle class="v-star" cx="108" cy="390" r="1.6" fill="#25D9FF" />
+              <circle class="v-star" cx="492" cy="390" r="1.6" fill="#F22BFF" />
+              <circle class="v-star" cx="108" cy="512" r="1.6" fill="#FFFFFF" />
+              <circle class="v-star" cx="492" cy="512" r="1.6" fill="#FFFFFF" />
+              <path class="v-sparkle" d="M 300,398 L 324,450 L 300,502 L 276,450 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 212,374 L 219,392 L 212,410 L 205,392 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 388,374 L 395,392 L 388,410 L 381,392 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 192,472 L 198,488 L 192,504 L 186,488 Z" fill="#25D9FF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 408,472 L 414,488 L 408,504 L 402,488 Z" fill="#FF52F8" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 108,406 L 117,428 L 108,450 L 99,428 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 492,406 L 501,428 L 492,450 L 483,428 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 258,192 L 265,208 L 258,224 L 251,208 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 342,192 L 349,208 L 342,224 L 335,208 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 258,676 L 265,692 L 258,708 L 251,692 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 342,676 L 349,692 L 342,708 L 335,692 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 300,24 L 314,60 L 300,96 L 286,60 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 300,756 L 314,792 L 300,828 L 286,792 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 95,165 L 107,195 L 95,225 L 83,195 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 505,165 L 517,195 L 505,225 L 493,195 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 95,665 L 107,695 L 95,725 L 83,695 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <path class="v-sparkle" d="M 505,665 L 517,695 L 505,725 L 493,695 Z" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+            </g>
+            <!-- LAYER 6 & 7: SATELLITE ENERGY NODES & MAJOR ORBS -->
+            <g class="vortex-layer-satellite-nodes">
+              <g class="v-sat-node" transform="translate(128, 272)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#25D9FF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#25D9FF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(472, 288)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#F22BFF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#F22BFF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(108, 542)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#F22BFF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#F22BFF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(492, 532)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#25D9FF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#25D9FF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(210, 138)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#FFFFFF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(390, 138)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#25D9FF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#25D9FF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(210, 752)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#F22BFF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#F22BFF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(390, 752)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#FFFFFF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#FFFFFF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(165, 360)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#25D9FF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#25D9FF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(435, 360)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#F22BFF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#F22BFF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(165, 540)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#F22BFF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#F22BFF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+              <g class="v-sat-node" transform="translate(435, 540)">
+                <circle cx="0" cy="0" r="11" fill="none" stroke="#25D9FF" stroke-width="1.4" opacity="0.78" />
+                <circle cx="0" cy="0" r="4.5" fill="#25D9FF" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="1.8" fill="#FFFFFF" />
+              </g>
+            </g>
+            <g class="vortex-layer-major-orbs">
+              <!-- MAJOR ORB 1: UPPER-LEFT MAGENTA -->
+              <g class="v-major-orb v-orb-magenta" transform="translate(95, 192)">
+                <circle cx="0" cy="0" r="72" fill="#F22BFF" opacity="0.12" filter="url(#v-glow-orb)" />
+                <circle cx="0" cy="0" r="52" fill="none" stroke="#F22BFF" stroke-width="1.4" opacity="0.55" stroke-dasharray="14 7" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="38" fill="none" stroke="#FF3BD8" stroke-width="1.8" opacity="0.72" />
+                <circle cx="0" cy="0" r="26" fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.88" />
+                <line x1="-58" y1="0" x2="-30" y2="0" stroke="#F22BFF" stroke-width="2.2" opacity="0.9" />
+                <line x1="30"  y1="0" x2="58"  y2="0" stroke="#F22BFF" stroke-width="2.2" opacity="0.9" />
+                <line x1="0" y1="-58" x2="0" y2="-30" stroke="#F22BFF" stroke-width="2.2" opacity="0.9" />
+                <line x1="0" y1="30"  x2="0" y2="58"  stroke="#F22BFF" stroke-width="2.2" opacity="0.9" />
+                <circle cx="0" cy="0" r="18" fill="url(#v-grad-sat-magenta)" filter="url(#v-glow-intense)" />
+                <circle cx="0" cy="0" r="7"  fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+                <circle cx="20" cy="-14" r="2.5" fill="#FFFFFF" />
+                <circle cx="-16" cy="16" r="2.0" fill="#FF52F8" />
+              </g>
+              <!-- MAJOR ORB 2: UPPER-RIGHT CYAN -->
+              <g class="v-major-orb v-orb-cyan" transform="translate(505, 192)">
+                <circle cx="0" cy="0" r="72" fill="#25D9FF" opacity="0.12" filter="url(#v-glow-orb)" />
+                <circle cx="0" cy="0" r="52" fill="none" stroke="#25D9FF" stroke-width="1.4" opacity="0.55" stroke-dasharray="14 7" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="38" fill="none" stroke="#10B8FF" stroke-width="1.8" opacity="0.72" />
+                <circle cx="0" cy="0" r="26" fill="none" stroke="#FFFFFF"  stroke-width="1.5" opacity="0.88" />
+                <line x1="-58" y1="0" x2="-30" y2="0" stroke="#25D9FF" stroke-width="2.2" opacity="0.9" />
+                <line x1="30"  y1="0" x2="58"  y2="0" stroke="#25D9FF" stroke-width="2.2" opacity="0.9" />
+                <line x1="0" y1="-58" x2="0" y2="-30" stroke="#25D9FF" stroke-width="2.2" opacity="0.9" />
+                <line x1="0" y1="30"  x2="0" y2="58"  stroke="#25D9FF" stroke-width="2.2" opacity="0.9" />
+                <circle cx="0" cy="0" r="18" fill="url(#v-grad-sat-cyan)" filter="url(#v-glow-intense)" />
+                <circle cx="0" cy="0" r="7"  fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+                <circle cx="-18" cy="13" r="2.5" fill="#FFFFFF" />
+                <circle cx="16" cy="-16" r="2.0" fill="#6BFFFF" />
+              </g>
+              <!-- MAJOR ORB 3: LOWER-LEFT MAGENTA -->
+              <g class="v-major-orb v-orb-pink" transform="translate(95, 665)">
+                <circle cx="0" cy="0" r="68" fill="#F22BFF" opacity="0.12" filter="url(#v-glow-orb)" />
+                <circle cx="0" cy="0" r="50" fill="none" stroke="#F22BFF" stroke-width="1.4" opacity="0.52" stroke-dasharray="14 7" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="36" fill="none" stroke="#FF3BD8" stroke-width="1.8" opacity="0.70" />
+                <circle cx="0" cy="0" r="24" fill="none" stroke="#FFFFFF"  stroke-width="1.5" opacity="0.88" />
+                <line x1="-55" y1="0" x2="-28" y2="0" stroke="#F22BFF" stroke-width="2.0" opacity="0.88" />
+                <line x1="28"  y1="0" x2="55"  y2="0" stroke="#F22BFF" stroke-width="2.0" opacity="0.88" />
+                <line x1="0" y1="-55" x2="0" y2="-28" stroke="#F22BFF" stroke-width="2.0" opacity="0.88" />
+                <line x1="0" y1="28"  x2="0" y2="55"  stroke="#F22BFF" stroke-width="2.0" opacity="0.88" />
+                <circle cx="0" cy="0" r="16" fill="url(#v-grad-sat-magenta)" filter="url(#v-glow-intense)" />
+                <circle cx="0" cy="0" r="6"  fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              </g>
+              <!-- MAJOR ORB 4: LOWER-RIGHT CYAN -->
+              <g class="v-major-orb v-orb-blue" transform="translate(505, 665)">
+                <circle cx="0" cy="0" r="68" fill="#25D9FF" opacity="0.12" filter="url(#v-glow-orb)" />
+                <circle cx="0" cy="0" r="50" fill="none" stroke="#25D9FF" stroke-width="1.4" opacity="0.52" stroke-dasharray="14 7" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="36" fill="none" stroke="#10B8FF" stroke-width="1.8" opacity="0.70" />
+                <circle cx="0" cy="0" r="24" fill="none" stroke="#FFFFFF"  stroke-width="1.5" opacity="0.88" />
+                <line x1="-55" y1="0" x2="-28" y2="0" stroke="#25D9FF" stroke-width="2.0" opacity="0.88" />
+                <line x1="28"  y1="0" x2="55"  y2="0" stroke="#25D9FF" stroke-width="2.0" opacity="0.88" />
+                <line x1="0" y1="-55" x2="0" y2="-28" stroke="#25D9FF" stroke-width="2.0" opacity="0.88" />
+                <line x1="0" y1="28"  x2="0" y2="55"  stroke="#25D9FF" stroke-width="2.0" opacity="0.88" />
+                <circle cx="0" cy="0" r="16" fill="url(#v-grad-sat-cyan)" filter="url(#v-glow-intense)" />
+                <circle cx="0" cy="0" r="6"  fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              </g>
+              <!-- MID-SIDE SECONDARY ORBS -->
+              <g class="v-major-orb v-orb-violet" transform="translate(48, 420)">
+                <circle cx="0" cy="0" r="28" fill="none" stroke="#7655FF" stroke-width="1.5" opacity="0.70" stroke-dasharray="10 5" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="18" fill="none" stroke="#25D9FF" stroke-width="1.2" opacity="0.85" />
+                <circle cx="0" cy="0" r="12" fill="url(#v-grad-sat-violet)" filter="url(#v-glow-intense)" />
+                <circle cx="0" cy="0" r="4.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              </g>
+              <g class="v-major-orb v-orb-rose" transform="translate(552, 432)">
+                <circle cx="0" cy="0" r="28" fill="none" stroke="#FF3BD8" stroke-width="1.5" opacity="0.70" stroke-dasharray="10 5" filter="url(#v-glow-soft)" />
+                <circle cx="0" cy="0" r="18" fill="none" stroke="#F22BFF" stroke-width="1.2" opacity="0.85" />
+                <circle cx="0" cy="0" r="12" fill="url(#v-grad-sat-magenta)" filter="url(#v-glow-intense)" />
+                <circle cx="0" cy="0" r="4.5" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              </g>
+            </g>
+            <!-- LAYER 9: EXPLOSIVE MULTI-TIER CENTRAL CORE BLOOM -->
+            <g class="vortex-layer-core-light" aria-label="Núcleo de Fusión Radiante">
+              <circle class="v-heart-ambient" cx="300" cy="450" r="240" fill="url(#v-grad-core-ambient)" opacity="0.80" />
+              <circle class="v-core-heart" cx="300" cy="450" r="68" fill="url(#v-grad-core-bloom)" opacity="0.92" filter="url(#v-glow-bloom)" />
+              <!-- APEX FLARES -->
+              <g class="v-apex-flare-top" transform="translate(300, 60)">
+                <circle cx="0" cy="0" r="8" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+                <circle cx="0" cy="0" r="34" fill="none" stroke="#25D9FF" stroke-width="1.8" opacity="0.88" filter="url(#v-glow-soft)" />
+              </g>
+              <g class="v-apex-flare-bottom" transform="translate(300, 798)">
+                <circle cx="0" cy="0" r="8" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+                <circle cx="0" cy="0" r="34" fill="none" stroke="#F22BFF" stroke-width="1.8" opacity="0.88" filter="url(#v-glow-soft)" />
+              </g>
+            </g>
+            <!-- LAYER 10: ROUTING TRACES TO MODULES -->
+            <!-- V5 FOREGROUND: manual vertical reactor profile; intentionally not sphere-derived. -->
+            <g class="vortex-v5-reactor" aria-label="V5 vertical energy reactor">
+              <g class="v5-back">
+                <path class="v5-rear-orbit" d="M52 402 C130 350 470 350 548 402"/><path class="v5-rear-orbit magenta" d="M78 494 C158 548 454 548 530 494"/>
+                <path class="v5-containment" d="M136 326 C88 410 106 538 168 590"/><path class="v5-containment" d="M466 312 C522 392 504 535 440 604"/>
+                <path class="v5-core-contour cyan" d="M300 150 C206 155 115 225 65 330"/>
+                <path class="v5-core-contour magenta" d="M65 570 C118 676 211 728 300 752"/>
+                <path class="v5-core-contour magenta" d="M300 150 C394 155 485 225 535 330"/>
+                <path class="v5-core-contour cyan" d="M535 570 C482 676 389 728 300 752"/>
+              </g>
+              <g class="v5-resonators">
+                <ellipse cx="300" cy="105" rx="55" ry="8"/><ellipse cx="300" cy="116" rx="75" ry="10"/><ellipse cx="300" cy="128" rx="100" ry="12"/><ellipse cx="300" cy="141" rx="125" ry="14"/><ellipse cx="300" cy="155" rx="145" ry="16"/>
+                <ellipse cx="300" cy="190" rx="130" ry="18"/><ellipse cx="300" cy="205" rx="150" ry="20"/><ellipse cx="300" cy="220" rx="165" ry="22"/>
+                <ellipse cx="300" cy="704" rx="145" ry="19"/><ellipse cx="300" cy="718" rx="130" ry="17"/><ellipse cx="300" cy="733" rx="110" ry="15"/><ellipse cx="300" cy="748" rx="85" ry="12"/><ellipse cx="300" cy="764" rx="60" ry="9"/>
+              </g>
+              <g class="v5-main-toroids">
+                <ellipse cx="296" cy="292" rx="150" ry="25"/><ellipse cx="304" cy="308" rx="185" ry="28"/><ellipse cx="297" cy="326" rx="215" ry="31"/><ellipse cx="303" cy="344" rx="235" ry="34"/>
+                <ellipse cx="297" cy="362" rx="250" ry="37"/><ellipse cx="304" cy="380" rx="260" ry="39"/><ellipse cx="298" cy="398" rx="270" ry="41"/><ellipse cx="303" cy="416" rx="265" ry="42"/>
+                <ellipse cx="297" cy="434" rx="255" ry="43"/><ellipse cx="304" cy="452" rx="270" ry="45"/><ellipse cx="298" cy="470" rx="255" ry="43"/><ellipse cx="303" cy="488" rx="240" ry="40"/>
+                <ellipse cx="297" cy="506" rx="220" ry="37"/><ellipse cx="304" cy="524" rx="195" ry="34"/><ellipse cx="298" cy="542" rx="170" ry="30"/><ellipse cx="303" cy="560" rx="155" ry="27"/>
+                <path d="M44 452 C148 410 452 410 558 452"/><path d="M38 456 C154 500 446 500 562 456"/>
+              </g>
+              <g class="v5-micro-coils" aria-label="Dense inner plasma coils">
+                <ellipse cx="301" cy="238" rx="122" ry="15" transform="rotate(-3 301 238)"/>
+                <ellipse cx="297" cy="254" rx="151" ry="19" transform="rotate(4 297 254)"/>
+                <ellipse cx="304" cy="270" rx="170" ry="22" transform="rotate(-5 304 270)"/>
+                <ellipse cx="298" cy="286" rx="184" ry="25" transform="rotate(3 298 286)"/>
+                <ellipse cx="302" cy="303" rx="197" ry="27" transform="rotate(-2 302 303)"/>
+                <ellipse cx="297" cy="320" rx="207" ry="29" transform="rotate(5 297 320)"/>
+                <ellipse cx="303" cy="337" rx="222" ry="31" transform="rotate(-4 303 337)"/>
+                <ellipse cx="298" cy="354" rx="237" ry="33" transform="rotate(2 298 354)"/>
+                <ellipse cx="302" cy="371" rx="248" ry="35" transform="rotate(-6 302 371)"/>
+                <ellipse cx="296" cy="388" rx="256" ry="37" transform="rotate(4 296 388)"/>
+                <ellipse cx="304" cy="405" rx="263" ry="39" transform="rotate(-3 304 405)"/>
+                <ellipse cx="298" cy="422" rx="258" ry="40" transform="rotate(6 298 422)"/>
+                <ellipse cx="302" cy="439" rx="266" ry="43" transform="rotate(-5 302 439)"/>
+                <ellipse cx="297" cy="457" rx="270" ry="44" transform="rotate(3 297 457)"/>
+                <ellipse cx="303" cy="475" rx="260" ry="42" transform="rotate(-2 303 475)"/>
+                <ellipse cx="297" cy="493" rx="247" ry="40" transform="rotate(5 297 493)"/>
+                <ellipse cx="304" cy="511" rx="229" ry="38" transform="rotate(-4 304 511)"/>
+                <ellipse cx="298" cy="529" rx="207" ry="35" transform="rotate(2 298 529)"/>
+                <ellipse cx="302" cy="547" rx="182" ry="31" transform="rotate(-6 302 547)"/>
+                <ellipse cx="297" cy="565" rx="160" ry="27" transform="rotate(4 297 565)"/>
+                <ellipse cx="303" cy="582" rx="146" ry="24" transform="rotate(-3 303 582)"/>
+                <ellipse cx="298" cy="599" rx="132" ry="21" transform="rotate(5 298 599)"/>
+                <ellipse cx="302" cy="616" rx="118" ry="18" transform="rotate(-4 302 616)"/>
+                <ellipse cx="299" cy="633" rx="108" ry="16" transform="rotate(3 299 633)"/>
+              </g>
+              <g class="v5-orbital-fields" aria-label="Layered orbital fields">
+                <path d="M72 279 C137 205 221 203 282 299"/>
+                <path d="M528 283 C460 204 381 211 318 302"/>
+                <path d="M42 352 C124 291 207 302 279 391"/>
+                <path d="M558 347 C477 286 390 306 322 394"/>
+                <path d="M48 526 C133 587 214 573 279 500"/>
+                <path d="M552 519 C470 591 389 573 322 497"/>
+                <path d="M85 612 C169 682 242 660 286 571"/>
+                <path d="M515 605 C432 682 360 657 316 572"/>
+                <path d="M116 235 C172 273 225 305 278 355 C300 376 312 397 324 422"/>
+                <path d="M484 236 C429 276 376 306 322 356 C299 378 288 397 276 423"/>
+                <path d="M74 278 C178 206 414 215 532 306 C590 351 556 405 478 420"/>
+                <path d="M46 350 C142 292 420 275 551 372 C599 409 546 465 480 474"/>
+                <path d="M53 524 C164 586 423 608 548 514 C594 479 543 430 476 424"/>
+                <path d="M85 612 C194 683 411 672 520 588 C570 548 530 503 463 490"/>
+                <path d="M112 236 C232 286 375 314 492 264"/>
+                <path d="M88 660 C220 602 382 585 510 644"/>
+                <path d="M129 300 C198 394 185 518 112 595"/>
+                <path d="M473 292 C402 392 414 518 489 602"/>
+                <path d="M176 214 C260 328 350 538 424 685"/>
+                <path d="M424 212 C344 326 251 545 178 686"/>
+              </g>
+              <g class="v5-helix-system">
+                <g class="v5-helix-rear">
+                  <path class="v5-helix cyan" d="M264 164 C393 222 414 253 349 296 C279 342 190 346 202 394 C215 444 406 451 414 500 C421 548 271 576 254 624 C244 658 279 691 321 734"/>
+                  <path class="v5-helix magenta" d="M336 164 C207 223 184 258 251 302 C321 347 414 350 400 399 C385 448 195 457 186 504 C176 551 327 578 345 626 C357 662 322 697 279 734"/>
+                  <path class="v5-helix violet" d="M286 174 C361 243 365 282 310 323 C257 364 224 384 252 425 C278 465 367 478 365 517 C363 558 282 584 281 630 C279 668 300 699 310 728"/>
+                  <path class="v5-helix cyan" d="M240 184 C179 246 221 279 274 312 C334 350 385 375 355 414 C325 454 213 472 218 515 C224 557 309 590 330 632 C346 663 332 697 301 730"/>
+                  <path class="v5-helix magenta" d="M360 184 C421 247 377 281 323 315 C261 353 213 378 244 416 C276 454 389 473 383 515 C376 559 291 588 270 633 C255 666 270 700 299 730"/>
+                  <path class="v5-helix cyan" d="M276 154 C346 204 444 249 380 300 C320 348 159 367 190 421 C220 474 428 485 400 535 C373 582 237 604 258 652 C273 686 303 714 326 744"/>
+                  <path class="v5-helix magenta" d="M324 154 C254 204 156 249 220 300 C280 348 441 367 410 421 C380 474 172 485 200 535 C227 582 363 604 342 652 C327 686 297 714 274 744"/>
+                </g>
+                <g class="v5-helix-mid">
+                  <path class="v5-helix cyan" d="M273 158 C350 220 372 255 327 294 C278 337 220 360 235 401 C251 445 367 455 379 496 C391 538 308 572 278 615 C256 647 274 686 317 741"/>
+                  <path class="v5-helix magenta" d="M327 158 C250 220 228 255 273 294 C322 337 380 360 365 401 C349 445 233 455 221 496 C209 538 292 572 322 615 C344 647 326 686 283 741"/>
+                  <path class="v5-helix cyan" d="M250 170 C316 225 341 260 302 300 C263 341 247 370 277 410 C307 450 347 466 337 507 C327 548 266 576 263 619 C260 659 287 694 305 735"/>
+                  <path class="v5-helix magenta" d="M350 170 C284 225 259 260 298 300 C337 341 353 370 323 410 C293 450 253 466 263 507 C273 548 334 576 337 619 C340 659 313 694 295 735"/>
+                  <path class="v5-helix white" d="M299 174 C343 245 327 283 299 323 C271 363 273 392 300 430 C327 468 331 496 300 536 C269 576 273 610 302 652 C320 679 319 706 300 738"/>
+                  <path class="v5-helix violet" d="M268 160 C380 223 405 260 344 305 C283 350 190 374 224 422 C260 472 394 484 372 528 C348 572 262 602 273 646 C281 680 304 711 316 741"/>
+                  <path class="v5-helix cyan" d="M332 160 C220 223 195 260 256 305 C317 350 410 374 376 422 C340 472 206 484 228 528 C252 572 338 602 327 646 C319 680 296 711 284 741"/>
+                </g>
+                <g class="v5-helix-front">
+                  <path class="v5-helix cyan" d="M258 160 C310 221 332 259 298 297 C265 335 256 367 286 405 C316 443 355 462 342 500 C329 538 279 570 274 610 C269 654 292 697 311 742"/>
+                  <path class="v5-helix magenta" d="M342 160 C290 221 268 259 302 297 C335 335 344 367 314 405 C284 443 245 462 258 500 C271 538 321 570 326 610 C331 654 308 697 289 742"/>
+                  <path class="v5-helix cyan" d="M280 166 C377 238 357 272 310 312 C265 351 238 382 270 421 C303 460 368 475 350 515 C332 555 271 584 276 626 C281 668 314 703 304 740"/>
+                  <path class="v5-helix magenta" d="M320 166 C223 238 243 272 290 312 C335 351 362 382 330 421 C297 460 232 475 250 515 C268 555 329 584 324 626 C319 668 286 703 296 740"/>
+                  <path class="v5-helix white" d="M294 182 C323 244 316 281 291 321 C266 361 269 396 299 435 C329 474 328 509 298 548 C268 587 270 624 302 664 C322 689 314 715 301 738"/>
+                  <path class="v5-helix violet" d="M306 184 C274 244 282 281 309 321 C336 361 332 396 301 435 C270 474 272 509 303 548 C334 587 330 624 298 664 C278 689 286 715 299 738"/>
+                  <path class="v5-helix magenta" d="M270 162 C354 218 392 255 330 302 C268 349 184 377 218 426 C252 474 395 488 368 531 C341 574 268 602 278 648 C286 683 305 712 313 742"/>
+                  <path class="v5-helix cyan" d="M330 162 C246 218 208 255 270 302 C332 349 416 377 382 426 C348 474 205 488 232 531 C259 574 332 602 322 648 C314 683 295 712 287 742"/>
+                  <path class="v5-helix cyan" d="M252 176 C321 225 370 264 318 312 C266 360 218 389 252 432 C288 477 366 494 345 537 C325 580 278 612 286 655 C292 688 310 717 321 744"/>
+                  <path class="v5-helix magenta" d="M348 176 C279 225 230 264 282 312 C334 360 382 389 348 432 C312 477 234 494 255 537 C275 580 322 612 314 655 C308 688 290 717 279 744"/>
+                </g>
+              </g>
+              <g class="v5-axis">
+                <line x1="300" y1="42" x2="300" y2="810"/><circle cx="300" cy="65" r="9"/><circle cx="300" cy="450" r="14"/><circle cx="300" cy="450" r="27"/><circle cx="300" cy="450" r="48"/><circle cx="300" cy="450" r="74"/>
+              </g>
+              <g class="v5-particle-axis" aria-label="Dotted vertical plasma stream">
+                <line class="axis-magenta-bloom" x1="300" y1="0" x2="300" y2="900"/>
+                <line class="axis-cyan-core" x1="300" y1="0" x2="300" y2="900"/>
+                <line class="axis-white-points" x1="300" y1="0" x2="300" y2="900"/>
+                <circle class="axis-convergence" cx="300" cy="165" r="13"/>
+                <circle class="axis-convergence" cx="300" cy="450" r="17"/>
+                <circle class="axis-convergence" cx="300" cy="700" r="13"/>
+              </g>
+              <g class="v5-hubs">
+                <g class="hub-magenta" transform="translate(180 255)"><circle r="25"/><circle r="16"/><circle r="7"/></g>
+                <g class="hub-cyan" transform="translate(420 255)"><circle r="25"/><circle r="16"/><circle r="7"/></g>
+                <g class="hub-cyan" transform="translate(105 450)"><circle r="27"/><circle r="17"/><circle r="7"/></g>
+                <g class="hub-magenta" transform="translate(495 450)"><circle r="27"/><circle r="17"/><circle r="7"/></g>
+                <g class="hub-cyan" transform="translate(180 645)"><circle r="25"/><circle r="16"/><circle r="7"/></g>
+                <g class="hub-magenta" transform="translate(420 645)"><circle r="25"/><circle r="16"/><circle r="7"/></g>
+              </g>
+              <g class="v5-front-arcs"><path d="M36 450 C132 388 468 388 564 450"/><path d="M62 470 C160 540 438 540 542 470"/><path d="M108 398 C170 350 430 350 494 398"/></g>
+              <g class="v5-front-coils" aria-label="Front-facing magnetic coil arcs">
+                <ellipse cx="296" cy="274" rx="156" ry="18" transform="rotate(-4 296 274)"/>
+                <ellipse cx="305" cy="300" rx="190" ry="24" transform="rotate(5 305 300)"/>
+                <ellipse cx="297" cy="330" rx="218" ry="30" transform="rotate(-3 297 330)"/>
+                <ellipse cx="303" cy="362" rx="244" ry="36" transform="rotate(4 303 362)"/>
+                <ellipse cx="297" cy="394" rx="258" ry="39" transform="rotate(-5 297 394)"/>
+                <ellipse cx="302" cy="426" rx="266" ry="42" transform="rotate(3 302 426)"/>
+                <ellipse cx="298" cy="474" rx="260" ry="41" transform="rotate(-4 298 474)"/>
+                <ellipse cx="303" cy="506" rx="234" ry="37" transform="rotate(5 303 506)"/>
+                <ellipse cx="297" cy="538" rx="196" ry="33" transform="rotate(-3 297 538)"/>
+                <ellipse cx="302" cy="570" rx="164" ry="28" transform="rotate(4 302 570)"/>
+              </g>
+              <g class="v5-core-convergence" aria-label="White-hot plasma convergence">
+                <circle cx="300" cy="450" r="132" fill="#F12BE0" opacity=".09" filter="url(#v-glow-extreme)"/>
+                <circle cx="300" cy="450" r="88" fill="#25D9FF" opacity=".18" filter="url(#v-glow-intense)"/>
+                <circle cx="300" cy="450" r="52" fill="#F12BE0" opacity=".28" filter="url(#v-glow-bloom)"/>
+                <circle cx="300" cy="450" r="18" fill="#FFFFFF" opacity=".98" filter="url(#v-glow-white-hot)"/>
+                <circle cx="300" cy="450" r="9" fill="#FFFFFF"/>
+              </g>
+            </g>
+            <g class="vortex-layer-routing-traces module-connections" aria-label="Trazas de Ruteo a Módulos">
+              <path class="v-trace-line conn-base" data-link="texto" d="M 300,450 C 300,320 300,185 300,50" fill="none" stroke="#25D9FF" stroke-width="2.0" opacity="0.6" stroke-dasharray="6 8" />
+              <circle class="v-routing-node node-texto" cx="300" cy="50" r="5.0" fill="#25D9FF" filter="url(#v-glow-soft)" />
+              <path class="v-trace-line conn-base" data-link="voz" d="M 300,450 C 218,450 136,450 54,450" fill="none" stroke="#25D9FF" stroke-width="2.0" opacity="0.6" stroke-dasharray="6 8" />
+              <circle class="v-routing-node node-voz" cx="54" cy="450" r="5.0" fill="#25D9FF" filter="url(#v-glow-soft)" />
+              <path class="v-trace-line conn-base" data-link="imagenes" d="M 300,450 C 382,450 464,450 546,450" fill="none" stroke="#F22BFF" stroke-width="2.0" opacity="0.6" stroke-dasharray="6 8" />
+              <circle class="v-routing-node node-imagenes" cx="546" cy="450" r="5.0" fill="#F22BFF" filter="url(#v-glow-soft)" />
+              <path class="v-trace-line conn-base" data-link="video" d="M 300,450 C 236,548 158,678 82,798" fill="none" stroke="#25D9FF" stroke-width="2.0" opacity="0.6" stroke-dasharray="6 8" />
+              <circle class="v-routing-node node-video" cx="82" cy="798" r="5.0" fill="#25D9FF" filter="url(#v-glow-soft)" />
+              <path class="v-trace-line conn-base" data-link="datos" d="M 300,450 C 364,548 442,678 518,798" fill="none" stroke="#7655FF" stroke-width="2.0" opacity="0.6" stroke-dasharray="6 8" />
+              <circle class="v-routing-node node-datos" cx="518" cy="798" r="5.0" fill="#7655FF" filter="url(#v-glow-soft)" />
+              <path class="v-trace-line conn-base" data-link="simulacion" d="M 300,450 C 300,582 300,724 300,860" fill="none" stroke="#25D9FF" stroke-width="2.0" opacity="0.6" stroke-dasharray="6 8" />
+              <circle class="v-routing-node node-simulacion" cx="300" cy="860" r="5.0" fill="#25D9FF" filter="url(#v-glow-soft)" />
+            </g>
+            <g class="v-equatorial-beam" aria-label="Plano de energía ecuatorial">
+              <path class="beam-atmosphere" d="M0 450 C92 420 202 428 265 444 Q300 450 335 444 C398 428 508 420 600 450 C508 480 398 472 335 456 Q300 450 265 456 C202 472 92 480 0 450Z" fill="#F22BFF" opacity=".34" filter="url(#v-glow-bloom)" />
+              <path class="beam-cyan-layer" d="M0 450 C100 437 205 440 267 447 Q300 450 333 447 C395 440 500 437 600 450 C500 463 395 460 333 453 Q300 450 267 453 C205 460 100 463 0 450Z" fill="#25D9FF" opacity=".62" filter="url(#v-glow-intense)" />
+              <path class="beam-magenta-layer" d="M0 450 C105 443 210 444 270 448 Q300 450 330 448 C390 444 495 443 600 450 C495 457 390 456 330 452 Q300 450 270 452 C210 456 105 457 0 450Z" fill="#F22BFF" opacity=".76" filter="url(#v-glow-intense)" />
+              <ellipse class="equatorial-disc" cx="300" cy="450" rx="205" ry="17" fill="#FF42E8" opacity=".78" filter="url(#v-glow-bloom)" />
+              <ellipse cx="300" cy="450" rx="176" ry="5" fill="#25D9FF" opacity=".82" filter="url(#v-glow-intense)" />
+              <ellipse cx="300" cy="450" rx="148" ry="1.8" fill="#FFFFFF" opacity=".98" filter="url(#v-glow-white-hot)" />
+              <ellipse cx="300" cy="450" rx="19" ry="15" fill="#FFFFFF" filter="url(#v-glow-white-hot)" />
+              <circle cx="300" cy="450" r="7" fill="#FFFFFF" />
+            </g>
+            <g class="v-prismatic-anchors" aria-label="Ocho anclas prismáticas de contención">
+              <path class="v-prism-anchor pole top" d="M300 34 311 62 300 90 289 62Z" fill="#FFFFFF" />
+              <path class="v-prism-anchor upper-left" d="M190 177 200 202 190 227 180 202Z" fill="#FFFFFF" />
+              <path class="v-prism-anchor upper-right" d="M410 177 420 202 410 227 400 202Z" fill="#FFFFFF" />
+              <path class="v-prism-anchor equatorial-left" d="M50 427 61 450 50 473 39 450Z" fill="#FFFFFF" />
+              <path class="v-prism-anchor equatorial-right" d="M550 427 561 450 550 473 539 450Z" fill="#FFFFFF" />
+              <path class="v-prism-anchor lower-left" d="M190 675 200 700 190 725 180 700Z" fill="#FFFFFF" />
+              <path class="v-prism-anchor lower-right" d="M410 675 420 700 410 725 400 700Z" fill="#FFFFFF" />
+              <path class="v-prism-anchor pole bottom" d="M300 770 311 798 300 826 289 798Z" fill="#FFFFFF" />
+            </g>
+            </g>
           </svg>
-          <div class="core-caption"><p class="v-eyebrow">NÚCLEO LOCAL · SIMULATED</p><h2 id="vortex-title">EL VÓRTICE</h2><p id="vortex-state" class="core-state">IDLE</p></div>
+          <p class="vortex-entry-prompt" aria-hidden="true">ACTIVATE CORE</p>
+          <div class="core-caption"><p class="v-eyebrow">ATLAS</p><h2 id="vortex-title">EL VÓRTICE</h2><p id="vortex-state" class="core-state">IDLE</p></div>
+          <div class="vortex-first-ring" id="vortex-first-ring" aria-label="First Ring Operational Modules">
+            <!-- 1. KNOWLEDGE / MEMORY (Top) -->
+            <div class="ring-module ring-module-knowledge" id="module-knowledge" data-module="knowledge" data-pair="pair-2">
+              <div class="rm-header">
+                <span class="rm-tag">LOCAL</span>
+                <span class="rm-state" id="rm-knowledge-state">READ-ONLY</span>
+              </div>
+              <div class="rm-title-row">
+                <span class="rm-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15zM8 6h8M8 10h8"/></svg></span>
+                <h3 class="rm-title">KNOWLEDGE / MEMORY</h3>
+              </div>
+              <p class="rm-desc">Memoria corporativa y base documental.</p>
+              <div class="rm-metrics">
+                <div class="rm-metric"><span class="rm-m-label">GRAPH</span><span class="rm-m-val" id="rm-knowledge-graph">LOCAL</span></div>
+                <div class="rm-metric"><span class="rm-m-label">ORGANIZER</span><span class="rm-m-val" id="rm-knowledge-organizer">VERIFIED</span></div>
+              </div>
+            </div>
+
+            <!-- 2. AGENTS (Left) -->
+            <div class="ring-module ring-module-agents" id="module-agents" data-module="agents" data-pair="pair-1">
+              <div class="rm-header">
+                <span class="rm-tag">LOCAL</span>
+                <span class="rm-state" id="rm-agents-state">SIMULATED</span>
+              </div>
+              <div class="rm-title-row">
+                <span class="rm-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></span>
+                <h3 class="rm-title">AGENTS</h3>
+              </div>
+              <p class="rm-desc">Enjambre neuronal y supervisión de tareas.</p>
+              <div class="rm-metrics">
+                <div class="rm-metric"><span class="rm-m-label">ROUTING</span><span class="rm-m-val" id="rm-agents-routing">LOCAL-FIRST</span></div>
+                <div class="rm-metric"><span class="rm-m-label">SUPERVISOR</span><span class="rm-m-val" id="rm-agents-supervisor">ACTIVE</span></div>
+              </div>
+            </div>
+
+            <!-- 3. TRADING (Right) -->
+            <div class="ring-module ring-module-trading" id="module-trading" data-module="trading" data-pair="pair-1">
+              <div class="rm-header">
+                <span class="rm-tag">SIMULATED</span>
+                <span class="rm-state rm-state-blocked" id="rm-trading-state">READ-ONLY</span>
+              </div>
+              <div class="rm-title-row">
+                <span class="rm-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l4-4 4 4 5-6"/></svg></span>
+                <h3 class="rm-title">TRADING</h3>
+              </div>
+              <p class="rm-desc">Trading Lab · Operación real bloqueada.</p>
+              <div class="rm-metrics">
+                <div class="rm-metric"><span class="rm-m-label">DATASET</span><span class="rm-m-val">EURUSD H1</span></div>
+                <div class="rm-metric"><span class="rm-m-label">REAL STATUS</span><span class="rm-m-val rm-val-blocked">BLOCKED</span></div>
+              </div>
+            </div>
+
+            <!-- 4. BUSINESS (Bottom-Left) -->
+            <div class="ring-module ring-module-business" id="module-business" data-module="business" data-pair="pair-3">
+              <div class="rm-header">
+                <span class="rm-tag">SIMULATED</span>
+                <span class="rm-state" id="rm-business-state">LOCAL</span>
+              </div>
+              <div class="rm-title-row">
+                <span class="rm-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span>
+                <h3 class="rm-title">BUSINESS</h3>
+              </div>
+              <p class="rm-desc">Simulador empresarial y operaciones.</p>
+              <div class="rm-metrics">
+                <div class="rm-metric"><span class="rm-m-label">COMPANY</span><span class="rm-m-val" id="rm-business-company">SIMULATED</span></div>
+                <div class="rm-metric"><span class="rm-m-label">KPIS</span><span class="rm-m-val" id="rm-business-kpis">LOCAL</span></div>
+              </div>
+            </div>
+
+            <!-- 5. SIMULATION (Bottom-Right) -->
+            <div class="ring-module ring-module-simulation" id="module-simulation" data-module="simulation" data-pair="pair-3">
+              <div class="rm-header">
+                <span class="rm-tag">LOCAL</span>
+                <span class="rm-state" id="rm-simulation-state">SIMULATED</span>
+              </div>
+              <div class="rm-title-row">
+                <span class="rm-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/><line x1="12" y1="22" x2="12" y2="12"/><line x1="22" y1="8.5" x2="12" y2="12"/></svg></span>
+                <h3 class="rm-title">SIMULATION</h3>
+              </div>
+              <p class="rm-desc">Motor de simulación y reglas de evaluación.</p>
+              <div class="rm-metrics">
+                <div class="rm-metric"><span class="rm-m-label">ENGINE</span><span class="rm-m-val" id="rm-simulation-engine">ACTIVE</span></div>
+                <div class="rm-metric"><span class="rm-m-label">GATE 14.3</span><span class="rm-m-val">VERIFIED</span></div>
+              </div>
+            </div>
+
+            <!-- 6. DOCUMENTS / DATA (Bottom) -->
+            <div class="ring-module ring-module-documents" id="module-documents" data-module="documents" data-pair="pair-2">
+              <div class="rm-header">
+                <span class="rm-tag">VERIFIED</span>
+                <span class="rm-state" id="rm-documents-state">LOCAL</span>
+              </div>
+              <div class="rm-title-row">
+                <span class="rm-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+                <h3 class="rm-title">DOCUMENTS / DATA</h3>
+              </div>
+              <p class="rm-desc">Datos canónicos e integridad documental.</p>
+              <div class="rm-metrics">
+                <div class="rm-metric"><span class="rm-m-label">CANONICAL SHA</span><span class="rm-m-val">d9beb0a6</span></div>
+                <div class="rm-metric"><span class="rm-m-label">STATUS</span><span class="rm-m-val">VERIFIED</span></div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="modules-col modules-right">
         <div class="module-card" data-channel="video" data-link-state="off" data-hue="crimson">
@@ -181,6 +1332,21 @@
       </dl>
         <p class="panel-note">Estado, policy, cola y decisiones vienen de la API local; lo que no expone queda UNAVAILABLE.</p>
       </div>
+      <section class="operational-vortex" aria-labelledby="operational-vortex-title">
+        <header class="operational-vortex-head"><div><p class="v-eyebrow">OPERATIONAL VORTEX · READ-ONLY</p><h3 id="operational-vortex-title">Superficie operacional</h3></div><span id="operational-source" class="tag tag-sim">MOCK · STALE</span></header>
+        <div class="operational-sectors" role="tablist" aria-label="Sectores operacionales del Vórtice">
+          <button type="button" role="tab" data-vortex-sector="core" aria-selected="true">CORE</button>
+          <button type="button" role="tab" data-vortex-sector="agents" aria-selected="false">AGENTS</button>
+          <button type="button" role="tab" data-vortex-sector="tasks" aria-selected="false">TASKS</button>
+          <button type="button" role="tab" data-vortex-sector="system" aria-selected="false">SYSTEM</button>
+          <button type="button" role="tab" data-vortex-sector="knowledge" aria-selected="false">KNOWLEDGE</button>
+          <button type="button" role="tab" data-vortex-sector="security" aria-selected="false">SECURITY</button>
+          <button type="button" role="tab" data-vortex-sector="activity" aria-selected="false">ACTIVITY</button>
+          <button type="button" role="tab" data-vortex-sector="routing" aria-selected="false">FREE_FIRST</button>
+        </div>
+        <div id="operational-panel" class="operational-panel" role="tabpanel" aria-live="polite" aria-label="Información operacional del sector seleccionado"></div>
+        <p class="panel-note">Información local, descriptiva y sin acciones de host, red, privilegios, routing o trading.</p>
+      </section>
       </section>
       <div class="side-stack span-4" data-views="inicio agentes vortice alertas">
       <section class="panel span-4 executive provider-infrastructure" data-views="inicio agentes vortice" data-group="providers">
@@ -198,19 +1364,214 @@
       <div class="panel-bare span-6 only-simple" data-views="inicio" data-slot="summary"></div>
 
       <section class="panel span-12 executive" data-views="inicio empresa finanzas ventas inventario nomina facturacion clientes proveedores" data-group="empresa">
-        <header class="panel-head"><h2 id="kpi-title">Empresa · KPIs</h2><span class="tag">SIMULATED</span></header>
-        <div data-slot="kpis" class="kpi-grid"></div>
-        <p class="panel-note">Tendencias construidas solo con las lecturas de esta sesión del navegador.</p>
+        <header class="panel-head"><h2 id="kpi-title">Dashboard Empresarial</h2><span class="tag">SIMULATED</span></header>
+        <nav class="dashboard-tabs">
+          <button type="button" data-tab="resumen" aria-selected="true">Resumen</button>
+          <button type="button" data-tab="detalles">Detalles</button>
+        </nav>
+        <div data-tab-panel="resumen" class="dashboard-panel" style="display:block">
+          <div class="dashboard-controls">
+            <div class="period-selector">
+              <button type="button" data-period="7d">7D</button>
+              <button type="button" data-period="30d">30D</button>
+              <button type="button" data-period="90d">90D</button>
+              <button type="button" data-period="1a">1A</button>
+            </div>
+          </div>
+          <div data-slot="kpis-primary" class="kpi-grid-primary"></div>
+          <div class="trend-chart-container"><div data-slot="trend-chart" class="trend-chart"></div></div>
+        </div>
+        <div data-tab-panel="detalles" class="dashboard-panel" style="display:none">
+          <div data-slot="kpis" class="kpi-grid"></div>
+          <p class="panel-note">Tendencias construidas solo con las lecturas de esta sesión del navegador.</p>
+        </div>
       </section>
 
       <section class="panel span-6" data-views="inicio trading" data-group="trading">
         <header class="panel-head"><h2>Trading Lab</h2><span class="tag tag-safe">SIN DINERO REAL</span></header>
-        <div data-slot="trading"></div>
+        <nav class="trading-tabs">
+          <button type="button" data-tab="mercados" aria-selected="true">Mercados</button>
+          <button type="button" data-tab="estrategias">Estrategias</button>
+          <button type="button" data-tab="analisis">Análisis IA</button>
+          <button type="button" data-tab="ordenes">Órdenes</button>
+          <button type="button" data-tab="laboratorio">Laboratorio</button>
+        </nav>
+        <div data-tab-panel="mercados" class="trading-panel" style="display:none"><div data-slot="markets" class="markets-grid"></div><div class="trading-chart-area"><div data-slot="trading-chart" class="trading-chart-placeholder">DATA UNAVAILABLE</div><div data-slot="trading-metrics" class="trading-metrics"></div></div><div data-slot="trading-recommendation" class="trading-recommendation"></div><div data-slot="trading-actions" class="trading-actions"></div></div>
+        <div data-tab-panel="estrategias" class="trading-panel" style="display:none"><div data-slot="strategies"></div></div>
+        <div data-tab-panel="analisis" class="trading-panel" style="display:none"><div data-slot="analysis"></div></div>
+        <div data-tab-panel="ordenes" class="trading-panel" style="display:none"><div data-slot="orders"></div></div>
+        <div data-tab-panel="laboratorio" class="trading-panel"><div data-slot="trading">EJECUCIÓN BLOQUEADA</div></div>
         <p class="panel-note">Solo estado. Sin trading real, sin MT5 real y sin botones de operación.</p>
+      </section>
+
+      <section class="panel span-6 executive" data-views="trading" data-group="macro">
+        <header class="panel-head"><h2>Macro</h2><span class="tag" id="macro-tag">NEWS DATA UNAVAILABLE</span></header>
+        <div data-slot="macro"></div>
+      </section>
+
+      <!-- TRADING LAB 2.0: HEADER & PROCESS SAFETY -->
+      <section class="panel span-12 executive" data-views="trading" data-group="trading">
+        <header class="panel-head">
+          <div>
+            <p class="eyebrow">TRADING LAB 2.0 · MOTOR DETERMINISTA</p>
+            <h2>Estación de Investigación Cuantitativa</h2>
+          </div>
+          <div class="trading-header-badges">
+            <span class="tag tag-inst">EURUSD · H1</span>
+            <span class="tag tag-safe">SIMULATION ONLY</span>
+            <span class="tag tag-danger">REAL EXECUTION BLOCKED</span>
+          </div>
+        </header>
+        <div class="trading-dataset-strip">
+          <div class="dataset-meta-item"><span class="ds-lbl">INSTRUMENTO</span><strong class="ds-val" id="trading-inst">EURUSD</strong></div>
+          <div class="dataset-meta-item"><span class="ds-lbl">TIMEFRAME</span><strong class="ds-val" id="trading-tf">H1</strong></div>
+          <div class="dataset-meta-item"><span class="ds-lbl">DATASET ID</span><strong class="ds-val" id="trading-ds-id">EURUSD_H1_DUKASCOPY_2021-2026</strong></div>
+          <div class="dataset-meta-item"><span class="ds-lbl">FUENTE</span><strong class="ds-val" id="trading-source">DUKASCOPY_BID_UTC</strong></div>
+          <div class="dataset-meta-item"><span class="ds-lbl">SHA256 CANÓNICO</span><code class="ds-hash" id="trading-hash">d9beb0a6e9c8f366f89403534daae3bb7754dc343e3d17eb148dc45eba3f627a</code></div>
+          <div class="dataset-meta-item"><span class="ds-lbl">INTEGRIDAD</span><span class="chip" data-status="ok" id="trading-hash-match">CANONICAL VERIFIED</span></div>
+        </div>
+        <div class="process-safety-panel">
+          <div class="safety-banner-head">
+            <span class="safety-icon">🛡️</span>
+            <strong>PANEL DE SEGURIDAD OPERATIVA · ENTORNO CERRADO</strong>
+          </div>
+          <div class="safety-banner-badges">
+            <span class="safety-badge safety-sim">SIMULATION ONLY</span>
+            <span class="safety-badge safety-blocked">REAL EXECUTION BLOCKED</span>
+            <span class="safety-badge safety-orders">No real orders</span>
+            <span class="safety-badge safety-virtual">CAPITAL 100% VIRTUAL</span>
+            <span class="safety-badge safety-offline">BROKER OFFLINE / DISCONNECTED</span>
+          </div>
+          <p class="safety-banner-desc">
+            Atlas opera bajo política innegociable de simulación y testing local. No existen credenciales vivas de broker, los bridges con capacidad de escritura a mercado están ausentes, y las operaciones mostradas corresponden exclusivamente a corridas deterministas sobre datos históricos o fixtures controlados.
+          </p>
+        </div>
+      </section>
+
+      <!-- TRADING LAB 2.0: CANDLESTICK CHART & STRATEGY TESTER -->
+      <section class="panel span-8 executive" data-views="trading" data-group="trading">
+        <header class="panel-head">
+          <div>
+            <p class="eyebrow">HISTÓRICO CANÓNICO · VENTANA SEGURA</p>
+            <h2 id="bt-symbol">Gráfico de Velas · EURUSD H1</h2>
+          </div>
+          <div class="chart-window-controls">
+            <span class="tag" id="chart-window-tag">120 VELAS RECIENTES</span>
+            <button type="button" id="btn-chart-window-recent" class="btn-xs">120 Recientes</button>
+            <button type="button" id="btn-chart-window-baseline" class="btn-xs">Fixture Muestra</button>
+          </div>
+        </header>
+        <div class="backtest-chart" id="bt-chart-wrap">
+          <div id="bt-chart" class="chart-empty">CARGANDO VELAS HISTÓRICAS…</div>
+        </div>
+        <form id="backtest-form" class="backtest-toolbar">
+          <label>Instrumento<select id="bt-instrument"></select></label>
+          <label>Estrategia<select id="bt-strategy"><option value="cruce-demo">Cruce Medias Demo</option><option value="MA_CROSS_BASELINE">MA_CROSS_BASELINE</option></select></label>
+          <label>Capital<input id="bt-capital" type="number" min="100" max="10000000" step="100" value="10000"></label>
+          <label>Comisión %<input id="bt-commission" type="number" min="0" max="0.1" step="0.0001" value="0.0001"></label>
+          <label>Desde<input id="bt-from" type="date"></label>
+          <label>Hasta<input id="bt-to" type="date"></label>
+          <button class="backtest-run" type="submit">Ejecutar Backtest Simulado</button>
+          <span id="backtest-state" class="chip" data-status="pending">SIMULATED · READY</span>
+        </form>
+        <div class="bt-trades-panel">
+          <h4>HISTORIAL DE OPERACIONES SIMULADAS</h4>
+          <div id="bt-trades" class="chart-empty">CARGANDO OPERACIONES…</div>
+        </div>
+      </section>
+
+      <!-- TRADING LAB 2.0: STRATEGY SUMMARY & EQUITY / DRAWDOWN CURVES -->
+      <section class="panel span-4 executive" data-views="trading" data-group="trading">
+        <header class="panel-head">
+          <div>
+            <p class="eyebrow">ESTRATEGIA & CURVAS</p>
+            <h2>Strategy Tester</h2>
+          </div>
+          <span class="tag">SIMULATED</span>
+        </header>
+        <div id="bt-metrics" class="bt-metrics-container"></div>
+        <div class="bt-curves-container">
+          <h4>CURVA DE EQUITY (PATRIMONIO)</h4>
+          <div id="bt-equity" class="bt-curve-box chart-empty">CURVA EQUITY</div>
+          <h4>CURVA DE DRAWDOWN (%)</h4>
+          <div id="bt-drawdown" class="bt-curve-box chart-empty">CURVA DRAWDOWN</div>
+        </div>
+      </section>
+
+      <!-- TRADING LAB 2.0: CHALLENGE SIMULATOR SCORECARD -->
+      <section class="panel span-12 executive" data-views="trading" data-group="trading">
+        <header class="panel-head">
+          <div>
+            <p class="eyebrow">PROP FIRM CHALLENGE SIMULATOR · TASK 14.3</p>
+            <h2>Evaluación de Reglas de Desafío (Test Fixture Program)</h2>
+          </div>
+          <div class="challenge-header-meta">
+            <span class="tag" id="challenge-program-name">TEST FIXTURE · NOT A REAL PROP FIRM (TEST_FIXTURE_PROG_001 · 100k USD VIRTUAL)</span>
+            <span class="chip" id="challenge-badge" data-status="danger">FAIL</span>
+          </div>
+        </header>
+        <div class="challenge-precedence-notice">
+          <span class="precedence-icon">ℹ️</span>
+          <span><strong>Principio de Precedencia TASK 14.3:</strong> La insuficiencia de datos requeridos (capital, timestamps, calendario) produce <code>INCOMPLETE</code> antes de evaluar cualquier incumplimiento de rentabilidad o pérdida.</span>
+        </div>
+        <div class="challenge-scorecard-grid" id="challenge-grid"></div>
+        <div class="challenge-details-row">
+          <div class="challenge-box challenge-failures-box">
+            <h4>INCUMPLIMIENTOS DETECTADOS (FAILURE REASONS)</h4>
+            <ul id="challenge-failures-list" class="challenge-list"></ul>
+          </div>
+          <div class="challenge-box challenge-limitations-box">
+            <h4>LIMITACIONES DE DATOS (DATA LIMITATIONS)</h4>
+            <ul id="challenge-limitations-list" class="challenge-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRADING LAB 2.0: EXPERIMENT HISTORY TABLE -->
+      <section class="panel span-12 executive" data-views="trading" data-group="trading">
+        <header class="panel-head">
+          <div>
+            <p class="eyebrow">REPOSITORIO DE EXPERIMENTOS</p>
+            <h2>Historial de Experimentos Persistidos</h2>
+          </div>
+          <span class="tag" id="exp-count-tag">0 EXPERIMENTOS</span>
+        </header>
+        <p class="panel-note">Datos leídos directamente de <code>datos/trading-experimentos.json</code> a través de RepositorioExperimentos. Haz clic en cualquier corrida para inspeccionar metadatos completos y hashes.</p>
+        <div class="exp-table-wrap">
+          <table class="exp-table">
+            <thead>
+              <tr>
+                <th>Run ID</th>
+                <th>Fecha</th>
+                <th>Instrumento</th>
+                <th>Timeframe</th>
+                <th>Estrategia</th>
+                <th>Retorno</th>
+                <th>Max DD</th>
+                <th>Trades</th>
+                <th>Win Rate</th>
+                <th>Clasificación</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="experiments-table-body">
+              <tr><td colspan="11" class="td-empty">Cargando experimentos persistidos…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel span-6 executive" data-views="inicio agentes" data-group="providers">
+        <header class="panel-head"><h2>Agentes IA</h2><span class="tag" id="agents-status-tag">UNAVAILABLE</span></header>
+        <div data-slot="agents-list" class="agents-list"></div>
       </section>
 
       <section class="panel span-6 executive" data-views="inicio simulacion" data-group="simulacion">
         <header class="panel-head"><h2>Simulación empresarial</h2><span class="tag">SIMULATED</span></header>
+        <div class="sim-header-controls"><span class="sim-period">UNAVAILABLE</span><button type="button" class="sim-config-btn" disabled>Configurar</button></div>
+        <div class="sim-visual-area"><div class="sim-city-placeholder">SIMULADO</div><div class="sim-labels"><span>Ventas</span><span>Producción</span><span>Finanzas</span><span>Marketing</span><span>RRHH</span></div></div>
+        <div class="sim-controls"><button type="button" class="sim-play" disabled aria-label="Play">&#9654;</button><button type="button" class="sim-pause" disabled aria-label="Pause">&#9646;&#9646;</button><div class="sim-timeline-bar"></div></div>
+        <div class="sim-scenario"><span>Escenario:</span><span class="sim-scenario-name">UNAVAILABLE</span></div>
         <div data-slot="simulation"></div>
       </section>
 
@@ -254,6 +1615,22 @@
         <div data-slot="vortex-log"></div>
       </section>
 
+      <section class="panel span-8" data-views="cognitivo" data-group="cognitivo">
+        <header class="panel-head"><div><h2>Memoria cognitiva</h2><p class="panel-note">Lectura local. No crea memoria, no altera nodos y no ejecuta operaciones.</p></div><span class="tag" id="cognitive-tag">LOADING</span></header>
+        <form id="cognitive-query" class="cognitive-query" novalidate>
+          <label>Consulta <input name="q" type="search" maxlength="160" placeholder="Buscar por nombre o contexto"></label>
+          <button type="submit">Consultar</button>
+        </form>
+        <div data-slot="cognitive-status" class="metric-grid"></div>
+        <div data-slot="cognitive-retrieval" class="cognitive-grid"></div>
+      </section>
+
+      <section class="panel span-4" data-views="cognitivo" data-group="cognitivo">
+        <header class="panel-head"><h2>Capas y límites</h2><span class="tag tag-safe">READ-ONLY</span></header>
+        <div data-slot="cognitive-memory"></div>
+        <div data-slot="cognitive-limits"></div>
+      </section>
+
       <section class="panel span-6" data-views="agentes" data-group="providers">
         <header class="panel-head"><h2>Agentes IA</h2><span class="tag">SUPERVISADO</span></header>
         <div data-slot="agents"></div>
@@ -284,6 +1661,145 @@
         <div data-slot="session"></div>
       </section>
 
+      <!-- PHASE A.4: UNIFIED COMMUNICATIONS & NOTIFICATION VORTEX -->
+      <section class="panel span-12" data-views="inicio vortice agentes" data-group="communications" aria-labelledby="comms-title">
+        <header class="panel-head comms-head">
+          <div><p class="v-eyebrow">PHASE A.4 · UNIFIED COMMUNICATIONS VORTEX</p><h2 id="comms-title">Centro de Comunicaciones</h2></div>
+          <div class="comms-badges"><span class="tag tag-sim">MOCK · LOCAL</span><span class="tag">OFFLINE</span></div>
+        </header>
+        <nav class="comms-tabs" role="tablist" aria-label="Superficies de comunicación">
+          <button type="button" role="tab" data-comms-tab="messages" aria-selected="true">Mensajes</button>
+          <button type="button" role="tab" data-comms-tab="notifications" aria-selected="false">Notificaciones</button>
+          <button type="button" role="tab" data-comms-tab="approvals" aria-selected="false">Aprobaciones</button>
+        </nav>
+
+        <!-- A.4 Messages Tab -->
+        <div class="comms-panel" data-comms-panel="messages" role="tabpanel" aria-label="Centro de mensajes">
+          <div class="comms-layout">
+            <aside class="comms-thread-list" aria-label="Lista de conversaciones">
+              <div class="comms-project-switcher">
+                <label class="comms-project-label">
+                  <span>PROYECTO</span>
+                  <select id="comms-project-filter" aria-label="Filtrar por proyecto">
+                    <option value="all">Todos los proyectos</option>
+                    <option value="atlas-remote">Atlas Remote</option>
+                    <option value="trading-lab">Trading Lab</option>
+                    <option value="core-system">Core System</option>
+                  </select>
+                </label>
+              </div>
+              <div id="comms-threads" class="comms-threads" role="listbox" aria-label="Conversaciones"></div>
+            </aside>
+            <div class="comms-active-area">
+              <header class="comms-thread-header" id="comms-thread-header">
+                <div class="comms-thread-title-row">
+                  <h3 id="comms-active-title">Selecciona una conversación</h3>
+                  <span id="comms-active-task" class="tag" hidden></span>
+                </div>
+                <div class="comms-participant-badges" id="comms-participants"></div>
+              </header>
+              <div id="comms-message-stream" class="comms-message-stream" role="log" aria-live="polite" aria-label="Flujo de mensajes"></div>
+              <div class="comms-input-bar">
+                <input id="comms-input" type="text" placeholder="Ask Atlas or describe a task…" aria-label="Entrada de mensaje semántico" autocomplete="off">
+                <span class="comms-input-reminder">Messages create structured tasks. Shell execution is blocked.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- A.4 Notifications Tab -->
+        <div class="comms-panel" data-comms-panel="notifications" role="tabpanel" aria-label="Centro de notificaciones" hidden>
+          <div class="comms-notification-filters">
+            <button type="button" data-notif-filter="all" class="notif-filter-active">Todas</button>
+            <button type="button" data-notif-filter="CRITICAL">Críticas</button>
+            <button type="button" data-notif-filter="WARNING">Advertencias</button>
+            <button type="button" data-notif-filter="INFO">Info</button>
+          </div>
+          <div id="comms-notifications" class="comms-notification-list" role="list" aria-label="Lista de notificaciones"></div>
+        </div>
+
+        <!-- A.4 Approvals Tab -->
+        <div class="comms-panel" data-comms-panel="approvals" role="tabpanel" aria-label="Bandeja de aprobaciones" hidden>
+          <div class="comms-approval-header">
+            <span class="v-eyebrow">APPROVAL INBOX · MOCK-FIRST · NON-EXECUTING</span>
+            <span id="comms-pending-count" class="tag">0 PENDING</span>
+          </div>
+          <div id="comms-approvals" class="comms-approval-list" role="list" aria-label="Lista de aprobaciones pendientes"></div>
+        </div>
+
+        <!-- A.4 Provider Status Strip -->
+        <div class="comms-provider-strip" aria-label="Estado de proveedores de comunicación">
+          <div id="comms-providers" class="comms-provider-nodes"></div>
+        </div>
+
+        <p class="panel-note">Comunicaciones locales, mock-first. Sin credenciales de producción, sin ejecución de shell, sin trading real. MESSAGING_IS_NOT_A_TERMINAL.</p>
+      </section>
+
+      <!-- PHASE A.5: ORCHESTRATION VORTEX (contextual cross-module workspace bridging TASKS, AGENTS, COMMUNICATIONS — NOT a 9th canonical Vortex sector) -->
+      <section class="panel span-12" data-views="inicio vortice agentes comunicaciones orquestacion" data-group="orchestration" aria-labelledby="orch-title">
+        <header class="panel-head orch-head">
+          <div><p class="v-eyebrow">PHASE A.5 · ORCHESTRATION VORTEX</p><h2 id="orch-title">Centro de Orquestación</h2></div>
+          <div class="comms-badges"><span class="tag tag-sim">MOCK · LOCAL</span><span class="tag">OFFLINE</span></div>
+        </header>
+
+        <div id="orch-metrics" class="orch-metrics" role="list" aria-label="Métricas de orquestación"></div>
+
+        <div class="orch-layout">
+          <aside class="orch-workflow-list" aria-label="Lista de workflows">
+            <div id="orch-workflows" class="orch-workflows" role="list" aria-label="Workflows activos y en cola"></div>
+          </aside>
+
+          <div class="orch-active-area">
+            <div class="orch-simple-view" id="orch-simple-view">
+              <div class="orch-simple-head">
+                <h3 id="orch-active-title">Selecciona un workflow</h3>
+                <span id="orch-active-project" class="tag" hidden></span>
+              </div>
+              <div class="orch-progress" id="orch-progress"></div>
+              <div class="orch-agent-chip" id="orch-agent-chip"></div>
+              <div class="orch-status-badge" id="orch-status-badge" role="status" aria-live="polite"></div>
+              <div class="orch-next-action" id="orch-next-action"></div>
+              <div class="orch-workflow-actions" id="orch-workflow-actions"></div>
+              <button type="button" class="orch-advanced-toggle" id="orch-advanced-toggle" aria-expanded="false" aria-controls="orch-advanced">Inspect Workflow Details</button>
+            </div>
+
+            <div class="orch-advanced" id="orch-advanced" hidden>
+              <section class="orch-block" aria-labelledby="orch-steps-title">
+                <h4 id="orch-steps-title">Step Execution (DAG linearizado — sin canvas interactivo en móvil)</h4>
+                <div id="orch-step-graph" class="orch-step-accordion" role="list" aria-label="Pasos del workflow"></div>
+              </section>
+
+              <section class="orch-block" aria-labelledby="orch-timeline-title">
+                <h4 id="orch-timeline-title">Timeline de Orquestación</h4>
+                <div id="orch-timeline" class="orch-timeline" role="feed" aria-live="polite" aria-busy="false" aria-label="Eventos del workflow"></div>
+              </section>
+
+              <section class="orch-block" aria-labelledby="orch-agents-title">
+                <h4 id="orch-agents-title">Asignación de Agentes</h4>
+                <div id="orch-agents" class="orch-agent-grid" role="list" aria-label="Agentes asignados"></div>
+              </section>
+
+              <section class="orch-block" aria-labelledby="orch-routing-title">
+                <h4 id="orch-routing-title">Free-First Routing Cascade</h4>
+                <div id="orch-routing" class="orch-routing-cascade" role="list" aria-label="Cascada de ruteo Free-First"></div>
+              </section>
+
+              <section class="orch-block" aria-labelledby="orch-protected-title">
+                <h4 id="orch-protected-title">Recursos Protegidos</h4>
+                <div id="orch-protected" class="orch-protected-panel"></div>
+              </section>
+
+              <section class="orch-block" aria-labelledby="orch-validation-title">
+                <h4 id="orch-validation-title">Validación Independiente</h4>
+                <div id="orch-validation" class="orch-validation-panel" role="list" aria-label="Resúmenes de validación"></div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <p class="panel-note">Orquestación local, mock-first. MESSAGE != COMMAND: los mensajes generan StructuredIntent, nunca comandos de shell. Sin ejecución real, sin privilegios de host, sin acceso a recursos protegidos (DEFAULT_DENY).</p>
+      </section>
+
     </div>
   </main>
 </div>
@@ -295,6 +1811,11 @@
     <button class="icon-button" type="button" id="settings-close" aria-label="Cerrar configuración"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
   </header>
   <div id="appearance" aria-label="Configuración visual">
+    <fieldset><legend>Geometría del Vórtice</legend><div class="choices">
+      <button type="button" data-geometry-choice="compact" aria-pressed="false">Compacta</button>
+      <button type="button" data-geometry-choice="standard" aria-pressed="true">Estándar</button>
+      <button type="button" data-geometry-choice="expanded" aria-pressed="false">Expandida</button>
+    </div></fieldset>
     <fieldset><legend>Tema</legend><div class="choices"><button type="button" data-theme-choice="dark">Oscuro</button><button type="button" data-theme-choice="light">Claro</button><button type="button" data-theme-choice="auto">Automático</button></div></fieldset>
     <fieldset><legend>Acento</legend><div class="choices swatches">
       <button type="button" data-accent-choice="crimson"><i class="swatch sw-crimson"></i>Carmesí</button>
@@ -330,8 +1851,37 @@
   </div>
 </dialog>
 
+<dialog id="experiment-detail-modal" class="drawer" aria-labelledby="exp-detail-title">
+  <header class="drawer-head">
+    <div>
+      <p class="eyebrow">DETALLE DEL EXPERIMENTO</p>
+      <h2 id="exp-detail-title">Inspección de Metadatos</h2>
+    </div>
+    <button class="icon-button" type="button" id="exp-detail-close" aria-label="Cerrar detalle de experimento">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </header>
+  <div id="exp-detail-content" class="exp-detail-body"></div>
+</dialog>
+
 <template id="card"><section class="card"><h2></h2><div class="content"></div></section></template>
 <template id="kpi"><article class="kpi"><span class="kpi-label"></span><strong class="kpi-value"></strong><span class="kpi-meta"></span><svg class="spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><polyline class="spark-area"/><polyline class="spark-line"/></svg></article></template>
+<template id="bt-svg-proto">
+  <svg class="bt-candles" viewBox="0 0 1000 360" preserveAspectRatio="none">
+    <line class="p-grid" />
+    <text class="p-axis"></text>
+    <line class="p-wick" />
+    <rect class="p-body" />
+    <polygon class="p-entry" />
+    <polygon class="p-exit" />
+    <line class="p-cross" />
+    <rect class="p-hit" />
+  </svg>
+  <svg class="bt-series" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <polygon class="p-area" />
+    <polyline class="p-poly" />
+  </svg>
+</template>
 <script src="/panel-vortice/app.js"></script>
 </body>
 </html>

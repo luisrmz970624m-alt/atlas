@@ -4,7 +4,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, existsSync, readFileSync } from 'node:fs';
+import { mkdtempSync, existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -14,7 +14,17 @@ process.env.ATLAS_LABORATORIO = LAB;
 const { planear, ejecutar, revisar, planearConRevision } = await import('../src/ciclo.ts');
 const { extraerJSON } = await import('../src/modelo.ts');
 const { auditar, leerEventos } = await import('../src/registro.ts');
-const { rutaSegura, FueraDelLaboratorio } = await import('../src/herramientas.ts');
+const {
+  rutaSegura,
+  existeArchivoSeguro,
+  leerArchivoSeguro,
+  escribirArchivoSeguro,
+  agregarArchivoSeguro,
+  tamanoArchivoSeguro,
+  listarCarpetaSegura,
+  FueraDelLaboratorio,
+  HERRAMIENTAS,
+} = await import('../src/herramientas.ts');
 
 const ruta = () => join(mkdtempSync(join(tmpdir(), 'atlas-')), 'registro.jsonl');
 const falso = (json: string) => async () => json;
@@ -113,7 +123,66 @@ test('con la corrección, el plan que fallaba tres veces ahora termina', async (
 test('SALIR DEL LABORATORIO ES RECHAZADO', () => {
   assert.throws(() => rutaSegura('../../etc/passwd'), FueraDelLaboratorio);
   assert.throws(() => rutaSegura('/etc/passwd'), FueraDelLaboratorio);
+  assert.throws(() => rutaSegura(join(LAB, 'absoluto.md')), FueraDelLaboratorio);
   assert.ok(rutaSegura('sub/carpeta/x.md').startsWith(LAB));
+});
+
+test('un enlace simbólico a una carpeta externa no permite salir del laboratorio', () => {
+  const fuera = mkdtempSync(join(tmpdir(), 'atlas-outside-'));
+  symlinkSync(fuera, join(LAB, 'atajo-externo'), 'dir');
+  assert.throws(() => escribirArchivoSeguro('atajo-externo/secreto.txt', 'privado'), FueraDelLaboratorio);
+  assert.equal(existsSync(join(fuera, 'secreto.txt')), false);
+});
+
+test('escribir_archivo no escribe a través de un enlace simbólico externo', () => {
+  const fuera = mkdtempSync(join(tmpdir(), 'atlas-outside-'));
+  symlinkSync(fuera, join(LAB, 'atajo-escritura'), 'dir');
+  assert.throws(() => HERRAMIENTAS.escribir_archivo.ejecutar({ ruta: 'atajo-escritura/secreto.txt', contenido: 'privado' }), FueraDelLaboratorio);
+  assert.equal(existsSync(join(fuera, 'secreto.txt')), false);
+});
+
+test('listar_carpeta no revela metadatos de un enlace simbólico externo', () => {
+  const fuera = mkdtempSync(join(tmpdir(), 'atlas-outside-'));
+  writeFileSync(join(fuera, 'secreto.txt'), 'privado', 'utf8');
+  symlinkSync(join(fuera, 'secreto.txt'), join(LAB, 'atajo-listado'));
+  assert.throws(() => HERRAMIENTAS.listar_carpeta.ejecutar({ ruta: '.' }), FueraDelLaboratorio);
+});
+
+test('las operaciones seguras rechazan enlaces simbólicos internos', () => {
+  const destino = join(LAB, 'destino-interno');
+  mkdirSync(destino);
+  symlinkSync(destino, join(LAB, 'atajo-interno'), 'dir');
+  assert.equal(rutaSegura('atajo-interno/nota.txt'), join(LAB, 'atajo-interno', 'nota.txt'));
+  assert.throws(() => escribirArchivoSeguro('atajo-interno/nota.txt', 'no permitido'), FueraDelLaboratorio);
+});
+
+test('un enlace simbólico colgante se rechaza', () => {
+  symlinkSync(join(LAB, 'no-existe'), join(LAB, 'atajo-colgante'));
+  assert.throws(() => escribirArchivoSeguro('atajo-colgante/archivo.txt', 'no permitido'), FueraDelLaboratorio);
+});
+
+test('las operaciones de archivo se anclan al laboratorio y soportan directorios', () => {
+  const archivo = 'seguro/nivel/nota.txt';
+  assert.equal(existeArchivoSeguro('seguro/nivel/no-existe.txt'), false);
+  assert.equal(existeArchivoSeguro('seguro/no-existe/nota.txt'), false);
+
+  escribirArchivoSeguro(archivo, 'primera línea');
+  assert.equal(existeArchivoSeguro(archivo), true);
+  assert.equal(leerArchivoSeguro(archivo), 'primera línea');
+  assert.equal(agregarArchivoSeguro(archivo, 'segunda línea'), Buffer.byteLength('segunda línea'));
+  assert.equal(leerArchivoSeguro(archivo), 'primera línea\nsegunda línea');
+  assert.equal(tamanoArchivoSeguro(archivo), Buffer.byteLength('primera línea\nsegunda línea'));
+  assert.deepEqual(listarCarpetaSegura('seguro'), ['nivel']);
+  assert.deepEqual(listarCarpetaSegura('seguro/nivel'), ['nota.txt']);
+});
+
+test('las lecturas seguras rechazan symlinks de archivo', () => {
+  const original = join(LAB, 'lectura-original.txt');
+  const enlace = join(LAB, 'lectura-enlace.txt');
+  writeFileSync(original, 'privado', 'utf8');
+  symlinkSync(original, enlace);
+  assert.throws(() => leerArchivoSeguro('lectura-enlace.txt'), FueraDelLaboratorio);
+  assert.throws(() => existeArchivoSeguro('lectura-enlace.txt'), FueraDelLaboratorio);
 });
 
 test('un plan que intenta escapar del laboratorio falla al ejecutarse', async () => {

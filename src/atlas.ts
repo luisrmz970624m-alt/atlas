@@ -12,7 +12,7 @@ import { perseguir, describir } from './ciclo.ts';
 import { Memoria } from './memoria.ts';
 import { siguiente, progreso, registrarMaterial, registrarPractica, avanceDe, tema, TEMARIO } from './curso.ts';
 import { evaluar as evaluarRespuesta, enunciado, plantilla } from './evaluacion.ts';
-import { rutaSegura } from './herramientas.ts';
+import { existeArchivoSeguro, leerArchivoSeguro, escribirArchivoSeguro } from './herramientas.ts';
 import { generar, alGenerar, MODELO, MAX_SALIDA, ModeloNoDisponible, RespuestaIncompleta } from './modelo.ts';
 import { ejecutarCLIv08 } from './cli-v08.ts';
 import { ejecutarCLIUsuario } from './cli-usuario.ts';
@@ -193,23 +193,17 @@ switch (comando) {
       process.exit(1);
     }
 
-    const { existsSync, readFileSync, writeFileSync, mkdirSync } = await import('node:fs');
-    const { dirname } = await import('node:path');
-
-    const leccion = rutaSegura(a.archivos[0]!);
-    const texto = enunciado(readFileSync(leccion, 'utf8'));
+    const texto = enunciado(leerArchivoSeguro(a.archivos[0]!));
     if (!texto) {
       console.error(`La lección ${a.archivos[0]} no tiene sección "## Ejercicio".`);
       process.exit(1);
     }
 
     const relativa = `respuestas/${id}.ts`;
-    const destino = rutaSegura(relativa);
-    if (existsSync(destino)) {
+    if (existeArchivoSeguro(relativa)) {
       console.log(`Ya tienes tu respuesta en laboratorio/${relativa}. No la toco.`);
     } else {
-      mkdirSync(dirname(destino), { recursive: true });
-      writeFileSync(destino, plantilla(id!, texto), 'utf8');
+      escribirArchivoSeguro(relativa, plantilla(id!, texto));
       console.log(`📝 Plantilla creada: laboratorio/${relativa}`);
     }
     console.log(`   Escribe ahí tu solución y luego: npm run atlas -- evaluar ${id}`);

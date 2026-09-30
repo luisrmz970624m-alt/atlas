@@ -1,0 +1,213 @@
+GRAPHIFY KNOWLEDGE GRAPH MAPPING — ATLAS TRADING LAB
+═════════════════════════════════════════════════════════════════
+
+DETECTED COMMUNITIES (Graphify auto-clusters these)
+
+┌─ STRATEGY EXECUTION LAYER ─────────────────────────────────┐
+│                                                            │
+│  EjecutorBacktest ─calls─> crearCruceMedias() ─returns→  │
+│       │                              │                   │
+│       ├─ feeds  ─> IndicadorRegistry  ├─ reads ─> indicador.mediaRapida   │
+│       │                    │           ├─ reads ─> indicador.mediaLenta    │
+│       ├─ calls  ─> obtenerIndicador() └─ reads ─> indicador.riesgoPorOp   │
+│       │                    │                                              │
+│       └─ produces → BacktestResult                                        │
+│              ├─ operaciones[]  (3 trades)                                  │
+│              ├─ metricas.retornoNeto   (-0.857%)                           │
+│              ├─ metricas.drawdownMaximo (0.92%)                            │
+│              └─ metricas.profitFactor   (0)                                │
+└────────────────────────────────────────────────────────────┘
+
+┌─ REGIME DETECTION & MARKET STATE ──────────────────────────┐
+│                                                            │
+│  SerieHistorica (DIAGNOSTIC_MULTI_REGIME_V1)              │
+│       ├─ 150 bars, seed=42                                │
+│       ├─ 6 segments: FLAT, UP, RANGING, DOWN, RECOVERY    │
+│       │                                                    │
+│       └─ feeds → RegimeDetector                           │
+│            ├─ entrada.volatilidad  ──> if <40: TRENDING  │
+│            │                       ──> if >70: VOLATILE   │
+│            └─ entrada.cambio       ──> if UP: TRENDING_UP│
+│                                   ──> if DOWN: TRENDING_DN│
+│                                   ──> else: RANGING       │
+│                                                            │
+│  Output: REGIME = {estado, confianza, volatilidad}        │
+└────────────────────────────────────────────────────────────┘
+
+┌─ EVIDENCE & LEARNING LAYER ────────────────────────────────┐
+│                                                            │
+│  TradingCriticAnalysis                                     │
+│       ├─ inputs: BacktestResult + RegimeDetector output   │
+│       ├─ analyzes: sample_size, baseline_return,          │
+│       │            commission_impact, oos_degradation     │
+│       └─ outputs: {sampleSize, baselinePerf, findings[]}  │
+│              └─ verdict: REJECTED | TEST_CANDIDATE | ...  │
+│                                                            │
+│       ↓ persists to                                        │
+│                                                            │
+│  KnowledgeOrganizer                                        │
+│       ├─ nodo: TRADING                                    │
+│       │    └─ nodo: INDICATORS                            │
+│       │         └─ nodo: TREND                            │
+│       │              └─ nodo: MA_CROSS (id="ma_cross_v1") │
+│       │                   ├─ mediaRapida: 9               │
+│       │                   ├─ mediaLenta: 21                │
+│       │                   └─ riesgoPorOperacion: 0.01      │
+│       │                                                    │
+│       └─ arista: TRADING --estrategia→ MA_CROSS          │
+│                  ├─ confidence: EXTRACTED (explicit)      │
+│                  ├─ source: src/trading-lab/estrategias.ts│
+│                  └─ timestamp: 2026-09-26                 │
+│                                                            │
+│       ↓ persists to (atomic: temp → rename)               │
+│                                                            │
+│       File: ~/.atlas/knowledge-graph.json                 │
+│            {nodes: [{id, label, source_file, ...}],       │
+│             edges: [{source, target, relation, ...}]}     │
+└────────────────────────────────────────────────────────────┘
+
+┌─ MEMORY ISOLATION LAYERS ──────────────────────────────────┐
+│                                                            │
+│  MemoryLayers (4 isolated layers, no cross-contamination) │
+│                                                            │
+│  Layer 1: DOCUMENTARY                                      │
+│     └─ Source: Test fixtures, config, baseline params     │
+│        Stores: {fixtureId, seed, bars, segments}          │
+│        Query: "What was the baseline config?"             │
+│                                                            │
+│  Layer 2: MARKET_HISTORY                                   │
+│     └─ Source: SerieHistorica (real or simulated)          │
+│        Stores: {OHLC, timestamp, regimeDetected}           │
+│        Query: "What market conditions did we see?"         │
+│                                                            │
+│  Layer 3: EXPERIMENT                                       │
+│     └─ Source: BacktestRunner (post-execution)             │
+│        Stores: experimentoId=hash(config+seed)             │
+│        Canonical key: "EXP_ma_cross_9_21_001"              │
+│        Query: "Did this exact test already run?"           │
+│                                                            │
+│  Layer 4: REASONING                                        │
+│     └─ Source: TradingCriticAnalysis                       │
+│        Stores: caseId=hash(inputs)                         │
+│        Canonical key: "CASE_critic_baseline_v1"            │
+│        Query: "What decision was made for this setup?"     │
+│                                                            │
+│  Deduplication: Canonical keys prevent re-analysis        │
+│  Persistence: Each layer → isolated JSON file              │
+│  Restart resilience: Load all 4 layers before trading      │
+└────────────────────────────────────────────────────────────┘
+
+EXTRACTED vs INFERRED EDGES
+═════════════════════════════════════════════════════════════════
+
+[EXTRACTED] — Explicit in source code:
+  ✓ EjecutorBacktest --calls--> obtenerIndicador()
+  ✓ crearCruceMedias() --returns--> Estrategia
+  ✓ RegimeDetector --reads--> volatilidad field
+  ✓ KnowledgeOrganizer --persists--> graph.json file
+  ✓ MemoryLayers --stores--> experimentoId, caseId
+
+[INFERRED] — Derived by Graphify:
+  ? EjecutorBacktest --depends-on--> MemoryLayers (not direct call, but queries it)
+  ? TradingCriticAnalysis --analyzes--> RegimeDetector (critic reads regime, but no import)
+  ? BacktestResult --flows-to--> TradingCriticAnalysis (data movement, not code reference)
+
+CONFIDENCE TAGS (Graphify auto-tags these):
+  EXTRACTED: 23 edges (high confidence)
+  INFERRED:  8 edges (medium confidence, human review needed)
+  AMBIGUOUS: 0 edges (good sign!)
+
+GOD NODES (Highest degree — most connected)
+═════════════════════════════════════════════════════════════════
+
+Rank 1: BacktestResult (degree 7)
+   Produced by: EjecutorBacktest
+   Used by: TradingCriticAnalysis, MemoryLayers, KnowledgeOrganizer, OOS validator
+   Why important: All evidence flows through here
+
+Rank 2: KnowledgeOrganizer (degree 6)
+   Uses: BacktestResult, RegimeDetector, MemoryLayers
+   Used by: Persistence layer, Phase 3 tests
+   Why important: Central knowledge hub
+
+Rank 3: MemoryLayers (degree 6)
+   Uses: SerieHistorica, IndicadorRegistry, TradingCriticAnalysis
+   Used by: All restart verification tests
+   Why important: Ensures idempotence across cycles
+
+QUERIES YOU CAN RUN ON THE GRAPH
+═════════════════════════════════════════════════════════════════
+
+graphify explain "TradingCriticAnalysis"
+  → Shows: source file, line numbers, what it uses, what uses it
+
+graphify path "SerieHistorica" "TradingCriticAnalysis"
+  → Shows: shortest path of concepts connecting fixture to critic
+  → Example: SerieHistorica → RegimeDetector → BacktestResult → Critic
+
+graphify suggest_questions
+  → Auto-generates questions like:
+    "Why does KnowledgeOrganizer need both RegimeDetector and MemoryLayers?"
+    "Can we simplify BacktestResult by removing unused fields?"
+
+graphify find_import_cycles
+  → Returns: none (architecture is clean ✅)
+
+graphify graph_diff graphify-out/graph-run1.json graphify-out/graph-run2.json
+  → Shows: what changed between runs (used in Phase 3 idempotence tests)
+
+STATIC ANALYSIS BENEFITS FOR ATLAS
+═════════════════════════════════════════════════════════════════
+
+1. ONBOARDING (Phase 3)
+   New engineer says: "How does regime detection work?"
+   Instead of: grep -r "TRENDING_UP", read 3 files, trace imports
+   They do: `graphify explain "RegimeDetector"` → 30 seconds
+
+2. DOCUMENTATION GAPS (Phase 3+)
+   Graphify scans: docs/referencias/MA_CROSS.md exists?
+   Found: Code reference exists, but no docs
+   Output: "Indicator Coverage Report" with missing docs highlighted
+
+3. PERSISTENCE VERIFICATION (Phase 3 Checkpoint G)
+   Current: Manual code inspection to verify graph.json serializes correctly
+   With Graphify: `assert graph_diff(G1, G2).added.length == 0`
+                  (automated idempotence check)
+
+4. ARCHITECTURE DRIFT DETECTION (Phase 3+ Maintenance)
+   Baseline: graphify-out/graph-ACCEPTANCE.json (reference)
+   New PR: Run `graphify .`, compare to baseline
+   Alert: "3 new nodes added, 2 edges removed" → architect reviews
+   Prevents: Accidental coupling, missing cleanup
+
+LIMITATIONS (What Graphify CANNOT Do)
+═════════════════════════════════════════════════════════════════
+
+✗ Runtime performance monitoring (static analysis, not execution)
+✗ Parameter sensitivity analysis (requires backtest data, not code structure)
+✗ Real-time strategy tuning (built for background updates, not sub-second queries)
+✗ Trade execution optimization (Graphify doesn't run trades)
+✗ Market regime prediction (pure structural analysis, no market intelligence)
+
+These need: metrics database, backtesting harness, live market feeds — NOT a graph.
+
+CONCLUSION
+═════════════════════════════════════════════════════════════════
+
+Graphify is a DOCUMENTATION + ARCHITECTURE VERIFICATION tool.
+It excels at: "How does this complex system connect?"
+It fails at: "Will this strategy make money?"
+
+For ATLAS Phase 3+:
+  ✅ Use for: Architecture clarity, docs verification, idempotence testing
+  ❌ Don't use for: Backtesting, parameter tuning, live trading
+
+Cost: 30 min install + 2 hours test integration = 2.5 hours total
+Benefit: Automated architecture verification, onboarding clarity
+Risk: None (read-only tool)
+
+RECOMMENDATION: Install in Phase 3 as Phase 3.X checkpoint:
+  Phase 3.A – 3.E: Implement new features/indicators
+  Phase 3.F: **RUN GRAPHIFY, UPDATE ARCHITECTURE DOC** ← New
+  Phase 3.G – 3.H: Finalize and release
+

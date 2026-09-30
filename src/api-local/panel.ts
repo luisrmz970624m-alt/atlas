@@ -7,6 +7,39 @@ import { EstadoPanelAtlas } from '../panel/contratos.ts';
 import { crearEmpresa } from '../empresa-simulator/empresa.ts';
 import { MemoriaEmpresarial } from '../empresa-simulator/memoria.ts';
 import { SimulationScheduler } from '../simulaciones/orquestador.ts';
+import { catalogoBacktestPanel, ejecutarBacktestPanel } from '../trading-lab/panel-backtest.ts';
+import { RepositorioExperimentos } from '../trading-lab/experimentos.ts';
+import { EURUSD_H1_BASELINE_CONFIG, loadAndMapCSV } from '../trading-lab/historical-baseline.ts';
+import { KnowledgeGraphEngine } from '../trading-lab/knowledge-graph.ts';
+import { MemoryLayers } from '../trading-lab/memory-layers.ts';
+import { TradingReasoningEngine } from '../trading-lab/trading-reasoning.ts';
+import { CognitiveReadApi } from './cognitivo.ts';
+
+let historicalCache: unknown = null;
+function obtenerDatosHistoricos() {
+  if (historicalCache) return historicalCache;
+  const cfg = EURUSD_H1_BASELINE_CONFIG;
+  const todasVelas = loadAndMapCSV(cfg.csvPath);
+  const boundedCandles = todasVelas.slice(-120).map((v) => ({
+    fecha: v.fecha,
+    apertura: v.apertura,
+    maximo: v.maximo,
+    minimo: v.minimo,
+    cierre: v.cierre
+  }));
+  historicalCache = {
+    datasetId: 'EURUSD_H1_DUKASCOPY_2021-2026',
+    simbolo: 'EURUSD',
+    intervalo: 'H1',
+    origen: cfg.source,
+    sha256: cfg.expectedSHA256,
+    totalVelas: todasVelas.length,
+    desde: todasVelas[0]?.fecha ?? '',
+    hasta: todasVelas.at(-1)?.fecha ?? '',
+    velas: boundedCandles
+  };
+  return historicalCache;
+}
 
 export const PANEL_HOST = '127.0.0.1';
 export const PANEL_PUERTO_DEFAULT = 4317;
@@ -37,9 +70,15 @@ function empresaDemo() {
 export async function iniciarPanel(config: ConfigPanel = configPanel()): Promise<PanelEnMarcha> {
   const memoria = new MemoriaEmpresarial();
   const estado = new EstadoPanelAtlas(empresaDemo(), new SimulationScheduler({ maxConcurrentWorkers: 2, maxTradingWorkers: 1, maxBusinessWorkers: 1 }), memoria);
+  const graph = new KnowledgeGraphEngine();
+  const memoryLayers = new MemoryLayers();
+  const reasoning = new TradingReasoningEngine();
+  reasoning.conectarRetrievalCognitivo(graph, memoryLayers);
+  const cognitivo = new CognitiveReadApi({ graph, memory: memoryLayers, reasoning });
+  const repoExperimentos = new RepositorioExperimentos();
   let api: AtlasLocalApi;
   try {
-    api = new AtlasLocalApi({ dashboard: () => estado.obtener() }, { host: config.host, port: config.port });
+    api = new AtlasLocalApi({ dashboard: () => estado.obtener(), cognitive: (path, query) => cognitivo.handle(path, query), backtestCatalog: () => catalogoBacktestPanel(false), backtestRun: ejecutarBacktestPanel, experiments: () => repoExperimentos.listarExperimentos(), tradingExperiments: () => repoExperimentos.listarExperimentos(), historicalCandles: () => obtenerDatosHistoricos() }, { host: config.host, port: config.port });
     await api.start();
   } catch (e) {
     memoria.cerrar();

@@ -1,6 +1,6 @@
 /** Contrato deliberadamente de solo lectura entre Atlas y el bridge privado. */
 export interface EstadoMT5 { conectado: boolean; terminal: 'disponible' | 'desconectado'; servidor: string | null; }
-export interface CuentaMT5 { tipo: 'DEMO'; idSeguro: string; moneda: string; apalancamiento: number; }
+export interface CuentaMT5 { tipo: 'DEMO' | 'REAL' | 'DEMO_CENTS' | 'DEMO_FIXED'; idSeguro: string; moneda: string; apalancamiento: number; }
 export interface SimboloMT5 { nombre: string; digitos: number; }
 export interface TickMT5 { simbolo: string; fecha: string; bid: number; ask: number; }
 export interface VelaMT5 { fecha: string; apertura: number; maximo: number; minimo: number; cierre: number; volumen: number; }

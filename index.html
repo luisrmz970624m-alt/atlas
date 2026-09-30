@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden;font-family:'Rajdhani',sans-serif;color:#00f0ff;height:100vh;width:100vw}
+canvas{position:fixed;top:0;left:0}
+#bg{z-index:0}#core{z-index:1}
+.hud{position:fixed;top:0;left:0;width:100%;height:100%;z-index:10;pointer-events:none}
+.hud *{pointer-events:auto}
+.top-bar{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;justify-content:space-between;padding:14px 28px;height:60px;background:linear-gradient(180deg,rgba(0,0,0,0.88) 0%,rgba(0,0,0,0.3) 60%,transparent 100%)}
+.logo{display:flex;align-items:center;gap:12px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:22px;letter-spacing:14px;color:#00f0ff;text-shadow:0 0 20px rgba(0,240,255,0.6),0 0 40px rgba(0,240,255,0.2)}
+.logo-icon svg{width:38px;height:38px}
+.nav-links{display:flex;align-items:center;gap:10px;font-family:'Rajdhani',sans-serif;font-weight:500;font-size:13px;letter-spacing:4px}
+.nav-links a{color:rgba(255,255,255,0.55);text-decoration:none;transition:all 0.3s}
+.nav-links a:hover{color:#00f0ff;text-shadow:0 0 12px #00f0ff}
+.nav-sep{color:rgba(255,255,255,0.2);margin:0 8px;font-size:8px}
+.status-bar{display:flex;align-items:center;gap:16px;font-size:13px;letter-spacing:2px}
+.online-indicator{display:flex;align-items:center;gap:8px}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#00ff66;box-shadow:0 0 6px #00ff66,0 0 14px #00ff66;animation:pd 2s ease-in-out infinite}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.85)}}
+.online-text{color:#00ff66;font-weight:600}
+.globe-icon{color:rgba(255,255,255,0.4);display:flex}
+.clock{color:rgba(255,255,255,0.65);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:1.5px}
+.win-controls{display:flex;gap:18px;margin-left:16px}
+.win-controls span{color:rgba(255,255,255,0.25);font-size:16px;cursor:pointer}
+.win-controls span:hover{color:rgba(255,255,255,0.7)}
+.corner{position:fixed;width:50px;height:50px;z-index:20;pointer-events:none}
+.corner::before,.corner::after{content:'';position:absolute;background:#00f0ff;box-shadow:0 0 6px #00f0ff,0 0 15px rgba(0,240,255,0.4)}
+.c-tl{top:8px;left:8px}.c-tl::before{top:0;left:0;width:28px;height:2px}.c-tl::after{top:0;left:0;width:2px;height:28px}
+.c-tr{top:8px;right:8px}.c-tr::before{top:0;right:0;width:28px;height:2px}.c-tr::after{top:0;right:0;width:2px;height:28px}
+.c-bl{bottom:8px;left:8px}.c-bl::before{bottom:0;left:0;width:28px;height:2px}.c-bl::after{bottom:0;left:0;width:2px;height:28px}
+.c-br{bottom:8px;right:8px}.c-br::before{bottom:0;right:0;width:28px;height:2px}.c-br::after{bottom:0;right:0;width:2px;height:28px}
+.side-deco{position:fixed;z-index:20;pointer-events:none;display:flex;flex-direction:column;gap:10px}
+.side-deco.left{left:6px;top:25%}.side-deco.right{right:6px;top:28%}
+.side-deco i{display:block;width:4px;height:4px;border-radius:50%;background:#00f0ff;opacity:0.4;box-shadow:0 0 3px #00f0ff}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<canvas id="core"></canvas>
+<div class="hud">
+  <div class="top-bar">
+    <div class="logo">
+      <div class="logo-icon"><svg viewBox="0 0 50 50" fill="none"><path d="M25 4 L45 42 L5 42 Z" stroke="#00f0ff" stroke-width="1.5" fill="none" opacity="0.9"/><circle cx="25" cy="28" r="8" stroke="#00f0ff" stroke-width="1" fill="none" opacity="0.7"/><circle cx="25" cy="28" r="3" fill="#00f0ff" opacity="0.8"/></svg></div>
+      ATLAS
+    </div>
+    <div class="nav-links">
+      <a href="#">KNOWLEDGE</a><span class="nav-sep">•</span>
+      <a href="#">SIGNALS</a><span class="nav-sep">•</span>
+      <a href="#">OPPORTUNITIES</a>
+    </div>
+    <div class="status-bar">
+      <div class="online-indicator"><div class="online-dot"></div><span class="online-text">ONLINE</span></div>
+      <span class="globe-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c2.5 3.5 4 6.5 4 10s-1.5 6.5-4 10c-2.5-3.5-4-6.5-4-10s1.5-6.5 4-10z"/></svg></span>
+      <span class="clock" id="clock"></span>
+      <div class="win-controls"><span>—</span><span>☐</span><span>✕</span></div>
+    </div>
+  </div>
+  <div class="corner c-tl"></div><div class="corner c-tr"></div><div class="corner c-bl"></div><div class="corner c-br"></div>
+  <div class="side-deco left"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="side-deco right"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</div>
+<script>
+!function tick(){const d=new Date(),M=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];document.getElementById('clock').textContent=`${M[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2,'0')}, ${d.getUTCFullYear()}  ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}:${String(d.getUTCSeconds()).padStart(2,'0')} UTC`;setTimeout(tick,1000)}();
+
+const bgC=document.getElementById('bg'),coreC=document.getElementById('core');
+const bg=bgC.getContext('2d'),ctx=coreC.getContext('2d');
+let W,H;
+function resize(){W=innerWidth;H=innerHeight;bgC.width=coreC.width=W;bgC.height=coreC.height=H}
+addEventListener('resize',resize);resize();
+const TAU=Math.PI*2,PI=Math.PI;
+
+const stars=Array.from({length:600},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.5+0.2,ph:Math.random()*TAU,sp:Math.random()*0.003+0.001,h:Math.random()>0.5?255+Math.random()*45:185+Math.random()*35}));
+
+const nodes=Array.from({length:24},(_,i)=>({
+  theta:(TAU/24)*i+Math.random()*0.4,
+  phi:0.3+Math.random()*2.5,
+  r:0.82+Math.random()*0.5,
+  speed:(0.0006+Math.random()*0.003)*(Math.random()>0.5?1:-1),
+  sz:4+Math.random()*7,
+  rR:12+Math.random()*16,
+  hue:Math.random()>0.5?190:295,
+  pp:Math.random()*TAU
+}));
+
+const particles=Array.from({length:2000},()=>({
+  theta:Math.random()*TAU,
+  phi:Math.acos(2*Math.random()-1),
+  r:0.08+Math.random()*1.4,
+  sp:(0.0006+Math.random()*0.01)*(Math.random()>0.5?1:-1),
+  ps:(Math.random()-0.5)*0.001,
+  sz:0.3+Math.random()*2.8,
+  hue:Math.random()>0.4?185+Math.random()*30:270+Math.random()*45,
+  bri:58+Math.random()*42
+}));
+
+// ===== BACKGROUND =====
+function drawBg(t){
+  bg.fillStyle='#000';bg.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2;
+
+  // Rich nebula - MORE BLUE and intense
+  [[cx,cy,W*0.65,[[0,'rgba(15,5,90,0.4)'],[0.25,'rgba(10,0,65,0.28)'],[0.5,'rgba(5,10,45,0.12)'],[1,'transparent']]],
+   [cx-W*0.3,cy-H*0.05,W*0.5,[[0,'rgba(0,25,130,0.22)'],[0.4,'rgba(0,12,80,0.12)'],[1,'transparent']]],
+   [cx+W*0.3,cy+H*0.05,W*0.45,[[0,'rgba(60,0,120,0.18)'],[0.4,'rgba(30,0,60,0.1)'],[1,'transparent']]],
+   [cx-W*0.4,cy+H*0.2,W*0.4,[[0,'rgba(0,20,100,0.15)'],[1,'transparent']]],
+   [cx+W*0.4,cy-H*0.15,W*0.35,[[0,'rgba(50,0,100,0.12)'],[1,'transparent']]],
+   [cx,cy-H*0.3,W*0.35,[[0,'rgba(10,10,120,0.1)'],[1,'transparent']]],
+   [cx,cy+H*0.3,W*0.4,[[0,'rgba(40,0,80,0.08)'],[1,'transparent']]]
+  ].forEach(([x,y,r,stops])=>{
+    const g=bg.createRadialGradient(x,y,0,x,y,r);
+    stops.forEach(([s,c])=>g.addColorStop(s,c));
+    bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  });
+
+  for(const s of stars){
+    const a=0.3+0.7*(0.5+0.5*Math.sin(t*s.sp+s.ph));
+    bg.beginPath();bg.arc(s.x*W,s.y*H,s.r,0,TAU);
+    bg.fillStyle=`hsla(${s.h},75%,84%,${a})`;bg.fill();
+  }
+
+  // Grid floor with MANY glow points
+  const floorY=H*0.72;const cx2=cx;
+  bg.save();bg.strokeStyle='#00f0ff';
+  for(let i=0;i<=24;i++){
+    const f=i/24,y=floorY+(H-floorY)*f,sp=0.04+0.96*f;
+    bg.globalAlpha=0.04+0.16*f;bg.lineWidth=0.5;
+    bg.beginPath();bg.moveTo(cx2-W*0.6*sp,y);bg.lineTo(cx2+W*0.6*sp,y);bg.stroke();
+  }
+  for(let i=-16;i<=16;i++){
+    bg.globalAlpha=0.05;bg.beginPath();bg.moveTo(cx2,H*0.52);bg.lineTo(cx2+(i/16)*W*0.6,H);bg.stroke();
+  }
+  // Dense glow points on grid
+  bg.globalAlpha=1;
+  for(let i=0;i<=24;i++){
+    const f=i/24,y=floorY+(H-floorY)*f,sp=0.04+0.96*f;
+    for(let j=-8;j<=8;j++){
+      const x=cx2+(j/9)*W*0.6*sp;
+      const a=0.35*f*(0.5+0.5*Math.sin(i*0.6+j*0.4+t*0.001));
+      if(a<0.015)continue;
+      const isMag=(i+j)%3===0;
+      const col=isMag?[255,0,220]:[0,240,255];
+      bg.beginPath();bg.arc(x,y,isMag?2:1.5,0,TAU);
+      bg.fillStyle=`rgba(${col},${a})`;bg.fill();
+      bg.beginPath();bg.arc(x,y,isMag?8:6,0,TAU);
+      bg.fillStyle=`rgba(${col},${a*0.25})`;bg.fill();
+    }
+  }
+  bg.restore();
+}
+
+// ===== CORE =====
+function drawCore(t){
+  ctx.clearRect(0,0,W,H);
+  const cx=W/2,cy=H*0.43;
+  const R=Math.min(W,H)*0.38;
+  const F=0.88;
+
+  // ── MASSIVE AURA ──
+  [[R*5,[[0,'rgba(100,40,200,0.14)'],[0.2,'rgba(50,10,150,0.08)'],[0.5,'rgba(10,20,80,0.03)'],[1,'transparent']]],
+   [R*2.8,[[0,'rgba(180,80,255,0.2)'],[0.35,'rgba(100,20,200,0.08)'],[1,'transparent']]],
+   [R*1.8,[[0,'rgba(220,140,255,0.25)'],[0.4,'rgba(140,40,230,0.1)'],[1,'transparent']]]
+  ].forEach(([r,stops])=>{
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+    stops.forEach(([s,c])=>g.addColorStop(s,c));ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  });
+
+  // ── VERTICAL BEAM ──
+  const bH=H*0.5;const bp=0.8+0.2*Math.sin(t*0.003);
+  // Ultra wide
+  ctx.save();ctx.globalAlpha=0.12*bp;
+  let g=ctx.createLinearGradient(cx,cy-bH,cx,cy+bH);
+  g.addColorStop(0,'transparent');g.addColorStop(0.15,'rgba(160,30,255,0.2)');g.addColorStop(0.5,'rgba(255,130,255,0.65)');g.addColorStop(0.85,'rgba(160,30,255,0.2)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(cx-120,cy-bH,240,bH*2);ctx.restore();
+  // Wide
+  ctx.save();ctx.globalAlpha=0.22*bp;
+  g=ctx.createLinearGradient(cx,cy-bH,cx,cy+bH);
+  g.addColorStop(0,'transparent');g.addColorStop(0.2,'rgba(220,70,255,0.35)');g.addColorStop(0.5,'rgba(255,200,255,0.85)');g.addColorStop(0.8,'rgba(220,70,255,0.35)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(cx-40,cy-bH,80,bH*2);ctx.restore();
+  // Core beam
+  ctx.save();ctx.globalAlpha=0.6*bp;
+  g=ctx.createLinearGradient(cx,cy-bH,cx,cy+bH);
+  g.addColorStop(0,'transparent');g.addColorStop(0.2,'rgba(255,80,255,0.4)');g.addColorStop(0.5,'rgba(255,255,255,1)');g.addColorStop(0.8,'rgba(255,80,255,0.4)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(cx-6,cy-bH,12,bH*2);ctx.restore();
+  // Beam particles
+  for(let i=0;i<70;i++){
+    const yy=cy-bH+(bH*2)*(i/70);const d=Math.abs(yy-cy)/bH;
+    const a=(1-d)*0.7*(0.5+0.5*Math.sin(t*0.007+i*0.35));
+    ctx.globalAlpha=a;ctx.beginPath();ctx.arc(cx+(Math.random()-0.5)*4,yy,1.2+Math.random()*1.5,0,TAU);
+    ctx.fillStyle='#ff88ff';ctx.fill();
+  }
+
+  // ── TOP RINGS ──
+  ctx.save();
+  for(let i=0;i<8;i++){
+    const rr=R*0.1+i*R*0.15;const yy=cy-R*F-R*0.12-i*9;
+    const a=0.12-i*0.013;if(a<=0)continue;
+    ctx.globalAlpha=a+0.025*Math.sin(t*0.002+i);
+    ctx.strokeStyle=i%2===0?'#00e0ff':'#dd44ff';ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.ellipse(cx,yy,rr,rr*0.2,0,0,TAU);ctx.stroke();
+    ctx.globalAlpha=a*0.25;ctx.lineWidth=4;
+    ctx.beginPath();ctx.ellipse(cx,yy,rr,rr*0.2,0,0,TAU);ctx.stroke();
+  }
+  ctx.restore();
+
+  // ── SPHERE WIREFRAME ──
+  ctx.save();
+  // 28 Latitude rings with STRONG glow
+  for(let i=1;i<28;i++){
+    const phi=(i/28)*PI;
+    const sp=Math.sin(phi),cp=Math.cos(phi);
+    const y=cy+cp*R*F;const rx=sp*R;
+    if(rx<3)continue;
+    const eq=1-Math.abs(cp); // 1 at equator, 0 at poles
+    const alpha=0.2+0.5*eq+0.08*Math.sin(t*0.0025+i*0.4);
+    // Main ring
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle=`hsl(${186+i*2},100%,${62+eq*18}%)`;
+    ctx.lineWidth=0.7+1.2*eq;
+    ctx.beginPath();ctx.ellipse(cx,y,rx,Math.max(sp*R*0.05,1.5),0,0,TAU);ctx.stroke();
+    // Thick glow
+    ctx.globalAlpha=alpha*0.35;ctx.lineWidth=4+8*eq;
+    ctx.beginPath();ctx.ellipse(cx,y,rx,Math.max(sp*R*0.05,1.5),0,0,TAU);ctx.stroke();
+    // Extra glow for equatorial
+    if(eq>0.7){
+      ctx.globalAlpha=alpha*0.12;ctx.lineWidth=16;
+      ctx.beginPath();ctx.ellipse(cx,y,rx,Math.max(sp*R*0.05,1.5),0,0,TAU);ctx.stroke();
+    }
+  }
+
+  // 18 Longitude meridians
+  for(let i=0;i<18;i++){
+    const theta=(i/18)*PI+t*0.0004;
+    ctx.globalAlpha=0.12+0.1*Math.abs(Math.sin(theta));
+    ctx.strokeStyle=`hsl(${192+i*4},100%,60%)`;ctx.lineWidth=0.5;
+    ctx.beginPath();
+    for(let j=0;j<=60;j++){
+      const phi=(j/60)*PI;
+      const x=cx+Math.sin(phi)*Math.cos(theta)*R;
+      const y=cy+Math.cos(phi)*R*F;
+      j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+
+  // ULTRA DENSE internal mesh
+  const mesh=[];
+  for(let i=0;i<700;i++){
+    const theta=Math.random()*TAU;
+    const phi=Math.acos(2*Math.random()-1);
+    const sp=Math.sin(phi),cp=Math.cos(phi);
+    mesh.push({x:cx+sp*Math.cos(theta)*R*0.88,y:cy+cp*R*F*0.88,z:sp*Math.sin(theta)});
+  }
+  for(let i=0;i<mesh.length;i++){
+    const a=mesh[i];
+    for(let j=i+1;j<Math.min(i+14,mesh.length);j++){
+      const b=mesh[j];
+      const dx=a.x-b.x,dy=a.y-b.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<R*0.4){
+        const depth=0.5+(a.z+b.z)*0.25;
+        ctx.globalAlpha=0.15*depth*(1-dist/(R*0.4));
+        ctx.strokeStyle=depth>0.55?'#4499ff':'#8855dd';ctx.lineWidth=0.35;
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+      }
+    }
+  }
+  // Mesh glow dots
+  for(const p of mesh){
+    const d=0.5+p.z*0.5;const a=0.08+0.3*d;
+    ctx.globalAlpha=a;ctx.beginPath();ctx.arc(p.x,p.y,0.5+d,0,TAU);
+    ctx.fillStyle=d>0.5?'#77bbff':'#aa77ee';ctx.fill();
+    if(d>0.6&&Math.random()>0.5){ctx.globalAlpha=a*0.3;ctx.beginPath();ctx.arc(p.x,p.y,5,0,TAU);ctx.fill();}
+  }
+  ctx.restore();
+
+  // ── HELIX ENERGY BANDS — MORE MAGENTA, THICKER ──
+  ctx.save();
+  const helixes=[
+    {off:0,hue:188,w:2.5,a:0.4,spd:0.0012,amp:1.04,wraps:5.5,gw:10},
+    {off:PI,hue:300,w:2.2,a:0.35,spd:-0.001,amp:1.07,wraps:5,gw:9},
+    {off:PI*0.5,hue:320,w:1.8,a:0.28,spd:0.0015,amp:0.97,wraps:6,gw:8},
+    {off:PI*1.5,hue:205,w:1.4,a:0.2,spd:-0.0008,amp:1.1,wraps:4.5,gw:7},
+    {off:PI*0.25,hue:280,w:1.0,a:0.15,spd:0.002,amp:1.0,wraps:7,gw:5},
+    {off:PI*0.75,hue:195,w:0.8,a:0.12,spd:-0.0018,amp:1.03,wraps:6.5,gw:4},
+  ];
+  for(const h of helixes){
+    const pts=[];
+    for(let i=0;i<=130;i++){
+      const f=i/130,phi=f*PI;
+      const theta=f*PI*h.wraps*2+h.off+t*h.spd;
+      pts.push({x:cx+Math.sin(phi)*Math.cos(theta)*R*h.amp,y:cy+Math.cos(phi)*R*F,sp:Math.sin(phi)});
+    }
+    // Glow (widest)
+    ctx.globalAlpha=h.a*0.2;ctx.strokeStyle=`hsl(${h.hue},100%,60%)`;ctx.lineWidth=h.gw;
+    ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();
+    // Main line
+    ctx.globalAlpha=h.a;ctx.strokeStyle=`hsl(${h.hue},100%,68%)`;ctx.lineWidth=h.w;
+    ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));ctx.stroke();
+    // Bright dots with glow
+    ctx.fillStyle=`hsl(${h.hue},100%,85%)`;
+    for(let i=0;i<40;i++){
+      const p=pts[Math.floor(i/40*pts.length)];
+      const a=p.sp*0.7*(0.5+0.5*Math.sin(t*0.006+i*0.6));
+      ctx.globalAlpha=a;ctx.beginPath();ctx.arc(p.x,p.y,2.5,0,TAU);ctx.fill();
+      ctx.globalAlpha=a*0.4;ctx.beginPath();ctx.arc(p.x,p.y,7,0,TAU);ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // ── ORBIT ELLIPSES ──
+  ctx.save();
+  [[0,R*1.35,R*F*0.6,195,0.35,1.5],[0,R*1.7,R*F*0.78,290,0.12,0.6,1],
+   [-R*F*0.3,R*1.15,R*F*0.35,200,0.25,1.0],[R*F*0.3,R*1.15,R*F*0.35,200,0.25,1.0],
+   [-R*F*0.55,R*0.85,R*F*0.2,285,0.18,0.8],[R*F*0.55,R*0.85,R*F*0.2,285,0.18,0.8],
+   [0,R*2.0,R*F*0.95,195,0.06,0.4,1],[-R*F*0.15,R*1.5,R*F*0.65,220,0.08,0.5,1]
+  ].forEach(([yOff,rx,ry,hue,a,w,dash])=>{
+    ctx.globalAlpha=a+0.03*Math.sin(t*0.002);
+    ctx.strokeStyle=`hsl(${hue},100%,62%)`;ctx.lineWidth=w;
+    if(dash)ctx.setLineDash([4,6]);else ctx.setLineDash([]);
+    ctx.beginPath();ctx.ellipse(cx,cy+yOff,rx,ry,0,0,TAU);ctx.stroke();
+    if(a>0.18){ctx.globalAlpha=a*0.22;ctx.lineWidth=w*4;
+      ctx.beginPath();ctx.ellipse(cx,cy+yOff,rx,ry,0,0,TAU);ctx.stroke();}
+  });
+  ctx.setLineDash([]);ctx.restore();
+
+  // ── PARTICLES ──
+  ctx.save();
+  for(const p of particles){
+    p.theta+=p.sp;p.phi+=p.ps;
+    const sp=Math.sin(p.phi),cp=Math.cos(p.phi);
+    const x=cx+sp*Math.cos(p.theta)*R*p.r;
+    const y=cy+cp*R*F*p.r;
+    const z=sp*Math.sin(p.theta);
+    const depth=0.5+z*0.5;
+    const alpha=(0.1+0.9*depth)*(0.3+0.7*Math.sin(t*0.003+p.theta));
+    ctx.globalAlpha=Math.max(0,Math.min(1,alpha));
+    const sz=p.sz*(0.5+0.5*depth);
+    ctx.beginPath();ctx.arc(x,y,sz,0,TAU);
+    ctx.fillStyle=`hsl(${p.hue},100%,${p.bri}%)`;ctx.fill();
+    if(sz>1){ctx.globalAlpha=alpha*0.35;ctx.beginPath();ctx.arc(x,y,sz*4,0,TAU);ctx.fill();}
+  }
+  ctx.restore();
+
+  // ── NODES with connecting lines ──
+  const nodePos=[];
+  for(const n of nodes){
+    n.theta+=n.speed;
+    const sp=Math.sin(n.phi),cp=Math.cos(n.phi);
+    const x=cx+sp*Math.cos(n.theta)*R*n.r*1.2;
+    const y=cy+cp*R*F*n.r*1.2;
+    const z=sp*Math.sin(n.theta);
+    nodePos.push({x,y,z,n});
+  }
+  // Connecting lines between nearby nodes
+  ctx.save();ctx.lineWidth=0.4;
+  for(let i=0;i<nodePos.length;i++){
+    for(let j=i+1;j<nodePos.length;j++){
+      const a=nodePos[i],b=nodePos[j];
+      const dx=a.x-b.x,dy=a.y-b.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<R*0.8){
+        const depth=(0.5+a.z*0.25+b.z*0.25);
+        ctx.globalAlpha=0.06*depth*(1-dist/(R*0.8));
+        ctx.strokeStyle=a.n.hue>250?'#cc66ff':'#44bbff';
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
+  // Draw nodes
+  for(const{x,y,z,n}of nodePos){
+    const depth=0.5+z*0.5;
+    const alpha=0.3+0.7*depth;
+    const pulse=0.7+0.3*Math.sin(t*0.004+n.pp);
+    const sc=0.8+0.2*depth;
+
+    ctx.save();
+    // Outermost dotted
+    ctx.setLineDash([2,4]);ctx.globalAlpha=alpha*0.15*pulse;
+    ctx.strokeStyle=`hsl(${n.hue},100%,55%)`;ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.arc(x,y,n.rR*2.5*sc,0,TAU);ctx.stroke();ctx.setLineDash([]);
+    // Outer ring
+    ctx.globalAlpha=alpha*0.25*pulse;ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.arc(x,y,n.rR*1.6*sc,0,TAU);ctx.stroke();
+    // Inner ring
+    ctx.globalAlpha=alpha*0.5*pulse;ctx.strokeStyle=`hsl(${n.hue},100%,70%)`;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.arc(x,y,n.rR*sc,0,TAU);ctx.stroke();
+    // Ring glow
+    ctx.globalAlpha=alpha*0.15*pulse;ctx.lineWidth=5;
+    ctx.beginPath();ctx.arc(x,y,n.rR*sc,0,TAU);ctx.stroke();
+    // Center glow - BIGGER
+    ctx.globalAlpha=alpha*pulse;
+    const ng=ctx.createRadialGradient(x,y,0,x,y,n.sz*6);
+    ng.addColorStop(0,`hsla(${n.hue},100%,97%,1)`);
+    ng.addColorStop(0.1,`hsla(${n.hue},100%,85%,0.9)`);
+    ng.addColorStop(0.3,`hsla(${n.hue},100%,65%,0.4)`);
+    ng.addColorStop(0.6,`hsla(${n.hue},100%,50%,0.1)`);
+    ng.addColorStop(1,'transparent');
+    ctx.fillStyle=ng;ctx.beginPath();ctx.arc(x,y,n.sz*6,0,TAU);ctx.fill();
+    ctx.restore();
+  }
+
+  // ── INNER VORTEX RINGS (concentric rings inside the sphere core) ──
+  ctx.save();
+  for(let i=0;i<16;i++){
+    const f=i/16;
+    const rr=R*0.06+R*0.55*(1-f*f);
+    const ry2=rr*0.15*(0.5+0.5*f);
+    const pulse=0.6+0.4*Math.sin(t*0.004+i*0.55);
+    const a=(0.15+0.45*(1-f))*pulse;
+    const isMag=i%3===0;
+    ctx.globalAlpha=a;
+    ctx.strokeStyle=isMag?`hsl(295,100%,${70+f*15}%)`:`hsl(${188+i*3},100%,${65+f*20}%)`;
+    ctx.lineWidth=0.8+1.2*(1-f);
+    ctx.beginPath();ctx.ellipse(cx,cy,rr,Math.max(ry2,1),0,0,TAU);ctx.stroke();
+    // thick glow
+    ctx.globalAlpha=a*0.35;ctx.lineWidth=4+6*(1-f);
+    ctx.beginPath();ctx.ellipse(cx,cy,rr,Math.max(ry2,1),0,0,TAU);ctx.stroke();
+    // extra bright glow on larger rings
+    if(f<0.5){
+      ctx.globalAlpha=a*0.12;ctx.lineWidth=12+8*(1-f);
+      ctx.beginPath();ctx.ellipse(cx,cy,rr,Math.max(ry2,1),0,0,TAU);ctx.stroke();
+    }
+    // bright intersection dots on the rings
+    for(let j=0;j<6;j++){
+      const ang=(j/6)*TAU+t*0.001*(i%2===0?1:-1);
+      const dx=Math.cos(ang)*rr,dy=Math.sin(ang)*Math.max(ry2,1);
+      ctx.globalAlpha=a*0.6*(0.5+0.5*Math.sin(t*0.005+j+i));
+      ctx.beginPath();ctx.arc(cx+dx,cy+dy,1.5+1.5*(1-f),0,TAU);
+      ctx.fillStyle=isMag?'#ff77ff':'#77eeff';ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // ── BRIGHT CENTER ──
+  const cp2=0.85+0.15*Math.sin(t*0.004);
+  // Massive glow
+  g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.4);
+  g.addColorStop(0,'rgba(210,130,255,0.22)');g.addColorStop(0.2,'rgba(160,60,230,0.12)');
+  g.addColorStop(0.45,'rgba(80,20,160,0.04)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*1.4,0,TAU);ctx.fill();
+  // Mid
+  g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*0.7);
+  g.addColorStop(0,`rgba(255,230,255,${0.65*cp2})`);g.addColorStop(0.2,`rgba(220,150,255,${0.3*cp2})`);
+  g.addColorStop(0.5,`rgba(150,60,240,${0.1*cp2})`);g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*0.7,0,TAU);ctx.fill();
+  // Hot core - BIGGER and BRIGHTER
+  g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*0.45);
+  g.addColorStop(0,`rgba(255,255,255,${cp2})`);g.addColorStop(0.08,`rgba(255,250,255,${0.95*cp2})`);
+  g.addColorStop(0.2,`rgba(245,200,255,${0.55*cp2})`);g.addColorStop(0.45,`rgba(200,100,250,${0.2*cp2})`);
+  g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*0.45,0,TAU);ctx.fill();
+  // White core - INTENSE
+  g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*0.18);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(0.25,'rgba(255,250,255,0.95)');
+  g.addColorStop(0.5,'rgba(255,230,255,0.6)');
+  g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*0.18,0,TAU);ctx.fill();
+  // Extra bright white dot
+  g=ctx.createRadialGradient(cx,cy,0,cx,cy,R*0.06);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(cx,cy,R*0.06,0,TAU);ctx.fill();
+
+  // ── BOTTOM REFLECTION ──
+  ctx.save();
+  const botY=cy+R*F*1.3;
+  g=ctx.createRadialGradient(cx,botY,0,cx,botY,R*2.2);
+  g.addColorStop(0,'rgba(0,140,250,0.14)');g.addColorStop(0.25,'rgba(130,0,220,0.07)');
+  g.addColorStop(0.5,'rgba(0,60,130,0.03)');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g;ctx.fillRect(0,botY-R*0.6,W,R*1.8);
+
+  for(let i=0;i<12;i++){
+    const rr=R*0.12+i*R*0.18;const yy=botY+i*8;
+    const a=0.18-i*0.014;if(a<=0)continue;
+    ctx.globalAlpha=a+0.03*Math.sin(t*0.003+i*0.6);
+    ctx.strokeStyle=i%2===0?'#00e8ff':'#ee55ff';ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.ellipse(cx,yy,rr,rr*0.14,0,0,TAU);ctx.stroke();
+    ctx.globalAlpha=a*0.3;ctx.lineWidth=4;
+    ctx.beginPath();ctx.ellipse(cx,yy,rr,rr*0.14,0,0,TAU);ctx.stroke();
+  }
+  // Bright scattered points
+  for(let i=0;i<80;i++){
+    const ang=Math.random()*TAU;const ring=Math.floor(Math.random()*8);
+    const rr=R*0.12+ring*R*0.18;const yy=botY+ring*8;
+    const x=cx+Math.cos(ang)*rr;const y=yy+Math.sin(ang)*rr*0.14;
+    const a=0.25*(0.5+0.5*Math.sin(t*0.004+i*0.5));
+    ctx.globalAlpha=a;ctx.beginPath();ctx.arc(x,y,1.8,0,TAU);
+    ctx.fillStyle=ring%2===0?'#00f0ff':'#ff55ee';ctx.fill();
+    ctx.globalAlpha=a*0.35;ctx.beginPath();ctx.arc(x,y,6,0,TAU);ctx.fill();
+  }
+  ctx.restore();
+}
+
+let t=0;
+function animate(){t+=16;drawBg(t);drawCore(t);requestAnimationFrame(animate)}
+animate();
+</script>
+</body>
+</html>

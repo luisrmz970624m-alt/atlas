@@ -15,12 +15,84 @@
 // resuelve el ejercicio pero no compila, tampoco. Hacen falta las dos.
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { extraerJSON, type Generador } from './modelo.ts';
-import { rutaSegura, LABORATORIO } from './herramientas.ts';
+import { existeArchivoSeguro, leerArchivoSeguro, rutaSegura, LABORATORIO } from './herramientas.ts';
 
 /** Tiempo máximo que puede correr una respuesta. Un bucle infinito no cuelga a Atlas. */
 export const LIMITE_MS = 10_000;
+const LIMITE_SANDBOX_MS = 3_000;
+const RUTAS_RUNTIME = ['/usr', '/lib', '/lib64'];
+
+export interface DisponibilidadSandbox {
+  disponible: boolean;
+  motivo: string;
+}
+
+function argumentosSandbox(argumentosNode: string[]): string[] {
+  const raizLaboratorio = rutaSegura('.');
+  const archivo = argumentosNode.at(-1);
+  const args = [
+    '--unshare-all',
+    '--die-with-parent',
+    '--new-session',
+    '--ro-bind', '/usr', '/usr',
+    '--dir', '/runtime',
+    '--ro-bind', process.execPath, '/runtime/node',
+    '--dir', '/workspace',
+    '--bind', raizLaboratorio, '/workspace',
+  ];
+
+  for (const ruta of RUTAS_RUNTIME.slice(1)) {
+    if (existsSync(ruta)) args.push('--ro-bind', ruta, ruta);
+  }
+
+  args.push(
+    '--dev', '/dev',
+    '--proc', '/proc',
+    '--tmpfs', '/tmp',
+    '--chdir', '/workspace',
+    '--clearenv',
+    '--setenv', 'PATH', '/usr/bin:/bin',
+    '--setenv', 'HOME', '/workspace',
+    '--setenv', 'TMPDIR', '/tmp',
+    '--setenv', 'NO_COLOR', '1',
+    '--setenv', 'FORCE_COLOR', '0',
+    '--',
+    '/runtime/node',
+    ...argumentosNode.slice(0, -1),
+    archivo ?? '',
+  );
+
+  return args;
+}
+
+export function comprobarSandbox(): DisponibilidadSandbox {
+  if (process.platform !== 'linux') {
+    return { disponible: false, motivo: 'La ejecución de ejercicios requiere Linux y Bubblewrap.' };
+  }
+
+  const prueba = spawnSync('bwrap', argumentosSandbox(['-e', 'process.exit(0)']), {
+    timeout: LIMITE_SANDBOX_MS,
+    encoding: 'utf8',
+    maxBuffer: 16 * 1024,
+    env: { PATH: process.env.PATH ?? '/usr/bin:/bin' },
+  });
+
+  if (prueba.error) {
+    const detalle = (prueba.error as NodeJS.ErrnoException).code === 'ENOENT'
+      ? 'Bubblewrap no está instalado o no está disponible en PATH.'
+      : `No se pudo iniciar Bubblewrap: ${prueba.error.message}`;
+    return { disponible: false, motivo: detalle };
+  }
+  if (prueba.status !== 0) {
+    const detalle = (prueba.stderr || prueba.stdout || 'Bubblewrap rechazó la configuración de aislamiento.').trim();
+    return { disponible: false, motivo: `El sandbox de Bubblewrap no está disponible: ${detalle}` };
+  }
+
+  return { disponible: true, motivo: '' };
+}
 
 export interface Ejecucion {
   corrio: boolean;
@@ -49,55 +121,51 @@ export function enunciado(textoLeccion: string): string | null {
 }
 
 /**
- * Ejecuta la respuesta de Luis.
- *
- * Es SU código, en SU máquina, corriendo porque él lo pidió — no algo que Atlas
- * decidiera ejecutar por su cuenta. Aun así va con tope de tiempo y dentro del
- * laboratorio: un bucle infinito en un ejercicio no debe colgar nada.
+ * Ejecuta una respuesta dentro de un sandbox Linux de Bubblewrap.
  *
  * LÍMITES PRESENTES:
- * - Tope de tiempo: 10 segundos. Un bucle infinito no cuelga a Atlas.
- * - Cwd: laboratorio/. Eso sí lo bloquea.
- * - Variables de entorno: NO_COLOR y FORCE_COLOR activadas para salida predecible.
+ * - Red y espacios de procesos/nombres aislados mediante Bubblewrap.
+ * - Solo son visibles el runtime de Node en solo lectura y el laboratorio.
+ * - El laboratorio es el único montaje escribible; /tmp es efímero.
+ * - Variables de entorno limpiadas; se pasan solo valores no sensibles necesarios.
+ * - Tope de tiempo de 10 segundos para la evaluación.
  *
  * LÍMITES NO GARANTIZADOS:
- * - Red: en un sandbox completo no la tendrías. Aquí, el código puede usarla.
- * - Filesystem: el código puede hacer require('node:fs') y escribir afuera del
- *   laboratorio. Las herramientas de Atlas usan rutaSegura(), pero código
- *   arbitrario no tiene por qué.
- * - Memoria, CPU, procesos: en Linux sin cgroups del sistema no se pueden
- *   limitar desde user-space.
- *
- * Por eso es importante:
- * 1. Un tema no desbloquea sin que lo practiques (no lo ejecutes a la ligera).
- * 2. Lees la lección ANTES de escribir código.
- * 3. El código es SU responsabilidad, no la mía.
+ * - Bubblewrap no impone cuotas de memoria, CPU ni cantidad de procesos.
+ * - No es un sustituto de un sandbox administrado para código hostil.
  */
 export function ejecutar(rutaRelativa: string): Ejecucion {
   const destino = rutaSegura(rutaRelativa);
-  if (!existsSync(destino)) {
+  if (!existeArchivoSeguro(rutaRelativa)) {
     return { corrio: false, salida: '', error: `No existe ${rutaRelativa}`, ms: 0 };
   }
 
+  const sandbox = comprobarSandbox();
+  if (!sandbox.disponible) {
+    return { corrio: false, salida: '', error: sandbox.motivo, ms: 0 };
+  }
+
+  const raizLaboratorio = rutaSegura('.');
+  const rutaEnSandbox = join('/workspace', relative(raizLaboratorio, destino));
   const inicio = Date.now();
   const r = spawnSync(
-    process.execPath,
-    ['--experimental-strip-types', '--disable-warning=ExperimentalWarning', destino],
+    'bwrap',
+    argumentosSandbox(['--experimental-strip-types', '--disable-warning=ExperimentalWarning', rutaEnSandbox]),
     {
       cwd: LABORATORIO,
       timeout: LIMITE_MS,
       encoding: 'utf8',
       maxBuffer: 1024 * 256,
-      // Sin color: si la terminal de Luis exporta FORCE_COLOR, console.log
-      // envuelve los números en códigos de escape y la salida deja de ser
-      // comparable. Lo que aquí importa es el texto, no cómo se ve.
-      env: { ...process.env, NO_COLOR: '1', FORCE_COLOR: '0' },
+      env: { PATH: process.env.PATH ?? '/usr/bin:/bin' },
     },
   );
   const ms = Date.now() - inicio;
 
-  if (r.error && (r.error as NodeJS.ErrnoException).code === 'ETIMEDOUT') {
+  if (r.error instanceof Error && 'code' in r.error && String(r.error.code) === 'ETIMEDOUT') {
     return { corrio: false, salida: r.stdout ?? '', error: `Se pasó de ${LIMITE_MS / 1000} segundos. ¿Un bucle sin fin?`, ms };
+  }
+  if (r.error) {
+    return { corrio: false, salida: limpiar(r.stdout), error: `No se pudo ejecutar el sandbox: ${r.error.message}`, ms };
   }
 
   return {
@@ -175,21 +243,18 @@ export async function evaluar(
   rutaRespuesta: string,
   generar: Generador,
 ): Promise<Resultado> {
-  const leccion = rutaSegura(rutaLeccion);
-  const respuesta = rutaSegura(rutaRespuesta);
-
-  if (!existsSync(respuesta)) {
+  if (!existeArchivoSeguro(rutaRespuesta)) {
     return { aprobado: false, motivo: 'sin respuesta', ejecucion: null, revision: null,
       detalle: `No existe ${rutaRespuesta}. Escribe ahí tu solución.` };
   }
 
-  const textoEnunciado = existsSync(leccion) ? enunciado(readFileSync(leccion, 'utf8')) : null;
+  const textoEnunciado = existeArchivoSeguro(rutaLeccion) ? enunciado(leerArchivoSeguro(rutaLeccion)) : null;
   if (!textoEnunciado) {
     return { aprobado: false, motivo: 'sin enunciado', ejecucion: null, revision: null,
       detalle: `No encontré una sección "## Ejercicio" en ${rutaLeccion}.` };
   }
 
-  const texto = readFileSync(respuesta, 'utf8');
+  const texto = leerArchivoSeguro(rutaRespuesta);
   const esCodigo = /\.(ts|js|mjs)$/i.test(rutaRespuesta);
   const ejecucion = esCodigo ? ejecutar(rutaRespuesta) : null;
 
