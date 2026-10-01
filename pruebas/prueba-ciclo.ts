@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { Worker } from 'node:worker_threads';
 
 const LAB = mkdtempSync(join(tmpdir(), 'atlas-lab-'));
 process.env.ATLAS_LABORATORIO = LAB;
@@ -183,6 +184,80 @@ test('las lecturas seguras rechazan symlinks de archivo', () => {
   symlinkSync(original, enlace);
   assert.throws(() => leerArchivoSeguro('lectura-enlace.txt'), FueraDelLaboratorio);
   assert.throws(() => existeArchivoSeguro('lectura-enlace.txt'), FueraDelLaboratorio);
+});
+
+test('escribir no sigue symlinks sustituidos concurrentemente', async () => {
+  const rutaArchivo = join(LAB, 'carrera-escritura.txt');
+  const rutaRelativa = 'carrera-escritura.txt';
+  const archivoExterno = join(mkdtempSync(join(tmpdir(), 'atlas-outside-')), 'protegido.txt');
+  const sincronizacion = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT);
+  const compuerta = new Int32Array(sincronizacion);
+  writeFileSync(rutaArchivo, 'interior', 'utf8');
+  writeFileSync(archivoExterno, 'no tocar', 'utf8');
+
+  const worker = new Worker(`
+    const { parentPort, workerData } = require('node:worker_threads');
+    const { renameSync, symlinkSync, unlinkSync, writeFileSync } = require('node:fs');
+    const temporalRegular = workerData.ruta + '.regular';
+    const temporalSymlink = workerData.ruta + '.symlink';
+    writeFileSync(temporalRegular, 'interior', 'utf8');
+    symlinkSync(workerData.externo, temporalSymlink);
+    renameSync(temporalSymlink, workerData.ruta);
+    symlinkSync(workerData.externo, temporalSymlink);
+    parentPort.postMessage('listo');
+    Atomics.wait(new Int32Array(workerData.sincronizacion), 0, 0);
+    for (let i = 0; i < 20000; i++) {
+      renameSync(temporalRegular, workerData.ruta);
+      writeFileSync(temporalRegular, 'interior', 'utf8');
+      renameSync(temporalSymlink, workerData.ruta);
+      symlinkSync(workerData.externo, temporalSymlink);
+    }
+    unlinkSync(temporalRegular);
+    parentPort.postMessage('terminado');
+  `, {
+    eval: true,
+    workerData: { ruta: rutaArchivo, externo: archivoExterno, sincronizacion },
+  });
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      worker.once('error', reject);
+      worker.once('message', (mensaje) => {
+        if (mensaje === 'listo') resolve();
+        else reject(new Error(`Mensaje inesperado del proceso de prueba: ${String(mensaje)}`));
+      });
+    });
+
+    assert.throws(
+      () => escribirArchivoSeguro(rutaRelativa, 'no debe seguir el enlace'),
+      FueraDelLaboratorio,
+    );
+    Atomics.store(compuerta, 0, 1);
+    Atomics.notify(compuerta, 0);
+
+    for (let i = 0; i < 300; i++) {
+      try {
+        escribirArchivoSeguro(rutaRelativa, `contenido-${i}`);
+      } catch (error) {
+        if (!(error instanceof FueraDelLaboratorio)) throw error;
+      }
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      worker.once('error', reject);
+      worker.once('message', (mensaje) => {
+        if (mensaje === 'terminado') resolve();
+        else reject(new Error(`Mensaje inesperado del proceso de prueba: ${String(mensaje)}`));
+      });
+    });
+    assert.equal(readFileSync(archivoExterno, 'utf8'), 'no tocar');
+  } finally {
+    await worker.terminate();
+    if (existsSync(rutaArchivo)) {
+      const { unlinkSync } = await import('node:fs');
+      unlinkSync(rutaArchivo);
+    }
+  }
 });
 
 test('un plan que intenta escapar del laboratorio falla al ejecutarse', async () => {

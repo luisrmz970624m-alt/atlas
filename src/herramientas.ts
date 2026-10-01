@@ -11,13 +11,11 @@ import {
   closeSync,
   fstatSync,
   ftruncateSync,
-  lstatSync,
   mkdirSync,
   openSync,
   readFileSync,
   readSync,
   readdirSync,
-  realpathSync,
   writeFileSync,
 } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
@@ -92,6 +90,16 @@ function segmentosRelativos(propuesta: string): string[] {
 
 function abrirDirectorioLaboratorio(crear: boolean): DirectorioSeguro {
   return abrirDirectorioAbsoluto(LABORATORIO, crear);
+}
+
+/** Mantiene abierto el descriptor raíz mientras termina una operación dependiente del laboratorio. */
+export function conLaboratorioAnclado<T>(operacion: (descriptor: number) => T): T {
+  const directorio = abrirDirectorioLaboratorio(false);
+  try {
+    return operacion(directorio.fd);
+  } finally {
+    closeSync(directorio.fd);
+  }
 }
 
 function abrirPadre(propuesta: string, crear: boolean): { padre: DirectorioSeguro; nombre: string } {

@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:net';
-import { existsSync, mkdtempSync, unlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -13,6 +13,7 @@ const LAB = mkdtempSync(join(tmpdir(), 'atlas-eval-'));
 process.env.ATLAS_LABORATORIO = LAB;
 
 const { enunciado, ejecutar, revisar, evaluar, plantilla, LIMITE_MS, comprobarSandbox } = await import('../src/evaluacion.ts');
+const { FueraDelLaboratorio } = await import('../src/herramientas.ts');
 const sandboxDisponible = comprobarSandbox().disponible;
 const pruebaConSandbox = (nombre: string, fn: () => void | Promise<void>) => test(nombre, { skip: !sandboxDisponible }, fn);
 
@@ -61,6 +62,26 @@ pruebaConSandbox('UN CÓDIGO QUE CORRE SE REPORTA COMO QUE CORRE', () => {
   assert.match(r.salida, /hola 2/);
 });
 
+pruebaConSandbox('la ejecución segura conserva imports relativos del laboratorio', () => {
+  escribir('helper.ts', 'export const valor: number = 12;\n');
+  const r = ejecutar(escribir('importa.ts', 'import { valor } from "./helper.ts";\nconsole.log(valor);\n'));
+  assert.equal(r.corrio, true, r.error);
+  assert.match(r.salida, /12/);
+});
+
+pruebaConSandbox('la ejecución rechaza una respuesta que es symlink', () => {
+  const fuera = join(tmpdir(), `atlas-eval-outside-${randomUUID()}.ts`);
+  const enlace = join(LAB, 'enlace-respuesta.ts');
+  writeFileSync(fuera, 'console.log("NO DEBE EJECUTARSE");', 'utf8');
+  symlinkSync(fuera, enlace);
+  try {
+    assert.throws(() => ejecutar('enlace-respuesta.ts'), FueraDelLaboratorio);
+  } finally {
+    unlinkSync(enlace);
+    unlinkSync(fuera);
+  }
+});
+
 pruebaConSandbox('UN CÓDIGO QUE REVIENTA SE REPORTA COMO QUE REVIENTA', () => {
   const r = ejecutar(escribir('malo.ts', 'throw new Error("me rompí");\n'));
   assert.equal(r.corrio, false);
@@ -77,6 +98,44 @@ pruebaConSandbox('UN BUCLE SIN FIN SE CORTA, NO CUELGA ATLAS', () => {
   assert.equal(r.corrio, false);
   assert.match(r.error, /segundos/);
   assert.ok(r.ms < LIMITE_MS + 5000, `tardó ${r.ms}ms`);
+});
+
+pruebaConSandbox('la ejecución impone el límite de memoria', () => {
+  const codigo = 'Buffer.alloc(640 * 1024 * 1024, 0x41);\nconsole.log("MEMORY_LIMIT_NOT_ENFORCED");';
+  const r = ejecutar(escribir('memoria.ts', codigo));
+  assert.equal(r.corrio, false, 'una asignación superior a 512 MiB no debe completarse');
+  assert.doesNotMatch(r.salida, /MEMORY_LIMIT_NOT_ENFORCED/);
+  assert.ok(r.error, 'el rechazo por el límite debe reportarse claramente');
+});
+
+pruebaConSandbox('la ejecución impone el límite de tareas', () => {
+  const codigo = `
+    import { spawn } from 'node:child_process';
+    const procesos = [];
+    let alcanzado = false;
+    const detener = () => procesos.forEach((proceso) => proceso.kill('SIGKILL'));
+    for (let i = 0; i < 64; i++) {
+      const proceso = spawn('/usr/bin/sleep', ['5'], { stdio: 'ignore' });
+      procesos.push(proceso);
+      proceso.once('error', (error) => {
+        if (error.code === 'EAGAIN' && !alcanzado) {
+          alcanzado = true;
+          console.log('TASK_LIMIT_REACHED');
+          detener();
+        }
+      });
+    }
+    setTimeout(() => {
+      if (!alcanzado) {
+        console.log('TASK_LIMIT_NOT_ENFORCED');
+        process.exitCode = 1;
+      }
+      detener();
+    }, 2500);
+  `;
+  const r = ejecutar(escribir('tareas.ts', codigo));
+  assert.match(r.salida, /TASK_LIMIT_REACHED/);
+  assert.doesNotMatch(r.salida, /TASK_LIMIT_NOT_ENFORCED/);
 });
 
 pruebaConSandbox('el código ejecutado no puede escribir fuera del laboratorio', () => {

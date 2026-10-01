@@ -203,6 +203,7 @@ pendiente → material → practicado → dominado
 1. **Ejecución (hecho duro):**
    - Ejecuta tu código con `spawnSync`
    - Tope: 10 segundos
+   - En Linux, `systemd-run` aplica cuotas cgroup de 512 MiB de memoria sin swap, 100 % de CPU y 32 tareas
    - Si revienta, no aprueba (punto)
 
 2. **Revisión del modelo (opinión):**
@@ -286,11 +287,10 @@ Los motores simulados (ej. minería en `src/mineria.ts`) deben poder aceptar una
 - Registro íntegro (detectable si alguien lo altera)
 - Supervisor bloquea lo rojo
 - Las herramientas de archivos rechazan rutas y enlaces simbólicos que resuelvan fuera de `laboratorio/`
-- En Linux, la evaluación de ejercicios usa Bubblewrap, aísla la red y deja escribible solo el laboratorio; si el sandbox no está disponible, bloquea la ejecución
+- En Linux, la evaluación de ejercicios usa Bubblewrap, aísla la red y deja escribible solo el laboratorio; `systemd-run` limita memoria a 512 MiB sin swap, CPU a 100 % y tareas a 32; si cualquiera no está disponible, bloquea la ejecución
 - Hecho duro (ejecución) gana sobre opinión
 
 **Lo que NO garantiza:**
-- Cuotas de memoria, CPU o cantidad de procesos para ejercicios ejecutados
 - Resistencia ante vulnerabilidades del kernel o de Bubblewrap
 - Disponibilidad de Bubblewrap fuera de Linux
 - Protección contra cambios concurrentes de enlaces entre la validación y la operación de archivo

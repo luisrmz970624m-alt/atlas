@@ -16,22 +16,41 @@
 
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { join, relative } from 'node:path';
 import { extraerJSON, type Generador } from './modelo.ts';
-import { existeArchivoSeguro, leerArchivoSeguro, rutaSegura, LABORATORIO } from './herramientas.ts';
+import {
+  conLaboratorioAnclado,
+  existeArchivoSeguro,
+  leerArchivoSeguro,
+  rutaSegura,
+  LABORATORIO,
+} from './herramientas.ts';
 
 /** Tiempo máximo que puede correr una respuesta. Un bucle infinito no cuelga a Atlas. */
 export const LIMITE_MS = 10_000;
 const LIMITE_SANDBOX_MS = 3_000;
 const RUTAS_RUNTIME = ['/usr', '/lib', '/lib64'];
+const PROPIEDADES_CGROUP = [
+  '--property=MemoryMax=512M',
+  '--property=MemorySwapMax=0',
+  '--property=CPUQuota=100%',
+  '--property=TasksMax=32',
+];
+
+function entornoSystemd(): NodeJS.ProcessEnv {
+  const entorno: NodeJS.ProcessEnv = { PATH: process.env.PATH ?? '/usr/bin:/bin' };
+  for (const nombre of ['XDG_RUNTIME_DIR', 'DBUS_SESSION_BUS_ADDRESS'] as const) {
+    const valor = process.env[nombre];
+    if (valor) entorno[nombre] = valor;
+  }
+  return entorno;
+}
 
 export interface DisponibilidadSandbox {
   disponible: boolean;
   motivo: string;
 }
 
-function argumentosSandbox(argumentosNode: string[]): string[] {
-  const raizLaboratorio = rutaSegura('.');
+function argumentosSandbox(argumentosNode: string[], raizLaboratorio = rutaSegura('.')): string[] {
   const archivo = argumentosNode.at(-1);
   const args = [
     '--unshare-all',
@@ -70,25 +89,33 @@ function argumentosSandbox(argumentosNode: string[]): string[] {
 
 export function comprobarSandbox(): DisponibilidadSandbox {
   if (process.platform !== 'linux') {
-    return { disponible: false, motivo: 'La ejecución de ejercicios requiere Linux y Bubblewrap.' };
+    return { disponible: false, motivo: 'La ejecución de ejercicios requiere Linux, Bubblewrap y límites cgroup.' };
   }
 
-  const prueba = spawnSync('bwrap', argumentosSandbox(['-e', 'process.exit(0)']), {
+  const prueba = spawnSync('systemd-run', [
+    '--user',
+    '--scope',
+    '--quiet',
+    ...PROPIEDADES_CGROUP,
+    '--',
+    'bwrap',
+    ...argumentosSandbox(['-e', 'process.exit(0)']),
+  ], {
     timeout: LIMITE_SANDBOX_MS,
     encoding: 'utf8',
     maxBuffer: 16 * 1024,
-    env: { PATH: process.env.PATH ?? '/usr/bin:/bin' },
+    env: entornoSystemd(),
   });
 
   if (prueba.error) {
     const detalle = (prueba.error as NodeJS.ErrnoException).code === 'ENOENT'
-      ? 'Bubblewrap no está instalado o no está disponible en PATH.'
-      : `No se pudo iniciar Bubblewrap: ${prueba.error.message}`;
+      ? 'systemd-run o Bubblewrap no está instalado o no está disponible en PATH.'
+      : `No se pudo iniciar la ejecución limitada: ${prueba.error.message}`;
     return { disponible: false, motivo: detalle };
   }
   if (prueba.status !== 0) {
-    const detalle = (prueba.stderr || prueba.stdout || 'Bubblewrap rechazó la configuración de aislamiento.').trim();
-    return { disponible: false, motivo: `El sandbox de Bubblewrap no está disponible: ${detalle}` };
+    const detalle = (prueba.stderr || prueba.stdout || 'systemd-run o Bubblewrap rechazó la configuración.').trim();
+    return { disponible: false, motivo: `El sandbox con límites de recursos no está disponible: ${detalle}` };
   }
 
   return { disponible: true, motivo: '' };
@@ -127,17 +154,22 @@ export function enunciado(textoLeccion: string): string | null {
  * - Red y espacios de procesos/nombres aislados mediante Bubblewrap.
  * - Solo son visibles el runtime de Node en solo lectura y el laboratorio.
  * - El laboratorio es el único montaje escribible; /tmp es efímero.
- * - Variables de entorno limpiadas; se pasan solo valores no sensibles necesarios.
+ * - Variables de entorno limpiadas; solo el cliente systemd recibe la conexión local al gestor.
  * - Tope de tiempo de 10 segundos para la evaluación.
+ * - Cgroup de systemd: 512 MiB de memoria sin swap, 100 % de CPU y 32 tareas.
  *
  * LÍMITES NO GARANTIZADOS:
- * - Bubblewrap no impone cuotas de memoria, CPU ni cantidad de procesos.
  * - No es un sustituto de un sandbox administrado para código hostil.
  */
 export function ejecutar(rutaRelativa: string): Ejecucion {
-  const destino = rutaSegura(rutaRelativa);
-  if (!existeArchivoSeguro(rutaRelativa)) {
-    return { corrio: false, salida: '', error: `No existe ${rutaRelativa}`, ms: 0 };
+  let codigo: string;
+  try {
+    codigo = leerArchivoSeguro(rutaRelativa);
+  } catch (error) {
+    if (error instanceof Error && 'code' in error && String(error.code) === 'ENOENT') {
+      return { corrio: false, salida: '', error: `No existe ${rutaRelativa}`, ms: 0 };
+    }
+    throw error;
   }
 
   const sandbox = comprobarSandbox();
@@ -145,20 +177,31 @@ export function ejecutar(rutaRelativa: string): Ejecucion {
     return { corrio: false, salida: '', error: sandbox.motivo, ms: 0 };
   }
 
-  const raizLaboratorio = rutaSegura('.');
-  const rutaEnSandbox = join('/workspace', relative(raizLaboratorio, destino));
   const inicio = Date.now();
-  const r = spawnSync(
-    'bwrap',
-    argumentosSandbox(['--experimental-strip-types', '--disable-warning=ExperimentalWarning', rutaEnSandbox]),
+  // Node lee el snapshot por stdin; no vuelve a resolver la ruta de respuesta.
+  const r = conLaboratorioAnclado((descriptor) => spawnSync(
+    'systemd-run',
+    [
+      '--user',
+      '--scope',
+      '--quiet',
+      ...PROPIEDADES_CGROUP,
+      '--',
+      'bwrap',
+      ...argumentosSandbox(
+        ['--experimental-strip-types', '--disable-warning=ExperimentalWarning', '-'],
+        '/proc/self/fd/3',
+      ),
+    ],
     {
-      cwd: LABORATORIO,
+      cwd: '/',
       timeout: LIMITE_MS,
       encoding: 'utf8',
       maxBuffer: 1024 * 256,
-      env: { PATH: process.env.PATH ?? '/usr/bin:/bin' },
-    },
-  );
+      input: codigo,
+      stdio: ['pipe', 'pipe', 'pipe', descriptor],
+      env: entornoSystemd(),
+    }));
   const ms = Date.now() - inicio;
 
   if (r.error instanceof Error && 'code' in r.error && String(r.error.code) === 'ETIMEDOUT') {
@@ -171,7 +214,10 @@ export function ejecutar(rutaRelativa: string): Ejecucion {
   return {
     corrio: r.status === 0,
     salida: limpiar(r.stdout).slice(0, 2000),
-    error: limpiar(r.stderr).slice(0, 2000),
+    error: limpiar(r.stderr).slice(0, 2000)
+      || (r.status === 0
+        ? ''
+        : `La ejecución terminó sin éxito (código ${r.status ?? 'desconocido'}${r.signal ? `, señal ${r.signal}` : ''}).`),
     ms,
   };
 }
