@@ -1,11 +1,14 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { mkdirSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { DatabaseSync } from 'node:sqlite';
+import { dirname } from 'node:path';
 import type { WhatsAppConfig, WebhookPayload, WebhookContact, Respuesta } from './tipos.ts';
 import { WhatsAppSender } from './sender.ts';
 
 const MAX_BODY_BYTES = 64 * 1024;
 const REPLAY_MAX_ENTRIES = 10_000;
-const REPLAY_TTL_MS = 10 * 60 * 1000;
+const MESSAGE_FRESHNESS_WINDOW_SECONDS = 30 * 60;
 
 export interface MensajeRecibido {
   from: string;
@@ -19,40 +22,83 @@ export interface MensajeRecibido {
 export type HandlerMensaje = (msg: MensajeRecibido) => Promise<Respuesta | string | null>;
 
 export class ReplayGuard {
-  private seen = new Map<string, number>();
+  private readonly db: DatabaseSync;
+  private readonly maxEntries: number;
+  private capacityWarningShown = false;
 
-  check(messageId: string): boolean {
-    this.evict();
-    if (this.seen.has(messageId)) return false;
-    this.seen.set(messageId, Date.now());
-    return true;
+  constructor(dbPath = ':memory:', maxEntries = REPLAY_MAX_ENTRIES) {
+    if (!Number.isSafeInteger(maxEntries) || maxEntries < 1) {
+      throw new Error('El límite de replay debe ser un entero positivo.');
+    }
+    this.maxEntries = maxEntries;
+    if (dbPath !== ':memory:') mkdirSync(dirname(dbPath), { recursive: true });
+    this.db = new DatabaseSync(dbPath);
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS whatsapp_replay (
+        message_id TEXT PRIMARY KEY,
+        expires_at INTEGER NOT NULL
+      )
+    `);
   }
 
-  private evict(): void {
-    if (this.seen.size < REPLAY_MAX_ENTRIES) return;
-    const cutoff = Date.now() - REPLAY_TTL_MS;
-    for (const [id, ts] of this.seen) {
-      if (ts < cutoff) this.seen.delete(id);
-    }
-    if (this.seen.size >= REPLAY_MAX_ENTRIES) {
-      const oldest = [...this.seen.entries()].sort((a, b) => a[1] - b[1]);
-      const toRemove = oldest.slice(0, Math.floor(REPLAY_MAX_ENTRIES / 4));
-      for (const [id] of toRemove) this.seen.delete(id);
+  check(messageId: string, timestampSeconds = Math.floor(Date.now() / 1000)): boolean {
+    const now = Math.floor(Date.now() / 1000);
+    if (!messageId || !Number.isSafeInteger(timestampSeconds)
+      || timestampSeconds < now - MESSAGE_FRESHNESS_WINDOW_SECONDS
+      || timestampSeconds > now + MESSAGE_FRESHNESS_WINDOW_SECONDS) return false;
+
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      this.db.prepare('DELETE FROM whatsapp_replay WHERE expires_at <= ?').run(now);
+      if (this.db.prepare('SELECT 1 FROM whatsapp_replay WHERE message_id = ?').get(messageId)) {
+        this.db.exec('COMMIT');
+        return false;
+      }
+
+      const count = this.db.prepare('SELECT COUNT(*) AS count FROM whatsapp_replay')
+        .get() as { count: number };
+      if (count.count >= this.maxEntries) {
+        if (!this.capacityWarningShown) {
+          console.error('[WhatsApp] Replay storage is full; rejecting new message IDs.');
+          this.capacityWarningShown = true;
+        }
+        this.db.exec('COMMIT');
+        return false;
+      }
+
+      this.capacityWarningShown = false;
+      const expiresAt = timestampSeconds + MESSAGE_FRESHNESS_WINDOW_SECONDS;
+      const result = this.db.prepare(
+        'INSERT OR IGNORE INTO whatsapp_replay (message_id, expires_at) VALUES (?, ?)',
+      ).run(messageId, expiresAt);
+      this.db.exec('COMMIT');
+      return result.changes === 1;
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      throw error;
     }
   }
 
-  get size(): number { return this.seen.size; }
+  get size(): number {
+    return (this.db.prepare('SELECT COUNT(*) AS count FROM whatsapp_replay')
+      .get() as { count: number }).count;
+  }
+
+  close(): void {
+    this.db.close();
+  }
 }
 
 export class WhatsAppWebhook {
   private readonly config: WhatsAppConfig;
   private readonly sender: WhatsAppSender;
-  private readonly replay = new ReplayGuard();
+  private readonly replay: ReplayGuard;
   private handler: HandlerMensaje = async () => null;
 
-  constructor(config: WhatsAppConfig) {
+  constructor(config: WhatsAppConfig, replay = new ReplayGuard()) {
     this.config = config;
     this.sender = new WhatsAppSender(config);
+    this.replay = replay;
   }
 
   onMensaje(handler: HandlerMensaje): void {
@@ -119,7 +165,7 @@ export class WhatsAppWebhook {
         const contacts = change.value.contacts ?? [];
 
         for (const msg of messages) {
-          if (!this.replay.check(msg.id)) continue;
+          if (!this.replay.check(msg.id, Number(msg.timestamp))) continue;
 
           const contacto = contacts.find((c: WebhookContact) => c.wa_id === msg.from);
           const recibido = this.extraerMensaje(msg, contacto);
@@ -134,8 +180,8 @@ export class WhatsAppWebhook {
             } else {
               await this.sender.enviar(msg.from, respuesta);
             }
-          } catch (e) {
-            console.error('[WhatsApp] Error procesando mensaje:', e instanceof Error ? e.message : e);
+          } catch {
+            console.error('[WhatsApp] Handler failed');
           }
         }
       }

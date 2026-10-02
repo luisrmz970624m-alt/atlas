@@ -12,7 +12,8 @@ export function crearWhatsApp(config: WhatsAppConfig, modulos: ModulosAtlas = {}
 } {
   const sesiones = new SesionesWhatsApp(dbPath);
   const router = new RouterWhatsApp(sesiones, modulos);
-  const webhook = new WhatsAppWebhook(config);
+  const replay = new ReplayGuard(dbPath ?? 'datos/whatsapp-sesiones.db');
+  const webhook = new WhatsAppWebhook(config, replay);
   const sender = new WhatsAppSender(config);
 
   webhook.onMensaje(async (msg) => router.procesar(msg));

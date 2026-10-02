@@ -14,12 +14,13 @@ import type { WhatsAppConfig } from '../src/whatsapp/tipos.ts';
 const APP_SECRET = 'test-app-secret-32bytes-longenough';
 const CFG: WhatsAppConfig = { accessToken: 'test-tok', phoneNumberId: '123', verifyToken: 'vt', appSecret: APP_SECRET };
 const tmpDb = join(process.env.TMPDIR ?? '/tmp', `wa-sec-${Date.now()}.db`);
+const tmpReplayDb = join(process.env.TMPDIR ?? '/tmp', `wa-replay-${process.pid}-${Date.now()}.db`);
 
 function signPayload(body: string, secret: string): string {
   return 'sha256=' + createHmac('sha256', secret).update(Buffer.from(body)).digest('hex');
 }
 
-function webhookPayload(msgId = 'wamid.test1', text = 'menu'): string {
+function webhookPayload(msgId = 'wamid.test1', text = 'menu', timestamp = Math.floor(Date.now() / 1000)): string {
   return JSON.stringify({
     object: 'whatsapp_business_account',
     entry: [{
@@ -29,7 +30,7 @@ function webhookPayload(msgId = 'wamid.test1', text = 'menu'): string {
           messaging_product: 'whatsapp',
           metadata: { display_phone_number: '15551234567', phone_number_id: '123' },
           contacts: [{ profile: { name: 'Test' }, wa_id: '5215500000000' }],
-          messages: [{ from: '5215500000000', id: msgId, timestamp: '1700000000', type: 'text', text: { body: text } }],
+          messages: [{ from: '5215500000000', id: msgId, timestamp: String(timestamp), type: 'text', text: { body: text } }],
         },
         field: 'messages',
       }],
@@ -53,6 +54,26 @@ function mockRes(): { status: number; body: string; obj: any } {
     end(b?: string) { r.body = b ?? ''; },
   };
   return { ...r, obj, get status() { return r.status; }, get body() { return r.body; } };
+}
+
+async function probarLogDeFalloHandler(error: unknown, messageId: string): Promise<{ logs: unknown[][]; status: number }> {
+  const webhook = new WhatsAppWebhook(CFG);
+  webhook.onMensaje(async () => { throw error; });
+  const body = webhookPayload(messageId);
+  const response = mockRes();
+  const logs: unknown[][] = [];
+  const originalError = console.error;
+  console.error = (...args: unknown[]) => { logs.push(args); };
+  try {
+    await webhook.manejar(
+      mockReq(body, signPayload(body, APP_SECRET)),
+      response.obj,
+      new URL('http://localhost/webhook/whatsapp'),
+    );
+  } finally {
+    console.error = originalError;
+  }
+  return { logs, status: response.status };
 }
 
 // =========================================================
@@ -217,6 +238,36 @@ describe('Security — Replay protection', () => {
     }
   });
 
+  it('duplicate messageId remains rejected after webhook restart', async () => {
+    const messageId = `wamid.persist-${Date.now()}`;
+    const body = webhookPayload(messageId);
+    const sig = signPayload(body, APP_SECRET);
+    let callCount = 0;
+
+    const firstReplay = new ReplayGuard(tmpReplayDb);
+    const firstWebhook = new WhatsAppWebhook(CFG, firstReplay);
+    firstWebhook.onMensaje(async () => { callCount++; return null; });
+    await firstWebhook.manejar(mockReq(body, sig), mockRes().obj, new URL('http://localhost/webhook/whatsapp'));
+    firstReplay.close();
+
+    const restartedReplay = new ReplayGuard(tmpReplayDb);
+    const restartedWebhook = new WhatsAppWebhook(CFG, restartedReplay);
+    restartedWebhook.onMensaje(async () => { callCount++; return null; });
+    await restartedWebhook.manejar(mockReq(body, sig), mockRes().obj, new URL('http://localhost/webhook/whatsapp'));
+    restartedReplay.close();
+
+    assert.equal(callCount, 1);
+    unlinkSync(tmpReplayDb);
+  });
+
+  it('rejects message timestamps outside the 30-minute freshness window', () => {
+    const guard = new ReplayGuard();
+    const now = Math.floor(Date.now() / 1000);
+    assert.equal(guard.check('wamid.stale', now - 1801), false);
+    assert.equal(guard.check('wamid.future', now + 1801), false);
+    guard.close();
+  });
+
   it('duplicate messageId does not mutate session twice', async () => {
     const sesiones = new SesionesWhatsApp(tmpDb);
     const router = new RouterWhatsApp(sesiones);
@@ -244,12 +295,15 @@ describe('Security — Replay protection', () => {
     try { unlinkSync(tmpDb); } catch {}
   });
 
-  it('bounded storage evicts old entries', () => {
-    const guard = new ReplayGuard();
-    for (let i = 0; i < 10_001; i++) {
-      guard.check(`msg-${i}`);
-    }
-    assert.ok(guard.size <= 10_000);
+  it('bounded storage fails closed instead of evicting unexpired IDs', () => {
+    const guard = new ReplayGuard(':memory:', 3);
+    assert.equal(guard.check('msg-1'), true);
+    assert.equal(guard.check('msg-2'), true);
+    assert.equal(guard.check('msg-3'), true);
+    assert.equal(guard.check('msg-4'), false);
+    assert.equal(guard.check('msg-1'), false);
+    assert.equal(guard.size, 3);
+    guard.close();
   });
 });
 
@@ -367,6 +421,22 @@ describe('Security — Secret handling', () => {
 
     await webhook.manejar(req, res.obj, new URL('http://localhost/webhook/whatsapp'));
     assert.equal(res.status, 200);
+  });
+
+  it('handler Error logs only a fixed message and preserves webhook response', async () => {
+    const secret = 'SECRET_TOKEN_ABC123';
+    const { logs, status } = await probarLogDeFalloHandler(new Error(secret), 'wamid.error-log');
+    assert.equal(status, 200);
+    assert.deepEqual(logs, [['[WhatsApp] Handler failed']]);
+    assert.equal(JSON.stringify(logs).includes(secret), false);
+  });
+
+  it('thrown secret string is not logged and handler failure is contained', async () => {
+    const secret = 'SECRET_TOKEN_PLAIN_STRING_456';
+    const { logs, status } = await probarLogDeFalloHandler(secret, 'wamid.string-log');
+    assert.equal(status, 200);
+    assert.deepEqual(logs, [['[WhatsApp] Handler failed']]);
+    assert.equal(JSON.stringify(logs).includes(secret), false);
   });
 });
 
